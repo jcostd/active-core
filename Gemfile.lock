@@ -404,7 +404,7 @@ DEPENDENCIES
   prawn-table (~> 0.2.2)
   propshaft
   puma (>= 5.0)
-  rails (~> 8.1.1)
+  rails (~> 8.1.2)
   rails-i18n (~> 8.1)
   rubocop-rails-omakase
   selenium-webdriver
