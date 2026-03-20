@@ -32,7 +32,7 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-gem "phonelib", "~> 0.10.15"
+gem "phonelib", "~> 0.10.17"
 gem "pagy", "~> 43.2"
 
 gem "prawn", "~> 2.4"

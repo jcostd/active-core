@@ -206,7 +206,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pdf-core (0.9.0)
-    phonelib (0.10.16)
+    phonelib (0.10.17)
     pp (0.6.3)
       prettyprint
     prawn (2.4.0)
@@ -399,7 +399,7 @@ DEPENDENCIES
   jbuilder
   kamal
   pagy (~> 43.2)
-  phonelib (~> 0.10.15)
+  phonelib (~> 0.10.17)
   prawn (~> 2.4)
   prawn-table (~> 0.2.2)
   propshaft
@@ -495,7 +495,7 @@ CHECKSUMS
   parallel (1.27.0) sha256=4ac151e1806b755fb4e2dc2332cbf0e54f2e24ba821ff2d3dcf86bf6dc4ae130
   parser (3.3.10.2) sha256=6f60c84aa4bdcedb6d1a2434b738fe8a8136807b6adc8f7f53b97da9bc4e9357
   pdf-core (0.9.0) sha256=4f368b2f12b57ec979872d4bf4bd1a67e8648e0c81ab89801431d2fc89f4e0bb
-  phonelib (0.10.16) sha256=719c4cc099cd2f356bdadb1a3bccbadd1c67fe332e96a9b3028525e44c425fea
+  phonelib (0.10.17) sha256=8c97b6abc1877a8313ef32f9438cd35e24a943f9a70666af85eb69ab81caf4e3
   pp (0.6.3) sha256=2951d514450b93ccfeb1df7d021cae0da16e0a7f95ee1e2273719669d0ab9df6
   prawn (2.4.0) sha256=82062744f7126c2d77501da253a154271790254dfa8c309b8e52e79bc5de2abd
   prawn-table (0.2.2) sha256=336d46e39e003f77bf973337a958af6a68300b941c85cb22288872dc2b36addb
