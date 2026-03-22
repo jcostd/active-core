@@ -25,12 +25,14 @@
           <% end %>
         </li>
 
-        <li>
-          <%= active_link_to member_sales_path(member) do %>
-            <%= icon("receipt", size: 18) %>
-            <%= t("members.sidebar.sales", default: "Storico Acquisti") %>
-          <% end %>
-        </li>
+	<% if current_user.admin? %>
+	  <li>
+	    <%= active_link_to member_sales_path(member) do %>
+	      <%= icon("receipt", size: 18) %>
+	      <%= t("members.sidebar.sales", default: "Storico Acquisti") %>
+	    <% end %>
+	  </li>
+	<% end %>
 
         <!-- TODO -->
         <% if nil %>
@@ -110,10 +112,6 @@
   </div>
 <% end %>
 
-<%# Renderizza l'header standard (che usa i content_for qui sopra) %>
-
 <%= render "shared/header/record" %>
-
-<%# --- 3. CONTENUTO DELLA VIEW --- %>
 
 <div class="mt-6"><%= yield %></div>

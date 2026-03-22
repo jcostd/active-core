@@ -1,4 +1,5 @@
 class Members::SalesController < ApplicationController
+  before_action :require_admin
   before_action :set_member
 
   def index

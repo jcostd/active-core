@@ -1,3 +1,3 @@
-<%= render layout: "shared/modal", locals: { title: t(".title"), size: :large } do %>
+<%= render layout: "shared/modal", locals: { title: t(".title", default: "Nuova Vendita"), size: :large } do %>
   <%= render "form", sale: @sale %>
 <% end %>
