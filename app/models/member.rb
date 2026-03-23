@@ -1,5 +1,5 @@
 class Member < ApplicationRecord
-  include Filterable, SoftDeletable, Personable, HasAddress, Avatarable
+  include FtsSearchable, Filterable, SoftDeletable, Personable, HasAddress, Avatarable
 
   # --- NORMALIZATIONS ---
   normalizes :fiscal_code, with: ->(c) { c.strip.upcase }

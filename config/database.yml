@@ -12,6 +12,7 @@ default: &default
 development:
   <<: *default
   database: storage/development.sqlite3
+  schema_format: :sql
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -19,7 +20,7 @@ development:
 test:
   <<: *default
   database: storage/test.sqlite3
-
+  schema_format: :sql
 
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
@@ -27,15 +28,19 @@ production:
   primary:
     <<: *default
     database: storage/production.sqlite3
+    schema_format: :sql
   cache:
     <<: *default
     database: storage/production_cache.sqlite3
+    schema_format: :ruby
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
     database: storage/production_queue.sqlite3
+    schema_format: :ruby
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
     database: storage/production_cable.sqlite3
+    schema_format: :ruby
     migrations_paths: db/cable_migrate
