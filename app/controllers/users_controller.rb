@@ -12,6 +12,7 @@ class UsersController < ApplicationController
 
   def new
     @user = User.new(role: :staff)
+    render layout: "modal"
   end
 
   def create
@@ -20,11 +21,12 @@ class UsersController < ApplicationController
     if @user.save
       redirect_to users_path, notice: t(".created", default: "Utente creato con successo.")
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def edit
+    render layout: "modal"
   end
 
   def update
@@ -37,7 +39,7 @@ class UsersController < ApplicationController
     if @user.update(upd_params)
       redirect_to users_path, notice: t(".updated", default: "Profilo utente aggiornato.")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 

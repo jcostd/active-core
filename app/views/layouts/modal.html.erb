@@ -1,4 +1,4 @@
-<%= turbo_frame_tag "modal" do %>
+<%= turbo_frame_tag (turbo_frame_request_id || "modal") do %>
 
   <dialog
     class="modal modal-bottom sm:modal-middle"
@@ -29,6 +29,7 @@
 
     </div>
 
+    <%= render "shared/feedback_fab" %>
   </dialog>
 
 <% end %>

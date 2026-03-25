@@ -1,3 +1,5 @@
-<%= render layout: "shared/modal", locals: { title: t(".title", name: @product.name) } do %>
-  <%= render "form", product: @product %>
+<% content_for :title do %>
+  Modifica <%= @product.name %>
 <% end %>
+
+<%= render "form", product: @product %>

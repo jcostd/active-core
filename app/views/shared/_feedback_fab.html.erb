@@ -1,0 +1,7 @@
+<div class="fixed bottom-6 right-6 z-50">
+  <%= link_to new_feedback_path(current_page: request.original_url),
+	      class: "btn btn-circle btn-neutral btn-lg shadow-xl transition-transform hover:scale-110 tooltip tooltip-left border-2 border-base-100",
+	      data: { turbo_frame: "feedback_modal", tip: "Segnala un problema o suggerisci una funzione" } do %>
+    <%= icon("chat_bubble", size: 25, class: "text-white") %>
+  <% end %>
+</div>

@@ -14,6 +14,8 @@ class DisciplinesController < ApplicationController
       requires_medical_certificate: true,
       requires_membership: true
     )
+
+    render layout: "modal"
   end
 
   def create
@@ -22,18 +24,19 @@ class DisciplinesController < ApplicationController
     if @discipline.save
       redirect_to disciplines_path, notice: t(".created", default: "Disciplina creata con successo.")
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def edit
+    render layout: "modal"
   end
 
   def update
     if @discipline.update(discipline_params)
       redirect_to disciplines_path, notice: t(".updated", default: "Disciplina aggiornata.")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 

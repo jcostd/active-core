@@ -15,6 +15,8 @@ class ProductsController < ApplicationController
       accounting_category: :institutional,
       duration_days: 30
     )
+
+    render layout: "modal"
   end
 
   def create
@@ -23,23 +25,24 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def edit
+    render layout: "modal"
   end
 
   def update
     if @product.update(product_params)
       redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def destroy
-    if @product.discard
+    if @product.discard!
       redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
     else
       redirect_to products_path, alert: t(".error", default: "Impossibile archiviare.")

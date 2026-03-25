@@ -1,34 +1,26 @@
-<%= form_with model: feedback, class: "flex flex-col gap-4", data: { turbo_frame: "_top" } do |f| %>
+<%= form_with(model: feedback) do |f| %>
+  <%= render "shared/form_errors", model: feedback %>
+
   <%= f.hidden_field :page_url %>
 
-  <div class="form-control">
+  <fieldset class="fieldset">
     <%= f.label :message, "Come possiamo aiutarti?", class: "label label-text font-medium" %>
 
-    <%= f.text_area :message, 
-        rows: 4, 
-        class: "textarea textarea-bordered h-32 w-full focus:outline-indigo-500", 
-        placeholder: "Ho trovato un errore in... / Vorrei che ci fosse...", 
+    <%= f.text_area :message,
+        rows: 4,
+        class: "textarea textarea-bordered h-32 w-full focus:outline-indigo-500",
+        placeholder: "Ho trovato un errore in... / Vorrei che ci fosse...",
         required: true,
         autofocus: true %>
+  </fieldset>
 
-    <% if feedback.errors[:message].any? %>
-      <label class="label">
-        <span class="label-text-alt text-error">
-          <%= feedback.errors[:message].join(", ") %>
-        </span>
-      </label>
-    <% end %>
+  <!-- Begin Actions -->
+  <div class="modal-action">
+    <%= f.submit "Salva",
+    class: "btn btn-primary px-4",
+    data: {
+      turbo_submits_with: 'Salvataggio...'
+    } %>
   </div>
-
-  <div class="modal-action flex justify-end gap-2">
-    <button
-      type="button"
-      class="btn btn-ghost"
-      onclick="document.getElementById('feedback_overlay').innerHTML = ''"
-    >
-      Annulla
-    </button>
-
-    <%= f.submit "Invia Feedback", class: "btn btn-neutral text-white" %>
-  </div>
+  <!-- End Actions -->
 <% end %>

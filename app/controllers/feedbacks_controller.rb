@@ -2,6 +2,7 @@ class FeedbacksController < ApplicationController
   def new
     @feedback = Feedback.new
     @feedback.page_url = params[:current_page] || request.referer
+    render layout: "modal"
   end
 
   def create
@@ -12,7 +13,7 @@ class FeedbacksController < ApplicationController
     if @feedback.save
       redirect_back fallback_location: root_path, notice: "Segnalazione inviata. Grazie per il tuo aiuto!"
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 

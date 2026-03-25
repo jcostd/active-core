@@ -1,3 +1,5 @@
-<%= render layout: "shared/modal", locals: { title: "Modificando #{@member.full_name}" } do %>
-  <%= render "form", member: @member %>
+<% content_for :title do %>
+  Modifica <%= @member.full_name %>
 <% end %>
+
+<%= render "form", member: @member %>

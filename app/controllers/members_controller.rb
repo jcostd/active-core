@@ -32,6 +32,7 @@ class MembersController < ApplicationController
 
   def new
     @member = Member.new
+    render layout: "modal"
   end
 
   def create
@@ -40,17 +41,19 @@ class MembersController < ApplicationController
     if @member.save
       redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 
-  def edit; end
+  def edit
+    render layout: "modal"
+  end
 
   def update
     if @member.update(member_params)
       redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 

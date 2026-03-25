@@ -1,21 +1,8 @@
-<%= turbo_frame_tag "feedback_overlay" do %>
-  <dialog class="modal modal-open z-[99999]" open>
-    <div class="modal-box shadow-2xl bg-base-100">
-      <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-        <%= icon("contact_support", size: 24, class: "text-base-content") %>
-        Feedback & Supporto
-      </h3>
-
-      <%= render "form", feedback: @feedback %>
-    </div>
-
-    <form method="dialog" class="modal-backdrop">
-      <button
-        type="button"
-        onclick="document.getElementById('feedback_overlay').innerHTML = ''"
-      >
-        close
-      </button>
-    </form>
-  </dialog>
+<% content_for :title do %>
+  <div class="flex items-center gap-2">
+    <%= icon("contact_support", size: 24, class: "text-base-content") %>
+    Feedback & Supporto
+  </div>
 <% end %>
+
+<%= render "form", feedback: @feedback %>

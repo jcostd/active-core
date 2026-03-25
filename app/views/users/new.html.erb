@@ -1,3 +1,5 @@
-<%= render layout: "shared/modal", locals: { title: t(".title") } do %>
-  <%= render "form", user: @user %>
+<% content_for :title do %>
+  Nuovo Utente
 <% end %>
+
+<%= render "form", user: @user %>
