@@ -2,10 +2,13 @@ class SalesController < ApplicationController
   before_action :require_admin, only: [ :index ]
   before_action :set_sale, only: [ :show, :destroy ]
 
+  # 1. IL LAYOUT: Diciamo a Rails di usare il layout "pos" invece di quello standard
+  layout "pos", only: [ :new, :create ]
+
   def index
     scope = Sale.kept
-                 .includes(:member, :user)
-                 .order(sold_on: :desc, created_at: :desc)
+                .includes(:member, :user)
+                .order(sold_on: :desc, created_at: :desc)
     @pagy, @sales = pagy(scope)
   end
 
@@ -23,14 +26,21 @@ class SalesController < ApplicationController
   end
 
   def new
-    @sale = Sale.new(sold_on: Date.current, user: current_user)
-    @sale.build_subscription(start_date: Date.current)
+    # 2. Inizializziamo la vendita. sale_params_for_build passa i dati se stiamo
+    # facendo autosubmit, altrimenti passa un hash vuoto al primo caricamento.
+    @sale = Sale.new(sale_params_for_build)
 
-    if params[:member_id]
-      @sale.member = Member.find(params[:member_id])
-    end
+    # Valori di default
+    @sale.user = current_user
+    @sale.sold_on ||= Date.current
+    @sale.member_id ||= params[:member_id]
 
-    setup_renewal_data if params[:renew_subscription_id]
+    # 3. LA MAGIA: Chiediamo al modello di autoconfigurarsi.
+    # Il controller non sa NULLA di come si calcolano prezzi o date.
+    @sale.prepare_draft(
+      renew_subscription_id: params[:renew_subscription_id],
+      manual_start_date: params.dig(:sale, :subscription_attributes, :start_date)
+    )
   end
 
   def create
@@ -40,7 +50,11 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
     else
-      @sale.build_subscription(start_date: Date.current) if @sale.subscription.nil?
+      # Se c'è un errore di validazione, dobbiamo ri-preparare la bozza per
+      # assicurarci che la UI abbia i calcoli live corretti prima di renderizzare
+      @sale.prepare_draft(
+        manual_start_date: params.dig(:sale, :subscription_attributes, :start_date)
+      )
       render :new, status: :unprocessable_entity
     end
   end
@@ -54,22 +68,16 @@ class SalesController < ApplicationController
   end
 
   private
+
     def set_sale
       @sale = Sale.find(params[:id])
     end
 
-    def setup_renewal_data
-      return unless @sale.member && params[:renew_subscription_id]
-
-      old_sub = @sale.member.subscriptions.find(params[:renew_subscription_id])
-
-      @sale.product = old_sub.product
-      @sale.amount  = old_sub.product.price || 0
-
-      dates = RenewalCalculator.new(@sale.member, @sale.product, Date.current).call
-
-      @sale.subscription.start_date = dates[:start_date]
-      @sale.subscription.end_date   = dates[:end_date]
+    # Questo ci serve perché la action `new` ora viene chiamata in due modi:
+    # 1. Link normale (params[:sale] non esiste -> solleverebbe errore con `require`)
+    # 2. Autosubmit di Turbo (params[:sale] esiste e vogliamo i dati)
+    def sale_params_for_build
+      params.has_key?(:sale) ? sale_params : {}
     end
 
     def sale_params

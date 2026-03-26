@@ -1,0 +1,25 @@
+<turbo-frame id="<%= params[:frame_id] || 'member_search_results' %>">
+  <% if @members.any? %>
+    <ul class="menu bg-base-100 w-full shadow-2xl rounded-box border border-base-300 absolute z-50 mt-1 max-h-60 overflow-y-auto">
+      <% @members.each do |member| %>
+        <li>
+          <button type="button"
+                  data-action="click->autocomplete#select"
+                  data-id="<%= member.id %>"
+                  data-name="<%= member.full_name_ruby %>">
+            <div class="flex flex-col items-start w-full">
+              <span class="font-bold text-base-content"><%= member.full_name_ruby %></span>
+              <span class="text-xs text-base-content/60">
+                <%= member.email_address.presence || "No email" %> | CF: <%= member.fiscal_code.presence || "N/A" %>
+              </span>
+            </div>
+          </button>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="p-4 bg-base-100 shadow-2xl rounded-box border border-base-300 absolute z-50 mt-1 w-full text-sm text-base-content/70">
+      Nessun socio trovato con questa ricerca.
+    </div>
+  <% end %>
+</turbo-frame>

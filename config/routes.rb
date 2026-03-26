@@ -5,6 +5,14 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
 
+  concern :searchable do
+    resources :searches, only: [ :index ]
+  end
+
+  namespace :members do
+    concerns :searchable
+  end
+
   # ============================================================================
   # 2. ANAGRAFICA (Registry)
   # ============================================================================
