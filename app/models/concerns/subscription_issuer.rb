@@ -1,8 +1,5 @@
-# app/models/concerns/subscription_issuer.rb
 module SubscriptionIssuer
   extend ActiveSupport::Concern
-
-  RENEWAL_GRACE_PERIOD_DAYS = 30
 
   included do
     has_one :subscription, dependent: :destroy, inverse_of: :sale
@@ -15,12 +12,13 @@ module SubscriptionIssuer
   end
 
   private
+
     def discard_subscription
-      subscription&.discard!
+      subscription.discard! if subscription.present? && !subscription.discarded?
     end
 
     def undiscard_subscription
-      subscription&.undiscard!
+      subscription.undiscard! if subscription.present? && subscription.discarded?
     end
 
     def require_active_membership_for_courses

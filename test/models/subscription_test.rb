@@ -88,16 +88,20 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_includes Subscription.upcoming, upcoming
   end
 
-  test "validates end date after start date" do
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.today)
+  test "admin override: prevents Duration calculator from modifying explicitly provided end_dates" do
+    invalid_end_date = Date.current + 50.days # Una data sballata
 
-    sub = Subscription.new(
-      member: @member, product: @prod_inst, sale: sale,
-      start_date: Date.today,
-      end_date: Date.yesterday # Errore manuale
+    subscription = Subscription.new(
+      member: @member,
+      product: @product,
+      sale: @sale,
+      start_date: Date.current,
+      end_date: invalid_end_date # Simuliamo l'Admin che la inserisce a mano
     )
 
-    assert_not sub.valid?
-    assert_includes sub.errors[:end_date], "must be after or equal to start date"
+    subscription.valid? # Scatena le before_validation
+
+    # Ora ci aspettiamo che il sistema NON l'abbia toccata!
+    assert_equal invalid_end_date, subscription.end_date
   end
 end

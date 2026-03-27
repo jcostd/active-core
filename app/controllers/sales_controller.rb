@@ -26,21 +26,15 @@ class SalesController < ApplicationController
   end
 
   def new
-    # 2. Inizializziamo la vendita. sale_params_for_build passa i dati se stiamo
-    # facendo autosubmit, altrimenti passa un hash vuoto al primo caricamento.
     @sale = Sale.new(sale_params_for_build)
-
-    # Valori di default
-    @sale.user = current_user
     @sale.sold_on ||= Date.current
-    @sale.member_id ||= params[:member_id]
 
-    # 3. LA MAGIA: Chiediamo al modello di autoconfigurarsi.
-    # Il controller non sa NULLA di come si calcolano prezzi o date.
-    @sale.prepare_draft(
-      renew_subscription_id: params[:renew_subscription_id],
-      manual_start_date: params.dig(:sale, :subscription_attributes, :start_date)
-    )
+    if params[:previous_product_id] != @sale.product_id.to_s || params[:previous_member_id] != @sale.member_id.to_s
+      @sale.amount = nil
+      @sale.subscription.start_date = nil if @sale.subscription
+    end
+
+    @sale.prepare_draft
   end
 
   def create

@@ -1,62 +1,68 @@
 import { Controller } from "@hotwired/stimulus"
+import { debounce } from "utils/debounce"
 
 export default class extends Controller {
     static targets = ["input", "hidden", "frame"]
 
     connect() {
-	this.clickOutsideHandler = this.clickOutside.bind(this)
-	document.addEventListener("click", this.clickOutsideHandler)
+        this.performSearch = debounce(this.performSearch.bind(this), 300)
     }
 
-    disconnect() {
-	document.removeEventListener("click", this.clickOutsideHandler)
+    search() {
+        this.performSearch()
+    }
+
+    performSearch() {
+        const query = this.inputTarget.value.trim()
+        const urlString = this.inputTarget.dataset.url
+
+        if (!urlString) return
+
+        if (query.length < 2) {
+            this.closeFrame()
+            return
+        }
+
+        const url = new URL(urlString, window.location.origin)
+        url.searchParams.set("query", query)
+        url.searchParams.set("frame_id", this.frameTarget.id)
+
+        this.frameTarget.src = url.toString()
     }
 
     select(event) {
-	event.preventDefault()
+        event.preventDefault()
 
-	// 1. Estraiamo i dati dal bottone cliccato
-	const button = event.currentTarget
-	const id = button.dataset.id
-	const name = button.dataset.name
+        const button = event.currentTarget
+        this.hiddenTarget.value = button.dataset.id
+        this.inputTarget.value = button.dataset.name
 
-	// 2. Aggiorniamo i campi
-	this.hiddenTarget.value = id
-	this.inputTarget.value = name
+        this.closeFrame()
+        this.inputTarget.blur()
 
-	// 3. Chiudiamo la tendina (svuotando il frame)
-	this.closeFrame()
-
-	// 4. UX: Togliamo il focus dall'input (ottimo per nascondere la tastiera su mobile)
-	this.inputTarget.blur()
-
-	// 5. IL TOCCO MAGICO: Inneschiamo l'autosubmit!
-	// Lanciamo un evento 'change' sul campo nascosto, che verrà intercettato da autosubmit
-	this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
+        this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
     }
 
     clearIfEmpty() {
-	if (this.inputTarget.value.trim() === "") {
-
-	    if (this.hiddenTarget.value !== "") {
-		this.hiddenTarget.value = ""
-		this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
-	    }
-
-	    this.closeFrame()
-	}
+        if (this.inputTarget.value.trim() === "") {
+            if (this.hiddenTarget.value !== "") {
+                this.hiddenTarget.value = ""
+                this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
+            }
+            this.closeFrame()
+        }
     }
 
     closeFrame() {
-	if (this.hasFrameTarget) {
-	    this.frameTarget.innerHTML = ""
-	    this.frameTarget.removeAttribute("src")
-	}
+        if (this.hasFrameTarget) {
+            this.frameTarget.innerHTML = ""
+            this.frameTarget.removeAttribute("src")
+        }
     }
 
     clickOutside(event) {
-	if (!this.element.contains(event.target)) {
-	    this.closeFrame()
-	}
+        if (!this.element.contains(event.target)) {
+            this.closeFrame()
+        }
     }
 }

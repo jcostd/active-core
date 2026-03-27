@@ -110,8 +110,8 @@ class SubscriptionIssuerTest < ActiveSupport::TestCase
     end
   end
 
-  test "smart renewal: manual date override respects start but calculates calendar end" do
-    # Scenario: Operatore forza inizio al 15 Gennaio.
+  test "smart renewal: staff manual start date snaps to month start for calendar products" do
+    # Scenario: Operatore (Staff) forza inizio al 15 Gennaio dal form.
     manual_date = Date.new(2025, 1, 15)
 
     sale_params = default_sale_params
@@ -119,16 +119,31 @@ class SubscriptionIssuerTest < ActiveSupport::TestCase
 
     sale = Sale.create!(sale_params)
 
-    # 1. Start Date: L'override manuale VINCE su tutto. Non viene "snappato" se inserito a mano.
-    # (A meno che tu non abbia modificato anche quella logica, ma da codice precedente vinceva l'umano)
-    assert_equal manual_date, sale.subscription.start_date
+    # 1. Start Date: Duration intercetta il 15 Gennaio e applica lo SNAP
+    # al 1° del mese per coprire i giorni antecedenti non pagati (Regola Palestra).
+    expected_start = Date.new(2025, 1, 1)
 
-    # 2. End Date: Calcolata da Duration.
-    # Duration prende 15 Gen -> Snappa a 1 Gen -> Calcola fine mese 31 Gen.
-    # Quindi ci aspettiamo che finisca a fine mese.
+    # 2. End Date: Calcolata da Duration (31 Gennaio).
     expected_end = Date.new(2025, 1, 31)
 
+    assert_equal expected_start, sale.subscription.start_date
     assert_equal expected_end, sale.subscription.end_date
+  end
+
+  # AGGIUNGI QUESTO NUOVO TEST per blindare il potere dell'Admin
+  test "admin override: explicitly providing both dates completely bypasses calculation" do
+    start_override = Date.new(2025, 1, 15)
+    end_override = Date.new(2025, 3, 10) # Una data totalmente arbitraria
+
+    sale_params = default_sale_params
+    sale_params[:subscription_attributes][:start_date] = start_override
+    sale_params[:subscription_attributes][:end_date] = end_override
+
+    sale = Sale.create!(sale_params)
+
+    # Il sistema accetta le date così come sono, senza snappare o ricalcolare nulla
+    assert_equal start_override, sale.subscription.start_date
+    assert_equal end_override, sale.subscription.end_date
   end
 
   # --- TEST SOFT DELETE ---

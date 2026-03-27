@@ -1,180 +1,97 @@
 <%# app/views/sales/_form.html.erb %>
 
-<%# 1. WRAPPIAMO TUTTO NEL TURBO FRAME PER NASCONDERE L'URL %>
 <turbo-frame id="pos_form_frame">
-
   <%= form_with model: sale,
                 url: new_sale_path,
                 method: :get,
-                data: {
-                  controller: "autosubmit"
-                  # Tolto turbo_action: "replace", ora ci pensa il frame!
-                },
-                class: "grid grid-cols-1 lg:grid-cols-3 gap-8" do |f| %>
+                data: { controller: "autosubmit" } do |f| %>
 
-    <%= hidden_field_tag :renew_subscription_id, params[:renew_subscription_id] if params[:renew_subscription_id] %>
+    <%= render "shared/form_errors", model: sale %>
 
-    <div class="lg:col-span-2 space-y-6">
-      <%= render "shared/form_errors", model: sale %>
+    <%= hidden_field_tag :previous_member_id, sale.member_id %>
+    <%= hidden_field_tag :previous_product_id, sale.product_id %>
+    <%= hidden_field_tag :renew_subscription_id, params[:renew_subscription_id] %>
 
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6 overflow-visible">
-          <h2 class="card-title text-xl mb-4">Anagrafica Cliente</h2>
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Anagrafica Cliente</legend>
 
-          <div class="form-control w-full" data-controller="autocomplete">
-            <div class="relative w-full">
-	      <%= f.hidden_field :member_id,
-              data: {
-                autocomplete_target: "hidden",
-                action: "change->autosubmit#submit",
-                # ECCO IL PATTERN DHH:
-                autosubmit_clear_param: "#sale_subscription_attributes_start_date"
-              } %>
+      <div data-controller="autocomplete">
+        <%= f.hidden_field :member_id,
+             data: {
+               autocomplete_target: "hidden",
+               action: "change->autosubmit#submit"
+             } %>
 
-              <input type="text"
-                     class="input input-bordered w-full text-lg font-medium"
-                     placeholder="Inizia a digitare nome, cognome o CF..."
-                     value="<%= sale.member&.full_name_ruby %>"
-                     autocomplete="off"
-                     data-autocomplete-target="input"
-                     data-action="keyup->autocomplete#clearIfEmpty input->autosubmit#submit"
-                     data-controller="autosubmit"
-                     data-url="<%= members_searches_path %>"
-                     data-frame-id="member_search_results">
+        <input type="text"
+               class="input"
+               placeholder="Cerca..."
+               value="<%= sale.member&.full_name_ruby %>"
+               autocomplete="off"
+               data-autocomplete-target="input"
+               data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+               data-url="<%= members_searches_path %>">
 
-              <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
-            </div>
-          </div>
-        </div>
+        <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
+      </div>
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Dettagli Acquisto</legend>
+
+      <div>
+        <%= f.label :product_id, "Prodotto", class: "label" %>
+        <%= f.collection_select :product_id, Product.all, :id, :name,
+             { prompt: "Scegli..." },
+             { class: "select", data: { action: "change->autosubmit#submit" } } %>
       </div>
 
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6">
-          <h2 class="card-title text-xl mb-4">Dettagli Acquisto</h2>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-control col-span-1 md:col-span-2">
-              <%= f.label :product_id, "Seleziona Prodotto", class: "label font-semibold" %>
-              <%= f.collection_select :product_id, Product.all, :id, :name,
-              { prompt: "Scegli un prodotto per iniziare..." },
-              { class: "select select-bordered w-full text-lg",
-                data: {
-                  action: "change->autosubmit#submit",
-                  autosubmit_clear_param: "#sale_amount, #sale_subscription_attributes_start_date"
-                } } %>
-            </div>
-
-            <div class="form-control">
-              <%= f.label :sold_on, "Data Contabile", class: "label font-semibold" %>
-              <%# FORZIAMO IL VALORE: %>
-              <%= f.date_field :sold_on,
-                    value: sale.sold_on,
-                    class: "input input-bordered w-full",
-                    data: { action: "change->autosubmit#submit" } %>
-            </div>
-
-            <div class="form-control">
-              <%= f.label :amount, "Importo Pagato (€)", class: "label font-semibold" %>
-              <%# FORZIAMO IL VALORE E GESTIAMO IL Nullo: %>
-              <%= f.number_field :amount, step: "0.01",
-                    value: sale.amount,
-                    class: "input input-bordered w-full",
-                    data: { action: "input->autosubmit#submit" } %>
-            </div>
-
-            <div class="form-control col-span-1 md:col-span-2 mt-2">
-              <%= f.label :payment_method, "Metodo di Pagamento", class: "label font-semibold" %>
-              <div class="flex gap-4">
-                <%= f.select :payment_method, Sale.payment_methods.keys.map { |k| [k.humanize, k] }, {}, class: "select select-bordered w-full max-w-xs" %>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div>
+        <%= f.label :sold_on, "Data Contabile", class: "label" %>
+        <%# VIA IL VALUE OVERRIDE, CI PENSA RAILS %>
+        <%= f.date_field :sold_on, class: "input", data: { action: "change->autosubmit#submit" } %>
       </div>
 
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6">
-          <div class="flex justify-between items-center mb-2">
-            <h2 class="card-title text-xl">Validità Iscrizione</h2>
-            <div class="badge badge-info gap-1 font-semibold">Calcolo Smart</div>
-          </div>
-          <p class="text-sm text-base-content/70 mb-4">
-            Le date vengono calcolate in base al prodotto e allo storico del socio.
-          </p>
-
-          <%= f.fields_for :subscription do |sub_f| %>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-control">
-                <%= sub_f.label :start_date, "Decorrenza", class: "label font-semibold" %>
-                <%# FORZIAMO IL VALORE: %>
-                <%= sub_f.date_field :start_date,
-                      value: sale.subscription&.start_date,
-                      class: "input input-bordered w-full",
-                      data: { action: "change->autosubmit#submit" } %>
-              </div>
-              <div class="form-control">
-                <label class="label font-semibold opacity-70">Scadenza (Calcolata)</label>
-                <input type="date" class="input input-bordered w-full bg-base-200 text-base-content/60 cursor-not-allowed"
-                       value="<%= sale.subscription&.end_date %>" disabled />
-              </div>
-            </div>
-          <% end %>
-        </div>
+      <div>
+        <%= f.label :amount, "Importo Pagato (€)", class: "label" %>
+        <%# VIA IL VALUE OVERRIDE, CI PENSA RAILS %>
+        <%= f.text_field :amount, class: "input", data: { action: "change->autosubmit#submit" } %>
       </div>
+
+      <div>
+        <%= f.label :payment_method, "Metodo", class: "label" %>
+        <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select", data: { action: "change->autosubmit#submit" } %>
+      </div>
+    </fieldset>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Validità Iscrizione (Calcolo Smart)</legend>
+
+      <%= f.fields_for :subscription do |sub_f| %>
+        <div>
+          <%= sub_f.label :start_date, "Decorrenza", class: "label" %>
+          <%# VIA IL VALUE OVERRIDE %>
+          <%= sub_f.date_field :start_date, class: "input", data: { action: "change->autosubmit#submit" } %>
+        </div>
+        <div>
+          <label class="label">Scadenza (Calcolata)</label>
+          <%# QUI SERVE IL VALUE PERCHÉ È UN TAG HTML PURO, MA HO TOLTO LA VIRGOLA PRIMA DI DISABLED %>
+          <input type="date" value="<%= sale.subscription&.end_date %>" class="input" disabled />
+        </div>
+      <% end %>
+    </fieldset>
+
+    <div>
+      <h3>Scontrino Live</h3>
+      <p>Socio: <%= sale.member&.full_name_ruby %></p>
+      <p>Prodotto: <%= sale.product&.name %></p>
+      <p>Totale: € <%= sale.amount %></p>
+
+      <%= f.button "Conferma e Incassa",
+            formmethod: "post",
+            formaction: sales_path,
+            data: { turbo_frame: "_top" },
+            disabled: sale.product.nil? || sale.member.nil? %>
     </div>
 
-    <div class="space-y-6 relative">
-      <div class="card bg-neutral text-neutral-content shadow-xl sticky top-6">
-        <div class="card-body p-6">
-          <h2 class="card-title border-b border-neutral-content/20 pb-3">Scontrino Live</h2>
-
-          <div class="space-y-4 mt-4 font-mono text-sm">
-            <div class="flex justify-between items-center">
-              <span class="opacity-70">Socio:</span>
-              <span class="font-bold text-right truncate">
-                <%= sale.member&.full_name_ruby || "Nessuno" %>
-              </span>
-            </div>
-
-            <div class="flex justify-between items-center">
-              <span class="opacity-70">Prodotto:</span>
-              <span class="font-bold text-right max-w-[140px] truncate" title="<%= sale.product&.name %>">
-                <%= sale.product&.name || "Nessuno" %>
-              </span>
-            </div>
-
-            <div class="flex justify-between items-center mt-4">
-              <span class="opacity-70">Decorrenza:</span>
-              <span class="font-semibold"><%= sale.subscription&.start_date ? I18n.l(sale.subscription.start_date) : "..." %></span>
-            </div>
-
-            <div class="flex justify-between items-center">
-              <span class="opacity-70">Scadenza:</span>
-              <span class="font-semibold"><%= sale.subscription&.end_date ? I18n.l(sale.subscription.end_date) : "..." %></span>
-            </div>
-
-            <div class="divider before:bg-neutral-content/20 after:bg-neutral-content/20 my-2"></div>
-
-            <div class="flex justify-between items-end">
-              <span class="text-lg opacity-80 mb-1">Totale</span>
-              <span class="text-4xl font-black text-primary">
-                € <%= number_with_precision(sale.amount || 0, precision: 2) %>
-              </span>
-            </div>
-          </div>
-
-          <div class="card-actions mt-8">
-            <%# IMPORTANTE: Aggiunto data: { turbo_frame: "_top" } %>
-            <%= f.button "Conferma e Incassa",
-                  class: "btn btn-primary w-full btn-lg font-bold text-lg",
-                  formmethod: "post",
-                  formaction: sales_path,
-                  data: { turbo_frame: "_top" },
-                  disabled: sale.product.nil? || sale.member.nil? %>
-          </div>
-        </div>
-      </div>
-    </div>
   <% end %>
-
 </turbo-frame>

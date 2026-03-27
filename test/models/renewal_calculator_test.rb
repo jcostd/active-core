@@ -1,102 +1,87 @@
 require "test_helper"
 
 class RenewalCalculatorTest < ActiveSupport::TestCase
-  # TimeHelpers per fissare "Oggi" durante i test
   include ActiveSupport::Testing::TimeHelpers
 
   setup do
     @member = members(:alice)
-    @product = products(:yoga_monthly) # Mensile (30gg) -> Logica Calendario
-
-    # Puliamo eventuali sottoscrizioni esistenti per partire da zero
+    @product = products(:yoga_monthly)
     @member.subscriptions.destroy_all
   end
 
-  test "returns dates starting today (snapped) if no history exists" do
-    # Scenario: Prima iscrizione assoluta il 20 Gennaio
+  test "returns the reference_date if no history exists" do
     today = Date.new(2025, 1, 20)
 
     travel_to today do
-      calculator = RenewalCalculator.new(@member, @product)
-      result = calculator.call
+      calculator = RenewalCalculator.new(@member, @product, today)
+      suggested_start = calculator.call
 
-      # LOGICA:
-      # 1. Raw Start: Oggi (20 Gennaio)
-      # 2. Duration Snap: 1° Gennaio
-      assert_equal Date.new(2025, 1, 1), result[:start_date]
-      assert_equal Date.new(2025, 1, 31), result[:end_date]
+      # Senza storico, lo Stratega dice: "Parti dalla data contabile"
+      assert_equal today, suggested_start
     end
   end
 
-  test "continuity: anticipated renewal snaps to next month start" do
-    # Scenario: Oggi 20 Gennaio. Scadenza attuale 31 Gennaio.
+  test "continuity: anticipated renewal connects to previous end_date" do
     today = Date.new(2025, 1, 20)
     current_expiry = Date.new(2025, 1, 31)
 
     travel_to today do
-      create_subscription(end_date: current_expiry)
+      create_past_subscription(end_date: current_expiry)
 
-      calculator = RenewalCalculator.new(@member, @product)
-      result = calculator.call
+      calculator = RenewalCalculator.new(@member, @product, today)
+      suggested_start = calculator.call
 
-      # LOGICA:
-      # 1. Raw Start (Continuità): 1° Febbraio
-      # 2. Duration Snap: 1° Febbraio (già inizio mese) -> Invariato
-      assert_equal Date.new(2025, 2, 1), result[:start_date]
-      assert_equal Date.new(2025, 2, 28), result[:end_date]
+      # Scade il 31, lo Stratega dice: "Parti dal 1° Febbraio"
+      assert_equal Date.new(2025, 2, 1), suggested_start
     end
   end
 
-  test "continuity: small gap (punishment) snaps to GAP month start" do
-    # Scenario: Oggi 20 Gennaio. Scaduto il 5 Gennaio (Gap 15gg < 30gg Grace).
+  test "continuity: small gap (grace period) backdates to previous end_date" do
     today = Date.new(2025, 1, 20)
-    past_expiry = Date.new(2025, 1, 5)
+    past_expiry = Date.new(2025, 1, 5) # Gap di 15gg
 
     travel_to today do
-      create_subscription(end_date: past_expiry)
+      create_past_subscription(end_date: past_expiry)
 
-      calculator = RenewalCalculator.new(@member, @product)
-      result = calculator.call
+      calculator = RenewalCalculator.new(@member, @product, today)
+      suggested_start = calculator.call
 
-      # LOGICA:
-      # 1. Raw Start (Continuità punitiva): 6 Gennaio
-      # 2. Duration Snap: 6 Gennaio appartiene a Gennaio -> 1° Gennaio
-      # Risultato: Paghi tutto Gennaio anche se rinnovi il 20.
-      assert_equal Date.new(2025, 1, 1), result[:start_date]
-      assert_equal Date.new(2025, 1, 31), result[:end_date]
+      # Scaduto da poco, lo Stratega dice: "Recupera il buco, parti dal 6 Gennaio"
+      assert_equal Date.new(2025, 1, 6), suggested_start
     end
   end
 
-  test "reset: huge gap snaps to CURRENT month start" do
-    # Scenario: Oggi 20 Gennaio. Scaduto a Ottobre (Gap enorme).
+  test "reset: huge gap starts fresh from reference_date" do
     today = Date.new(2025, 1, 20)
-    past_expiry = Date.new(2024, 10, 31)
+    past_expiry = Date.new(2024, 10, 31) # Gap enorme
 
     travel_to today do
-      create_subscription(end_date: past_expiry)
+      create_past_subscription(end_date: past_expiry)
 
-      calculator = RenewalCalculator.new(@member, @product)
-      result = calculator.call
+      calculator = RenewalCalculator.new(@member, @product, today)
+      suggested_start = calculator.call
 
-      # LOGICA:
-      # 1. Raw Start (Reset): Oggi (20 Gennaio)
-      # 2. Duration Snap: 20 Gennaio -> 1° Gennaio
-      assert_equal Date.new(2025, 1, 1), result[:start_date]
-      assert_equal Date.new(2025, 1, 31), result[:end_date]
+      # Buco troppo grosso, lo Stratega dice: "Ricomincia da oggi"
+      assert_equal today, suggested_start
     end
   end
 
   private
+    def create_past_subscription(end_date:)
+      start_date = end_date.beginning_of_month
 
-  def create_subscription(end_date:)
-    # Creiamo un abbonamento fittizio nel DB per simulare lo storico
-    start_date = end_date.beginning_of_month
-    Subscription.create!(
-      member: @member,
-      product: @product,
-      start_date: start_date,
-      end_date: end_date,
-      sale: Sale.create!(member: @member, user: users(:staff), product: @product, sold_on: start_date)
-    )
-  end
+      # 1. Creiamo la vendita base
+      sale = Sale.create!(member: @member, user: users(:staff), product: @product, sold_on: start_date)
+
+      # 2. Creiamo l'abbonamento (lasciando che Duration calcoli le sue date reali per passare le validazioni)
+      sub = Subscription.create!(
+        member: @member,
+        product: @product,
+        sale: sale
+      )
+
+      # 3. FORZIAMO la data di fine nel database ignorando le regole,
+      # solo per simulare lo scenario di questo specifico test!
+      sub.update_columns(end_date: end_date)
+    end
 end
