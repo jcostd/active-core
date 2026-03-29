@@ -1,25 +1,30 @@
-<% filter_keys ||= []
-filter_params = params.fetch(:query, ActionController::Parameters.new).permit(*filter_keys)
-active_filters = filter_params.to_h.reject { |_, v| v.blank? } %>
+<% filter_keys ||= [] %>
+<%
+filter_params = params.permit(*filter_keys)
+active_filters = filter_params.to_h.reject { |k, v| v.blank? || k == "query" }
+%>
 
 <% if active_filters.any? %>
-  <div class="flex flex-wrap items-center gap-2">
+  <div class="flex flex-wrap items-center gap-2 mb-6" data-controller="filter-badge">
     <% active_filters.each do |key, value| %>
-      <div class="badge badge-soft badge-info">
-        <strong class="font-semibold"><%= value %></strong>
+      <div class="badge badge-info badge-lg gap-2">
+        <span class="text-xs uppercase opacity-70"><%= key.humanize %>:</span>
+        <strong class="text-sm font-bold"><%= value %></strong>
 
-        <%= link_to url_for(params.to_unsafe_h.merge(query: filter_params.except(key))),
-		    data: { turbo: "false" },
-		    class: "hover:opacity-75 hover:text-error" do %>
-          <%= icon("close", class: "size-[1em]") %>
-        <% end %>
+        <button type="button"
+                data-action="filter-badge#remove"
+                data-filter-badge-key-param="<%= key %>"
+                class="hover:text-error transition-colors flex items-center"
+                aria-label="Rimuovi filtro <%= key.humanize %>">
+          <%= icon("close", size: 14) %>
+        </button>
       </div>
     <% end %>
 
-    <%= link_to url_for(params.to_unsafe_h.merge(query: filter_params.except(*filter_keys))),
-		data: { turbo: "false" },
-		class: "btn btn-xs btn-ghost" do %>
-      <%# = t("search.reset") %> Annulla
-    <% end %>
+    <button type="button"
+            data-action="filter-badge#clearAll"
+            class="btn btn-ghost btn-sm text-base-content/60 hover:bg-transparent hover:underline font-normal">
+      Annulla filtri
+    </button>
   </div>
 <% end %>

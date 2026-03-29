@@ -1,34 +1,36 @@
 <%#
-  Componente: Drawer laterale per filtri avanzati
-
-  Slot:
-  - :drawer_filters - Contenuto filtri (checkbox, radio, etc)
+  Riceve:
+  - drawer_id: L'ID univoco per l'input checkbox (default: "filter-drawer")
+  - title: Il titolo del drawer (default: "Filtri")
 %>
+<% drawer_id ||= "filter-drawer" %>
+<% title ||= "Filtri" %>
 
 <div class="drawer drawer-end">
-  <input id="filter-drawer" type="checkbox" class="drawer-toggle">
+  <input id="<%= drawer_id %>" type="checkbox" class="drawer-toggle">
 
   <div class="drawer-content"></div>
 
-  <div class="drawer-side z-51">
-    <label for="filter-drawer" class="drawer-overlay"></label>
+  <div class="drawer-side z-50">
+    <label for="<%= drawer_id %>" class="drawer-overlay" aria-label="Chiudi filtri"></label>
 
-    <div class="bg-base-100 min-h-full w-96 flex flex-col">
-      <%# Header fisso %>
-      <div class="flex items-center justify-between p-6">
-        <div class="flex items-center gap-3">
-          <%= icon("filter", size: 24) %>
+    <div class="bg-base-100 min-h-full w-80 sm:w-96 flex flex-col shadow-2xl">
+      <%# Header %>
+      <div class="flex items-center justify-between p-6 border-b border-base-200">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <%= icon("filter", size: 20, class: "opacity-70") %>
+          <%= title %>
+        </h2>
 
-          <h2 class="text-xl font-bold">Filtri</h2>
-        </div>
-
-        <label for="filter-drawer" class="btn btn-ghost btn-sm btn-square">
+        <label for="<%= drawer_id %>" class="btn btn-ghost btn-sm btn-square">
           <%= icon("close", size: 20) %>
         </label>
       </div>
 
-      <%# Contenuto scrollabile %>
-      <div class="flex-1 overflow-y-auto p-6"><%= yield %></div>
+      <%# Contenuto (I filtri passati dal blocco) %>
+      <div class="flex-1 overflow-y-auto p-6">
+        <%= yield %>
+      </div>
     </div>
   </div>
 </div>

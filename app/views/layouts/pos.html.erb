@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="<%= @theme %>">
+<html>
   <head>
     <title>Cassa | <%= content_for(:title) || "Active Core" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -15,10 +15,13 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-base-200 min-h-screen flex flex-col">
+  <body
+    data-controller="theme-sync"
+    data-theme-sync-theme-value="<%= @theme %>"
+    class="bg-base-200 min-h-screen flex flex-col antialiased text-base-content selection:bg-primary selection:text-primary-content"
+  >
     <%# Navbar minimal (solo logo e pulsante indietro) %>
     <div class="navbar bg-base-100 shadow-sm px-6">
-
       <div class="flex-none">
         <span class="text-sm font-bold opacity-50 uppercase tracking-widest">Terminale POS</span>
       </div>

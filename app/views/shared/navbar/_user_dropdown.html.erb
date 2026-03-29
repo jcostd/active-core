@@ -1,54 +1,33 @@
-<div class="dropdown dropdown-end">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-sm btn-ghost gap-1.5 px-2"
-    aria-label="Menu Utente"
-  >
-    <div class="flex items-center gap-2 text-base-content/70">
-      <%= icon("account_circle", size: 18) %>
+<%= render layout: "shared/dropdown_layout", locals: {
+  group_name: "navbar_dropdowns",
+  title: "Menu Utente",
+  summary_class: "btn-sm btn-ghost gap-2 px-2",
+  icon_name: "account_circle",
+  summary_text: current_user&.username,
+  menu_class: "menu dropdown-content bg-base-100 rounded-box shadow-lg mt-4 w-60 p-2 gap-1"
+} do %>
 
-      <span class="hidden sm:inline-block font-normal">
-        <%= current_user&.username %>
-      </span>
-    </div>
+  <%# Header non cliccabile nativo di DaisyUI %>
+  <li class="menu-title flex flex-col items-start gap-0.5 mb-2">
+    <span class="text-[0.65rem] uppercase tracking-wider"><%= User.human_attribute_name(:role) %></span>
+    <span class="font-semibold text-sm text-base-content"><%= current_user&.role&.humanize %></span>
+  </li>
 
-    <%= icon("arrow_drop_down", size: 16, class: "opacity-60 hidden sm:inline-block") %>
-  </div>
+  <li>
+    <%= link_to user_path(current_user), class: "flex items-center gap-3" do %>
+      <%= icon("user", size: 18, class: "opacity-70") %>
+      <%= t("navbar.my_profile", default: "Il mio profilo") %>
+    <% end %>
+  </li>
 
-  <div
-    tabindex="0"
-    class="
-      dropdown-content menu bg-base-200 rounded-box z-50 w-64 shadow-lg
-      border border-base-300 mt-2 p-2 gap-2
-    "
-  >
-    <div class="px-2 py-1 border-b border-base-content/10 mb-1">
-      <p class="text-xs text-base-content/60 uppercase font-bold tracking-wider">
-        <%= User.human_attribute_name(:role) %>
-      </p>
+  <li>
+    <%# Tasto Esci: sfruttiamo i colori semantici nativi hover:bg-error %>
+    <%= link_to session_path,
+		class: "flex items-center gap-3 text-error hover:bg-error hover:text-error-content",
+		data: { turbo_method: :delete } do %>
+      <%= icon("logout", size: 18) %>
+      <%= t("navbar.logout", default: "Esci") %>
+    <% end %>
+  </li>
 
-      <p class="font-semibold text-sm text-base-content">
-        <%= current_user&.role&.humanize %>
-      </p>
-    </div>
-
-    <ul>
-      <li>
-        <%= link_to user_path(current_user), class: "justify-start" do %>
-          <%= icon("user", size: 18) %>
-          <%= t("navbar.my_profile", default: "Il mio profilo") %>
-        <% end %>
-      </li>
-
-      <li>
-        <%= link_to session_path,
-		    class: "text-error hover:bg-error/10 focus:bg-error/10",
-		    data: { turbo_method: :delete } do %>
-          <%= icon("logout", size: 18) %>
-          <%= t("navbar.logout", default: "Esci") %>
-        <% end %>
-      </li>
-    </ul>
-  </div>
-</div>
+<% end %>

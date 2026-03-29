@@ -1,14 +1,7 @@
-class Preferences::ThemesController < Preferences::BaseController
-  def show
-    render_preference("theme")
-  end
-
+class Preferences::ThemesController < ApplicationController
   def update
-    theme = params.require(:theme)
-    allowed = UserPreferences::ALLOWED_THEMES
-    return head :bad_request unless allowed.include?(theme)
+    current_user.update(theme: params.require(:theme))
 
-    update_preference!("theme", theme)
-    render_preference("theme")
+    redirect_back(fallback_location: root_path)
   end
 end

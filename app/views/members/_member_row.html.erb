@@ -1,183 +1,104 @@
-<% cache [member, member.subscriptions.maximum(:updated_at), Date.current] do %>
-  <tr id="<%= dom_id(member) %>_row">
-    <%# 1. AVATAR & ANAGRAFICA (Rimane uguale) %>
-    <td class="py-3 pl-4 align-top w-[35%]">
-      <div class="flex items-start gap-3">
-        <div class="avatar avatar-placeholder indicator">
-          <% status_color = case member.status_label
-               when "success" then "status-success"
-               when "warning" then "status-warning"
-               else "status-error"
-             end %>
+<li id="<%= dom_id(member) %>"
+    class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if member.discarded? %>">
 
-          <span class="indicator-item status <%= status_color %>"></span>
-
-          <div
-            class="rounded-full w-10"
-            style="<%= member.avatar_color_style %>"
-          >
-            <span class="font-bold font-mono"><%= member.initials %></span>
-          </div>
-        </div>
-
-        <div class="flex flex-col min-w-0">
-          <%= link_to member_path(member),
-		      class: "font-bold text-base-content hover:text-primary transition-colors truncate" do %>
-            <%= highlight member.full_name, params.dig(:query, :query) %>
-          <% end %>
-
-          <div class="flex flex-wrap items-center gap-2 mt-0.5">
-            <span class="font-mono opacity-50 text-sm">
-              <%= format_date(member.birth_date) %>
-            </span>
-
-            <% if member.birth_date > 18.years.ago %>
-              <span class="badge badge-xs badge-ghost px-1 py-0 h-4 leading-none">
-                Minore
-              </span>
-            <% end %>
-          </div>
-        </div>
+  <%# -- Colonna 1: Avatar-- %>
+  <div>
+    <div class="avatar avatar-placeholder">
+      <div class="bg-neutral text-neutral-content rounded-box size-10 shadow-sm">
+        <span class="text-xs uppercase font-medium"><%= member.initials %></span>
       </div>
-    </td>
+    </div>
+  </div>
 
-    <%# 2. ABBONAMENTI FLOW LATERALE %>
-    <td class="align-middle w-[45%]">
-      <div class="flex flex-wrap gap-2 items-center content-start">
-        <% subs = member.relevant_subscriptions %>
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="grid gap-1 min-w-0">
 
-        <% if subs.any? %>
-          <% subs.each do |sub| %>
-            <% days_left = (sub.end_date - Date.current).to_i 
-               is_expired = days_left < 0
-               is_expiring_soon = days_left.between?(0, 7)
-               
-               wrapper_class, icon_name = if is_expired
-                  ["bg-error/10 border-error/30 hover:bg-error/20", "warning"]
-               elsif is_expiring_soon
-                  ["bg-warning/10 border-warning/30 hover:bg-warning/20", "clock"]
-               else
-                  ["bg-base-100 border-base-300 hover:border-base-400", "success"]
-               end
-               
-               # Mostra il tasto rinnovo se scaduto o scade tra poco
-               show_renew = is_expired || is_expiring_soon %>
+    <%# Riga A: Nome %>
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to member.full_name, member_path(member), data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
+      <% if member.discarded? %>
+        <span class="badge badge-ghost badge-sm ml-2 font-normal">Archiviato</span>
+      <% end %>
+    </div>
 
-            <%# CARD COMPATTA %>
-            <div class="flex items-center border rounded-md overflow-hidden shadow-sm <%= wrapper_class %> transition-all h-8 max-w-[200px]">
-              <%# Icona e Nome %>
-              <div
-                class="
-                  px-2 flex items-center gap-1.5 text-xs h-full select-none
-                  cursor-default
-                "
-                title="Scadenza: <%= format_date(sub.end_date) %>"
-              >
-                <%= icon(icon_name, size: 12, class: (is_expired ? "text-error" : (is_expiring_soon ? "text-warning" : "text-success"))) %>
-
-                <span class="font-bold truncate max-w-[100px]">
-                  <%= sub.product.name %>
-                </span>
-
-                <%# Giorni Rimanenti (solo testo piccolino) %>
-                <span class="opacity-60 text-[9px] tabular-nums tracking-tighter">
-                  <%= is_expired ? "-#{days_left.abs}gg" : "#{days_left}gg" %>
-                </span>
-              </div>
-
-              <%# Action: Rinnova %>
-              <% if show_renew %>
-                <div class="border-l border-current/10 h-full">
-                  <%= link_to new_sale_path(member_id: member.id, renew_subscription_id: sub.id),
-                      class: "px-2 h-full flex items-center justify-center hover:bg-white/20 transition-colors text-current",
-                      title: "Rinnova ora",
-                      data: { turbo_frame: "modal" } do %>
-                    <%= icon("reset", size: 12) %>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          <% end %>
-        <% else %>
-          <%# Stato Vuoto %>
-          <span class="text-xs opacity-30 italic pl-1 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-base-300"></span>
-            Inattivo
-          </span>
-        <% end %>
-      </div>
-    </td>
-
-    <%# 3. CERTIFICATO (Compatto) %>
-    <td class="align-middle w-[15%]">
-      <% expiry = member.medical_certificate_expiry %>
-
-      <% if expiry %>
-        <% if member.medical_certificate_valid? %>
-          <div
-            class="tooltip tooltip-left"
-            data-tip="Scade il <%= format_date(expiry) %>"
-          >
-            <div
-              class="
-                flex items-center gap-1 text-xs font-medium text-success
-                opacity-80
-              "
-            >
-              <%= icon("success", size: 14) %>
-              <span><%= expiry.year %></span>
-            </div>
-          </div>
-        <% else %>
-          <div
-            class="tooltip tooltip-left"
-            data-tip="Scaduto il <%= l(expiry) %>"
-          >
-            <div
-              class="
-                flex items-center gap-1 text-xs font-bold text-error
-                animate-pulse
-              "
-            >
-              <%= icon("warning", size: 14) %>
-              <span>SCAD</span>
-            </div>
-          </div>
-        <% end %>
-      <% else %>
-        <span class="text-[10px] opacity-30 uppercase font-bold tracking-wider">
-          Manca
+    <%# Riga B: Dati fiscali e Status %>
+    <div class="text-xs uppercase font-semibold opacity-60 flex flex-wrap items-center gap-2">
+      <span><%= member.fiscal_code %></span>
+      <span class="opacity-40">•</span>
+      <span class="<%= member.membership_valid? ? 'text-success' : 'text-error' %>">
+        <%= member.membership_valid? ? 'Tessera Attiva' : 'Tessera Scaduta' %>
+      </span>
+      <% unless member.medical_certificate_valid? %>
+        <span class="opacity-40">•</span>
+        <span class="text-warning flex items-center gap-0.5" title="Certificato Scaduto o Assente">
+          <%= icon("warning", size: 14) %> Cert. Medico
         </span>
       <% end %>
-    </td>
+    </div>
 
-    <%# 4. AZIONI %>
-    <td class="text-right w-1 pr-4 align-middle">
-      <div class="join">
-        <%= link_to [member],
-		    class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: { tip: "Dettaglio" } do %>
-          <%= icon("view", size: 16) %>
-        <% end %>
+    <%# Riga C: Abbonamenti & Quick Actions %>
+    <div class="flex flex-wrap items-center gap-2 min-h-[1.75rem]">
+      <% subs = member.relevant_subscriptions %>
 
-        <%= link_to [:edit, member],
-		    class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: { tip: "Modifica", turbo_frame: "modal" } do %>
-          <%= icon("edit", size: 16) %>
-        <% end %>
+      <% if subs.any? %>
+        <% subs.each do |sub| %>
+          <%
+            days_left = (sub.end_date - Date.current).to_i
+            is_expired = days_left < 0
+            is_expiring_soon = days_left.between?(0, 7)
+            needs_renewal = is_expired || is_expiring_soon
+          %>
 
-        <% if current_user.admin? %>
-          <%= link_to [member],
-		    class: "join-item text-error btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: {
-		      tip: "Archivia",
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro di voler archiviare #{member.full_name}?"
-		    } do %>
-            <%= icon("delete", size: 16) %>
+          <% if needs_renewal %>
+            <div class="badge badge-sm gap-1 pl-2 pr-0.5 py-3 <%= is_expired ? 'badge-error badge-soft' : 'badge-warning badge-soft' %>">
+              <span class="truncate max-w-[120px] font-semibold" title="<%= sub.product.name %>"><%= sub.product.name %></span>
+              <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1">
+                <%= is_expired ? "SCADUTO" : "-#{days_left}gg" %>
+              </span>
+
+              <%= link_to new_sale_path(member_id: member.id, renew_subscription_id: sub.id),
+                  class: "btn btn-ghost btn-xs btn-circle ml-0.5 hover:bg-current/20 text-current",
+                  data: { turbo_frame: "modal" },
+                  title: "Rinnova al volo" do %>
+                <%= icon("reset", size: 14) %>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="badge badge-sm badge-ghost opacity-60 gap-1 font-normal py-3">
+              <span class="truncate max-w-[120px]"><%= sub.product.name %></span>
+              <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1"><%= days_left %>gg</span>
+            </div>
           <% end %>
         <% end %>
-      </div>
-    </td>
-  </tr>
-<% end %>
+      <% else %>
+        <span class="text-[10px] uppercase font-bold tracking-wider opacity-30 flex items-center gap-1">
+          <span class="size-1.5 rounded-full bg-current"></span>
+          Nessuna attività
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <%# -- Colonne 3 & 4: Azioni (DaisyUI le posizionerà una a fianco all'altra centrate) -- %>
+  <% unless member.discarded? %>
+    <%= link_to edit_member_path(member),
+		class: "btn btn-square btn-ghost text-base-content/40 hover:text-primary",
+		data: { turbo_frame: "modal" },
+		aria: { label: "Modifica #{member.full_name}" },
+		title: "Modifica" do %>
+      <%= icon("edit", size: 20) %>
+    <% end %>
+
+    <% if current_user.admin? %>
+      <%= button_to member_path(member),
+		    method: :delete,
+		    class: "btn btn-square btn-ghost text-base-content/30 hover:text-error hover:bg-error/10",
+		    form: { data: { turbo_confirm: "Sei sicuro di voler archiviare #{member.full_name}?" } },
+		    aria: { label: "Archivia #{member.full_name}" },
+		    title: "Archivia" do %>
+        <%= icon("delete", size: 20) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+</li>

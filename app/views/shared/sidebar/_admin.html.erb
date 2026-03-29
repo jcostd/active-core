@@ -1,38 +1,30 @@
-<!-- SIZE param -->
-<ul
-  class="menu w-full px-2 py-4 gap-1 text-base-content"
-  data-controller="sidebar-nav"
->
+<%# Rimuoviamo gap custom, border, group, hover ecc. Lasciamo fare a 'menu' %>
+<ul class="menu w-full text-base" data-controller="sidebar-nav">
+
   <li>
-    <%= active_link_to root_path, class: "group" do %>
-      <%= icon("dashboard", size: size) %>
+    <%= active_link_to root_path do %>
+      <%= icon("dashboard", size: size, class: "opacity-75") %>
       <%= t("sidebar.items.dashboard", default: "Dashboard") %>
     <% end %>
   </li>
 
   <li>
     <details id="disclosure-registry" open>
-      <summary class="group font-semibold text-base-content/60">
-        <%= icon("group", size: size) %>
+      <summary>
+        <%= icon("group", size: size, class: "opacity-75") %>
         <%= t("sidebar.sections.registry", default: "Anagrafica") %>
       </summary>
-
       <ul>
         <li>
-          <%= active_link_to members_path, class: "group" do %>
-            <%= icon("member", size: size) %>
+          <%= active_link_to members_path do %>
             <%= t("sidebar.items.members", default: "Soci") %>
           <% end %>
-
           <%= yield :member_actions if content_for?(:member_actions) %>
         </li>
-
         <li>
-          <%= active_link_to users_path, class: "group" do %>
-            <%= icon("users_admin", size: size) %>
+          <%= active_link_to users_path do %>
             <%= t("sidebar.items.system_users", default: "Utenti Sistema") %>
           <% end %>
-
           <%= yield :user_actions if content_for?(:user_actions) %>
         </li>
       </ul>
@@ -41,27 +33,21 @@
 
   <li>
     <details id="disclosure-catalog" open>
-      <summary class="group font-semibold text-base-content/60">
-        <%= icon("category", size: size) %>
+      <summary>
+        <%= icon("category", size: size, class: "opacity-75") %>
         <%= t("sidebar.sections.catalog", default: "Catalogo") %>
       </summary>
-
       <ul>
         <li>
-          <%= active_link_to products_path, class: "group" do %>
-            <%= icon("product", size: size) %>
+          <%= active_link_to products_path do %>
             <%= t("sidebar.items.products", default: "Prodotti") %>
           <% end %>
-
           <%= yield :product_actions if content_for?(:product_actions) %>
         </li>
-
         <li>
-          <%= active_link_to disciplines_path, class: "group" do %>
-            <%= icon("spa", size: size) %>
+          <%= active_link_to disciplines_path do %>
             <%= t("sidebar.items.disciplines", default: "Discipline") %>
           <% end %>
-
           <%= yield :discipline_actions if content_for?(:discipline_actions) %>
         </li>
       </ul>
@@ -70,21 +56,19 @@
 
   <li>
     <details id="disclosure-accounting" open>
-      <summary class="group font-semibold text-base-content/60">
-        <%= icon("payments", size: size) %>
+      <summary>
+        <%= icon("payments", size: size, class: "opacity-75") %>
         <%= t("sidebar.sections.accounting", default: "Amministrazione") %>
       </summary>
-
       <ul>
         <li>
-          <%= active_link_to sales_path, class: "group" do %>
-            <%= icon("receipt", size: size) %>
+          <%= active_link_to sales_path do %>
             <%= t("sidebar.items.payments", default: "Vendite") %>
           <% end %>
-
           <%= yield :sale_actions if content_for?(:sale_actions) %>
         </li>
       </ul>
     </details>
   </li>
+
 </ul>

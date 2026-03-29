@@ -1,0 +1,34 @@
+module MembersHelper
+  def member_membership_filters
+    [
+      [ "In Regola (Attivo)", "active" ],
+      [ "Scaduto", "expired" ],
+      [ "Mai Tesserato (Prospect)", "missing" ]
+    ]
+  end
+
+  def member_med_cert_filters
+    [
+      [ "Valido", "valid" ],
+      [ "Scaduto", "expired" ],
+      [ "Mancante", "missing" ]
+    ]
+  end
+
+  def member_state_filters
+    [
+      [ "Attivi", "active" ],
+      [ "Archiviati", "archived" ]
+    ]
+  end
+
+  def member_status_color_class(member)
+    if member.membership_valid? && member.medical_certificate_valid?
+      "status-success"
+    elsif member.membership_valid?
+      "status-warning"
+    else
+      "status-error"
+    end
+  end
+end

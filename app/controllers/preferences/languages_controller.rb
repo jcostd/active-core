@@ -1,12 +1,9 @@
-class Preferences::LanguagesController < Preferences::BaseController
+class Preferences::LanguagesController < ApplicationController
   def update
-    lang = params.require(:language) # Il parametro dal form può restare "language"
-    allowed = I18n.available_locales.map(&:to_s)
-    return head :bad_request unless allowed.include?(lang)
+    if current_user.update(locale: params.require(:language))
+      I18n.locale = current_user.locale
+    end
 
-    I18n.locale = lang
-
-    update_preference!("locale", lang)
-    render_preference("locale")
+    redirect_back(fallback_location: root_path)
   end
 end

@@ -17,8 +17,6 @@ Rails.application.routes.draw do
   # 2. ANAGRAFICA (Registry)
   # ============================================================================
   resources :members do
-    get :renewal_info, on: :member
-
     resources :subscriptions, only: [ :index ], module: :members
     resources :access_logs,   only: [ :index ], module: :members
     resources :sales,         only: [ :index ], module: :members

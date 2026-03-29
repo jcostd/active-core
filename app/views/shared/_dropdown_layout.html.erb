@@ -1,0 +1,26 @@
+<details class="dropdown <%= local_assigns.fetch(:alignment, 'dropdown-end') %>"
+         name="<%= local_assigns.fetch(:group_name, 'dropdowns') %>"
+         data-controller="dropdown"
+         data-action="click@window->dropdown#close keyup@window->dropdown#closeOnEscape">
+
+  <summary class="btn <%= local_assigns.fetch(:summary_class, 'btn-sm btn-ghost gap-1 px-1.5') %>"
+           title="<%= local_assigns[:title] %>"
+           aria-label="<%= local_assigns[:title] %>">
+
+    <% if local_assigns[:icon_name] %>
+      <%= icon(local_assigns[:icon_name], size: 16, class: "text-base-content/70") %>
+    <% end %>
+
+    <% if local_assigns[:summary_text] %>
+      <span class="hidden sm:inline-block <%= local_assigns.fetch(:summary_text_class, 'truncate max-w-[100px]') %>">
+	<%= local_assigns[:summary_text] %>
+      </span>
+    <% end %>
+
+    <%= icon("arrow_drop_down", size: 16, class: "hidden opacity-60 sm:inline-block") %>
+  </summary>
+
+  <ul class="dropdown-content menu <%= local_assigns.fetch(:menu_class, 'flex flex-col flex-nowrap bg-base-200 text-base-content rounded-box mt-2 w-52 overflow-y-auto overflow-x-hidden z-[1] border border-base-content/5 shadow-2xl p-2') %>">
+    <%= yield %>
+  </ul>
+</details>

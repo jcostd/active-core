@@ -1,33 +1,17 @@
 class MembersController < ApplicationController
-  include FilterableActions
-
-  before_action :set_member, only: [ :edit, :update, :destroy ]
+  before_action :set_member, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    base_scope = Member.includes(:subscriptions)
+    query_results = MembersQuery.new(filter_params).results
 
-    @pagy, @members = filter_and_paginate(base_scope)
+    @total_active_members = Member.kept.count
+
+    @pagy, @members = pagy(query_results.includes(:subscriptions))
+    @is_filtering = filter_params.to_h.except(:sort).reject { |_, v| v.blank? }.any?
   end
 
   def show
-    @member = Member.includes(subscriptions: :product, sales: [])
-                    .find(params[:id])
-  end
-
-  def renewal_info
-    @member = Member.find(params[:id])
-    product = Product.find_by(id: params[:product_id])
-
-    is_manual_input = params[:ref_date].present?
-
-    reference_date = is_manual_input ? Date.parse(params[:ref_date]) : Date.current
-
-    if product
-      info = RenewalCalculator.new(@member, product, reference_date, manual_override: is_manual_input).call
-      render json: info
-    else
-      render json: {}, status: :bad_request
-    end
+    @member = Member.includes(subscriptions: :product, sales: []).find(params[:id])
   end
 
   def new
@@ -72,16 +56,13 @@ class MembersController < ApplicationController
 
     def member_params
       params.require(:member).permit(
-        :first_name,
-        :last_name,
-        :fiscal_code,
-        :birth_date,
-        :email_address,
-        :phone,
-        :address,
-        :city,
-        :zip_code,
+        :first_name, :last_name, :fiscal_code, :birth_date,
+        :email_address, :phone, :address, :city, :zip_code,
         :medical_certificate_expiry
       )
+    end
+
+    def filter_params
+      params.permit(:query, :sort, :membership_status, :med_cert, :state)
     end
 end

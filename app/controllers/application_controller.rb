@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  include Themable, Authentication
+  include Themable, Localizable, Authentication
 
   include Pagy::Method
 

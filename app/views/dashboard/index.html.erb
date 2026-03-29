@@ -1,227 +1,134 @@
-<%# --- HEADER: BENVENUTO E RICERCA --- %>
-<header class="flex flex-col md:flex-row gap-6 justify-between items-end md:items-center">
-    <div>
-      <h1 class="text-3xl font-bold tracking-tight flex items-center gap-2">
-        Buongiorno,
-        <%= Current.session.user.first_name %>
-        <span class="animate-pulse">👋</span>
-      </h1>
+<header class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center mb-8">
+  <div>
+    <h1 class="text-3xl font-extrabold tracking-tight text-base-content">
+      Buongiorno, <%= Current.session.user.first_name %> 👋
+    </h1>
+    <p class="text-sm text-base-content/60 mt-1">
+      Situazione operativa della struttura.
+    </p>
+  </div>
 
-      <p class="text-base-content/60 mt-1">
-        Ecco l'andamento economico di oggi.
-      </p>
-    </div>
-
-    <%= form_with scope: :query, 
-                    url: members_path, 
-                    method: :get, 
-                    class: "join",
-                    data: { turbo: false } do |f| %>
-      <div>
-        <label class="input join-item">
-          <%= icon("search", size: 20) %>
-          <%= f.text_field :query, 
-          placeholder: "Cerca socio (Nome, CF, Email)...",
-           autofocus: true %>
-        </label>
-      </div>
-      <%= button_tag "Cerca", type: "submit", class: "btn btn-primary join-item" %>
-    <% end %>
+  <%= link_to new_sale_path, class: "btn btn-primary shadow-sm" do %>
+    <%= icon("add", size: 20) %> Nuova Vendita
+  <% end %>
 </header>
 
-<div class="mt-6 space-y-6">
-  <%# --- SEZIONE 1: CASSA GIORNALIERA --- %>
-  <div
-    class="
-      stats stats-vertical lg:stats-horizontal shadow-sm bg-base-100 w-full
-      border border-base-200
-    "
-  >
-    <%# MATTINA %>
-    <div class="stat">
-      <div class="stat-figure text-primary/20">
-        <%= icon("sunny", size: 32) %>
-      </div>
+<%# RIGA 1: STATISTICHE (Il requisito Cash rimane prioritario) %>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-      <div class="stat-title font-bold opacity-60">Mattina (Cash)</div>
-
-      <div class="stat-value text-3xl">
-        <%= format_money(@daily_cash.morning_total) %>
-      </div>
-
-      <div class="stat-desc">Fino alle 14:00</div>
-    </div>
-
-    <%# POMERIGGIO %>
-    <div class="stat">
-      <div class="stat-figure text-secondary/20">
-        <%= icon("moon", size: 32) %>
-      </div>
-
-      <div class="stat-title font-bold opacity-60">Pomeriggio (Cash)</div>
-
-      <div class="stat-value text-3xl">
-        <%= format_money(@daily_cash.afternoon_total) %>
-      </div>
-
-      <div class="stat-desc">Dopo le 14:00</div>
-    </div>
-
-    <%# TOTALE %>
-    <div class="stat bg-primary text-primary-content">
-      <div class="stat-figure text-primary-content/30">
-        <%= icon("savings", size: 40) %>
-      </div>
-
-      <div
-        class="
-          stat-title text-primary-content/70 font-bold uppercase
-          tracking-wider
-        "
-      >
-        Totale Contanti
-      </div>
-
-      <div class="stat-value"><%= format_money(@daily_cash.total) %></div>
-
-      <div class="stat-desc text-primary-content/60">Incasso odierno</div>
-    </div>
+  <div class="stat bg-base-100 rounded-2xl shadow-sm">
+    <div class="stat-figure text-success/50"><%= icon("payments", size: 28) %></div>
+    <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Mattina</div>
+    <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.morning_total) %></div>
   </div>
 
-  <%# --- SEZIONE 2: GRIGLIA OPERATIVA --- %>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <%# --- COLONNA SINISTRA (2/3): ULTIME VENDITE (Nuova) --- %>
-    <div class="lg:col-span-2">
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-0">
-          <div
-            class="
-              p-4 border-b border-base-200 flex justify-between items-center
-              bg-base-200/30
-            "
-          >
-            <h3 class="font-bold text-lg flex items-center gap-2">
-              <%= icon("receipt", size: 20) %> Ultime Transazioni
-            </h3>
+  <div class="stat bg-base-100 rounded-2xl shadow-sm">
+    <div class="stat-figure text-success/50"><%= icon("payments", size: 28) %></div>
+    <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Pomeriggio</div>
+    <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.afternoon_total) %></div>
+  </div>
 
-            <%= link_to "Vedi tutte", sales_path, class: "btn btn-xs btn-ghost" %>
-          </div>
+  <div class="stat bg-base-100 rounded-2xl shadow-sm">
+    <div class="stat-figure text-info/50"><%= icon("login", size: 28) %></div>
+    <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Ingressi Oggi</div>
+    <div class="stat-value text-xl md:text-2xl"><%= @today_accesses_count %></div>
+  </div>
 
-          <% if @recent_sales.any? %>
-            <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>Socio</th>
-                    <th>Prodotto</th>
-                    <th>Pagamento</th>
-                    <th class="text-right">Importo</th>
-                    <th></th>
-                  </tr>
-                </thead>
+  <div class="stat bg-base-100 rounded-2xl shadow-sm">
+    <div class="stat-figure <%= @expiring_count > 0 ? 'text-warning/50' : 'text-base-content/30' %>">
+      <%= icon("notification_important", size: 28) %>
+    </div>
+    <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Scadenze (7gg)</div>
+    <div class="stat-value text-xl md:text-2xl <%= 'text-warning' if @expiring_count > 0 %>"><%= @expiring_count %></div>
+  </div>
 
-                <tbody>
-                  <% @recent_sales.each do |sale| %>
-                    <tr>
-                      <td>
-                        <div class="flex items-center gap-3">
-                          <div class="font-bold">
-                            <%= link_to sale.member.full_name, sale.member, class: "hover:underline" %>
-                          </div>
-                        </div>
+</div>
 
-                        <div class="text-xs opacity-50">
-                          Reg. da <%= sale.user.first_name %>
-                        </div>
-                      </td>
+<%# RIGA 2: I FEED OPERATIVI (Liste, non tabelle) %>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                      <td>
-                        <div class="badge badge-outline text-xs">
-                          <%= sale.product.name %>
-                        </div>
-                      </td>
-
-                      <td>
-                        <span class="uppercase text-xs font-mono opacity-70"><%= sale.payment_method %></span>
-                      </td>
-
-                      <td class="text-right font-bold text-primary">
-                        <%= format_money(sale.amount) %>
-                      </td>
-
-                      <td class="text-right">
-                        <%= link_to icon("view", size: 18), sale_path(sale), class: "btn btn-ghost btn-xs btn-square" %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          <% else %>
-            <div class="p-10 text-center flex flex-col items-center gap-2 opacity-50">
-              <%= icon("sell", size: 32) %>
-              <span>Nessuna vendita registrata recentemente.</span>
-
-              <%= link_to "Registra la prima", new_sale_path, class: "btn btn-sm btn-primary mt-2" %>
-            </div>
-          <% end %>
-        </div>
-      </div>
+  <%# COLONNA 1: Timeline Ingressi %>
+  <div class="lg:col-span-2 flex flex-col bg-base-100 rounded-2xl shadow-sm p-5 md:p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-base font-bold flex items-center gap-2">
+        <%= icon("history", size: 18, class: "opacity-50") %> Registro Accessi
+      </h2>
+      <%= link_to "Vedi tutti", access_logs_path, class: "text-xs font-semibold link link-hover text-base-content/60" %>
     </div>
 
-    <%# --- COLONNA DESTRA (1/3): AZIONI & ALERT (Invariata) --- %>
-    <div class="space-y-4">
-      <%# CARD AZIONI RAPIDE %>
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body">
-          <h3 class="card-title text-sm uppercase opacity-50 tracking-wider mb-2">
-	    Azioni Rapide
-          </h3>
+    <% if @recent_accesses.any? %>
+      <ul class="flex-1 flex flex-col gap-1">
+        <% @recent_accesses.each do |log| %>
+          <li class="group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg hover:bg-base-200/50 transition-colors">
 
-          <div class="flex flex-col gap-3">
-            <%= link_to new_sale_path, class: "btn btn-primary w-full shadow-md gap-2", data: { turbo_frame: "modal" } do %>
-              <%= icon("sale", size: 20) %>
-              Nuova Vendita
-            <% end %>
+            <div class="flex items-center gap-3">
+              <%# Avatar testuale minimalista %>
+              <div class="avatar placeholder hidden sm:flex">
+                <div class="bg-base-200 text-base-content rounded-full w-10">
+                  <span class="text-xs font-medium uppercase"><%= log.member.first_name[0] %><%= log.member.last_name[0] %></span>
+                </div>
+              </div>
 
-            <%= link_to new_member_path, class: "btn btn-outline w-full gap-2", data: { turbo_frame: "modal" } do %>
-              <%= icon("person_add", size: 20) %>
-              Nuovo Iscritto
-            <% end %>
-          </div>
-        </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold group-hover:text-primary transition-colors">
+                  <%= link_to log.member.full_name, log.member %>
+                </span>
+                <span class="text-xs text-base-content/60">
+                  <%= log.discipline&.name || 'Sala Pesi / Libero' %>
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 text-right">
+              <% if log.status == 0 %>
+                <div class="badge badge-success badge-sm badge-outline gap-1 hidden sm:inline-flex"><%= icon("check", size: 12) %> OK</div>
+              <% else %>
+                <div class="badge badge-warning badge-sm gap-1"><%= icon("warning", size: 12) %> Check</div>
+              <% end %>
+              <span class="text-sm font-mono opacity-50 w-12"><%= log.entered_at.strftime("%H:%M") %></span>
+            </div>
+
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="flex-1 flex items-center justify-center py-10 opacity-40 text-sm">
+        Nessun ingresso registrato oggi.
       </div>
+    <% end %>
+  </div>
 
-      <%# CARD SCADENZE %>
-      <% if @expiring_count > 0 %>
-        <div class="alert alert-warning shadow-md items-start">
-          <%= icon("notification_important", size: 24, class: "mt-1") %>
+  <%# COLONNA 2: Scadenze (Task list) %>
+  <div class="flex flex-col bg-base-100 rounded-2xl shadow-sm p-5 md:p-6">
+    <h2 class="text-base font-bold flex items-center gap-2 mb-6">
+      <%= icon("schedule", size: 18, class: "text-warning opacity-80") %> In Scadenza
+    </h2>
 
-          <div>
-            <h3 class="font-bold">Scadenze in arrivo!</h3>
-
-            <div class="text-xs">
-              Ci sono
-              <strong class="text-lg"><%= @expiring_count %></strong>
-              abbonamenti in scadenza nei prossimi 7 giorni.
+    <% if @expiring_subscriptions.any? %>
+      <ul class="flex-1 flex flex-col gap-3">
+        <% @expiring_subscriptions.each do |sub| %>
+          <li class="flex flex-col gap-2 p-3 rounded-xl bg-base-200/40 border border-base-200">
+            <div class="flex justify-between items-start">
+              <span class="text-sm font-semibold"><%= link_to sub.member.full_name, sub.member, class: "hover:underline" %></span>
+              <span class="text-xs font-mono opacity-60"><%= sub.end_date.strftime("%d/%m") %></span>
             </div>
-          </div>
-        </div>
-      <% else %>
-        <div class="card bg-base-100 shadow-sm border border-base-200">
-          <div class="card-body p-4 text-center">
-            <div class="text-success flex justify-center mb-2">
-              <%= icon("success", size: 32) %>
-            </div>
-
-            <div class="font-bold text-sm">Nessuna scadenza imminente</div>
-
-            <div class="text-xs opacity-60">
-              Tutto tranquillo per i prossimi 7 giorni.
-            </div>
-          </div>
-        </div>
+            <%= link_to new_sale_path(member_id: sub.member_id), class: "btn btn-xs btn-outline w-full mt-1" do %>
+              Rinnova Abbonamento
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+      <% if @expiring_count > 5 %>
+         <div class="mt-4 text-center">
+           <%= link_to "Mostra altre (#{@expiring_count - 5})", subscriptions_path(filter: 'expiring'), class: "text-xs font-semibold link link-primary" %>
+         </div>
       <% end %>
-    </div>
+    <% else %>
+      <div class="flex-1 flex flex-col items-center justify-center py-8 text-sm opacity-40 gap-2">
+        <%= icon("done_all", size: 24) %>
+        Nessuna urgenza.
+      </div>
+    <% end %>
   </div>
+
 </div>
