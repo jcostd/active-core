@@ -7,7 +7,6 @@
   menu_class: "menu dropdown-content bg-base-100 rounded-box shadow-lg mt-4 w-60 p-2 gap-1"
 } do %>
 
-  <%# Header non cliccabile nativo di DaisyUI %>
   <li class="menu-title flex flex-col items-start gap-0.5 mb-2">
     <span class="text-[0.65rem] uppercase tracking-wider"><%= User.human_attribute_name(:role) %></span>
     <span class="font-semibold text-sm text-base-content"><%= current_user&.role&.humanize %></span>
@@ -15,7 +14,7 @@
 
   <li>
     <%= link_to user_path(current_user), class: "flex items-center gap-3" do %>
-      <%= icon("user", size: 18, class: "opacity-70") %>
+      <%= icon("user", classes: "size-5 opacity-70") %>
       <%= t("navbar.my_profile", default: "Il mio profilo") %>
     <% end %>
   </li>
@@ -25,7 +24,7 @@
     <%= link_to session_path,
 		class: "flex items-center gap-3 text-error hover:bg-error hover:text-error-content",
 		data: { turbo_method: :delete } do %>
-      <%= icon("logout", size: 18) %>
+      <%= icon("logout") %>
       <%= t("navbar.logout", default: "Esci") %>
     <% end %>
   </li>

@@ -1,24 +1,18 @@
-<li id="<%= dom_id(member) %>"
-    class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if member.discarded? %>">
+<li
+  id="<%= dom_id(member) %>"
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if member.discarded? %>">
 
-  <%# -- Colonna 1: Avatar-- %>
-  <div>
-    <div class="avatar avatar-placeholder">
-      <div class="bg-neutral text-neutral-content rounded-box size-10 shadow-sm">
-        <span class="text-xs uppercase font-medium"><%= member.initials %></span>
-      </div>
-    </div>
+  <%# -- Colonna 1: Avatar con Helper -- %>
+  <div class="shrink-0">
+    <%= ui_avatar(member, size: "size-10", text_size: "text-xs") %>
   </div>
 
   <%# -- Colonna 2: Contenuto centrale -- %>
-  <div class="grid gap-1 min-w-0">
-
+  <div class="grid gap-1 min-w-0 grow">
     <%# Riga A: Nome %>
     <div class="font-bold truncate text-base leading-none">
-      <%= link_to member.full_name, member_path(member), data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
-      <% if member.discarded? %>
-        <span class="badge badge-ghost badge-sm ml-2 font-normal">Archiviato</span>
-      <% end %>
+      <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
+      <%= ui_badge("Archiviato") if member.discarded? %>
     </div>
 
     <%# Riga B: Dati fiscali e Status %>
@@ -31,74 +25,54 @@
       <% unless member.medical_certificate_valid? %>
         <span class="opacity-40">•</span>
         <span class="text-warning flex items-center gap-0.5" title="Certificato Scaduto o Assente">
-          <%= icon("warning", size: 14) %> Cert. Medico
+          <%= icon("warning", classes: "size-4") %> Cert. Medico
         </span>
       <% end %>
     </div>
 
     <%# Riga C: Abbonamenti & Quick Actions %>
     <div class="flex flex-wrap items-center gap-2 min-h-[1.75rem]">
-      <% subs = member.relevant_subscriptions %>
-
-      <% if subs.any? %>
-        <% subs.each do |sub| %>
-          <%
-            days_left = (sub.end_date - Date.current).to_i
-            is_expired = days_left < 0
-            is_expiring_soon = days_left.between?(0, 7)
-            needs_renewal = is_expired || is_expiring_soon
-          %>
-
-          <% if needs_renewal %>
-            <div class="badge badge-sm gap-1 pl-2 pr-0.5 py-3 <%= is_expired ? 'badge-error badge-soft' : 'badge-warning badge-soft' %>">
+      <% if member.relevant_subscriptions.any? %>
+        <% member.relevant_subscriptions.each do |sub| %>
+          <% if sub.expired? || sub.expiring_soon? %>
+            <div class="badge badge-sm gap-1 pl-2 pr-0.5 py-3 <%= sub.expired? ? 'badge-error badge-soft' : 'badge-warning badge-soft' %>">
               <span class="truncate max-w-[120px] font-semibold" title="<%= sub.product.name %>"><%= sub.product.name %></span>
               <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1">
-                <%= is_expired ? "SCADUTO" : "-#{days_left}gg" %>
+                <%= sub.expired? ? "SCADUTO" : "-#{sub.days_left}gg" %>
               </span>
-
               <%= link_to new_sale_path(member_id: member.id, renew_subscription_id: sub.id),
                   class: "btn btn-ghost btn-xs btn-circle ml-0.5 hover:bg-current/20 text-current",
-                  data: { turbo_frame: "modal" },
-                  title: "Rinnova al volo" do %>
-                <%= icon("reset", size: 14) %>
+                  data: { turbo_frame: "modal" }, title: "Rinnova al volo" do %>
+                <%= icon("reset", classes: "size-4") %>
               <% end %>
             </div>
           <% else %>
             <div class="badge badge-sm badge-ghost opacity-60 gap-1 font-normal py-3">
               <span class="truncate max-w-[120px]"><%= sub.product.name %></span>
-              <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1"><%= days_left %>gg</span>
+              <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1"><%= sub.days_left %>gg</span>
             </div>
           <% end %>
         <% end %>
       <% else %>
         <span class="text-[10px] uppercase font-bold tracking-wider opacity-30 flex items-center gap-1">
-          <span class="size-1.5 rounded-full bg-current"></span>
-          Nessuna attività
+          <span class="size-1.5 rounded-full bg-current"></span> Nessuna attività
         </span>
       <% end %>
     </div>
   </div>
 
-  <%# -- Colonne 3 & 4: Azioni (DaisyUI le posizionerà una a fianco all'altra centrate) -- %>
+  <%# -- Colonne 3: Azioni -- %>
   <% unless member.discarded? %>
-    <%= link_to edit_member_path(member),
-		class: "btn btn-square btn-ghost text-base-content/40 hover:text-primary",
-		data: { turbo_frame: "modal" },
-		aria: { label: "Modifica #{member.full_name}" },
-		title: "Modifica" do %>
-      <%= icon("edit", size: 20) %>
-    <% end %>
-
-    <% if current_user.admin? %>
-      <%= button_to member_path(member),
-		    method: :delete,
-		    class: "btn btn-square btn-ghost text-base-content/30 hover:text-error hover:bg-error/10",
-		    form: { data: { turbo_confirm: "Sei sicuro di voler archiviare #{member.full_name}?" } },
-		    aria: { label: "Archivia #{member.full_name}" },
-		    title: "Archivia" do %>
-        <%= icon("delete", size: 20) %>
+    <div class="flex items-center gap-1 shrink-0">
+      <%= link_to edit_member_path(member), class: "btn btn-square btn-ghost text-base-content/40 hover:text-primary", data: { turbo_frame: "modal" }, title: "Modifica" do %>
+        <%= icon("edit") %>
       <% end %>
-    <% end %>
-  <% end %>
 
+      <% if current_user.admin? %>
+        <%= button_to member, method: :delete, class: "btn btn-square btn-ghost text-base-content/30 hover:text-error hover:bg-error/10", form: { data: { turbo_confirm: "Sei sicuro?" } }, title: "Archivia" do %>
+          <%= icon("delete") %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 </li>

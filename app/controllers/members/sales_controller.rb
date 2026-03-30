@@ -3,9 +3,8 @@ class Members::SalesController < ApplicationController
   before_action :set_member
 
   def index
-    @sales = @member.sales.kept
-                      .includes(:product, :user)
-                      .order(sold_on: :desc, created_at: :desc)
+    query = @member.sales.kept.includes(:product, :user).order(sold_on: :desc, created_at: :desc)
+    @pagy, @sales = pagy(query)
   end
 
   private

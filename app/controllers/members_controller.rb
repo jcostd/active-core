@@ -11,7 +11,9 @@ class MembersController < ApplicationController
   end
 
   def show
-    @member = Member.includes(subscriptions: :product, sales: []).find(params[:id])
+    @member = Member.find(params[:id])
+    @active_subscriptions = @member.active_subscriptions
+    @recent_sales = @member.recent_sales
   end
 
   def new

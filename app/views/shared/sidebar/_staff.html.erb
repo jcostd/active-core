@@ -1,14 +1,14 @@
 <ul class="menu w-full text-base" data-controller="sidebar-nav">
   <li>
     <%= active_link_to root_path do %>
-      <%= icon("dashboard", size: size, class: "opacity-75") %>
+      <%= icon("dashboard", classes: "size-5 opacity-75") %>
       <%= t("sidebar.items.dashboard", default: "Dashboard") %>
     <% end %>
   </li>
 
   <li>
     <%= active_link_to members_path do %>
-      <%= icon("member", size: size, class: "opacity-75") %>
+      <%= icon("member", classes: "size-5 opacity-75") %>
       <%= t("sidebar.items.members", default: "Soci") %>
     <% end %>
     <%= yield :member_actions if content_for?(:member_actions) %>
@@ -16,7 +16,7 @@
 
   <li>
     <%= active_link_to disciplines_path do %>
-      <%= icon("spa", size: size, class: "opacity-75") %>
+      <%= icon("spa", classes: "size-5 opacity-75") %>
       <%= t("sidebar.items.disciplines", default: "Discipline") %>
     <% end %>
     <%= yield :discipline_actions if content_for?(:discipline_actions) %>

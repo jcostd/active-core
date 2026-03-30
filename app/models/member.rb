@@ -7,6 +7,9 @@ class Member < ApplicationRecord
   has_many :access_logs, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 
+  has_many :active_subscriptions, -> { kept.where("end_date >= ?", Date.current).order(:start_date) }, class_name: "Subscription"
+  has_many :recent_sales, -> { order(created_at: :desc).limit(5) }, class_name: "Sale"
+
   has_many :memberships, -> { joins(:product).merge(Product.associative) },
            class_name: "Subscription"
 

@@ -1,9 +1,8 @@
-<%# Rimuoviamo gap custom, border, group, hover ecc. Lasciamo fare a 'menu' %>
 <ul class="menu w-full text-base" data-controller="sidebar-nav">
 
   <li>
     <%= active_link_to root_path do %>
-      <%= icon("dashboard", size: size, class: "opacity-75") %>
+      <%= icon("dashboard", classes: "size-5 opacity-75") %>
       <%= t("sidebar.items.dashboard", default: "Dashboard") %>
     <% end %>
   </li>
@@ -11,7 +10,7 @@
   <li>
     <details id="disclosure-registry" open>
       <summary>
-        <%= icon("group", size: size, class: "opacity-75") %>
+        <%= icon("group", classes: "size-5 opacity-75") %>
         <%= t("sidebar.sections.registry", default: "Anagrafica") %>
       </summary>
       <ul>
@@ -34,7 +33,7 @@
   <li>
     <details id="disclosure-catalog" open>
       <summary>
-        <%= icon("category", size: size, class: "opacity-75") %>
+        <%= icon("category", classes: "size-5 opacity-75") %>
         <%= t("sidebar.sections.catalog", default: "Catalogo") %>
       </summary>
       <ul>
@@ -57,7 +56,7 @@
   <li>
     <details id="disclosure-accounting" open>
       <summary>
-        <%= icon("payments", size: size, class: "opacity-75") %>
+        <%= icon("payments", classes: "size-5 opacity-75") %>
         <%= t("sidebar.sections.accounting", default: "Amministrazione") %>
       </summary>
       <ul>

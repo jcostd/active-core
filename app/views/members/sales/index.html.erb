@@ -1,41 +1,29 @@
 <%= turbo_stream_from @member %>
+<%= render "members/context", member: @member %>
 
-<%= render layout: "members/shell", locals: { member: @member } do %>
-  <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Storico Acquisti</h1>
+<div class="flex justify-between items-end mb-6 mt-6">
+  <h2 class="text-xl font-bold flex items-center gap-2">
+    <%= icon("receipt", classes: "size-5 opacity-50") %> Storico Acquisti
+  </h2>
 
-    <div class="stat-value text-primary text-lg">
-      <%= format_cents(@sales.sum(&:amount_cents)) %>
-
-      <span class="text-xs font-normal text-base-content/50">
-        Totale speso
-      </span>
+  <div class="text-right">
+    <div class="stat-value text-primary text-2xl leading-none">
+      <%= format_cents(@sales.sum(&:amount_cents) || 0) %>
     </div>
+    <div class="text-xs font-bold uppercase tracking-wider opacity-50 mt-1">Totale speso</div>
   </div>
+</div>
 
-  <%= render "shared/table", pagy: @pagy do %>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Ricevuta</th>
-        <th>Prodotto / Descrizione</th>
-        <th>Metodo</th>
-        <th>Operatore</th>
-        <th class="text-right">Importo</th>
-        <th class="w-1"></th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <%= render partial: "sale_row", collection: @sales, as: :sale %>
-
-      <% if @sales.empty? %>
-        <tr>
-          <td colspan="7" class="text-center py-10 opacity-50 italic">
-            Nessun acquisto registrato per questo membro.
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
+<ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+  <% if @sales.any? %>
+    <%= render partial: "sale_row", collection: @sales, as: :sale %>
+  <% else %>
+    <li class="p-10 text-center opacity-50 text-sm italic">Nessun acquisto registrato.</li>
   <% end %>
+</ul>
+
+<% if @pagy.pages > 1 %>
+  <div class="mt-6 flex justify-center">
+    <%== pagy_nav(@pagy) %>
+  </div>
 <% end %>

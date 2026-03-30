@@ -8,7 +8,7 @@
   <%= link_to [:new, :discipline],
 	      class: "btn btn-primary gap-2",
 	      data: { turbo_frame: "modal" } do %>
-    <%= icon("add", size: 20) %>
+    <%= icon("add") %>
     <span class="hidden sm:inline"><%= t("actions.new", default: "Nuova") %></span>
   <% end %>
 <% end %>
@@ -34,9 +34,9 @@
 
     <% if @disciplines.empty? %>
       <td colspan="4">
-        <%= render "shared/empty_state", 
-        icon_name: "group_off", 
-        title: t("search.results.zero"), 
+        <%= render "shared/empty_state",
+        icon_name: "group_off",
+        title: t("search.results.zero"),
         message: t("search.results.hint") %>
       </td>
     <% end %>

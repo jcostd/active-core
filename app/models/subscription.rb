@@ -10,6 +10,22 @@ class Subscription < ApplicationRecord
   # Il nuovo cuore automatico: scatta sempre prima di salvare un nuovo record
   before_validation :apply_business_rules, on: :create
 
+  def days_left
+    (end_date - Date.current).to_i
+  end
+
+  def future?
+    start_date > Date.current
+  end
+
+  def expired?
+    days_left < 0
+  end
+
+  def expiring_soon?
+    !future? && days_left.between?(0, 7)
+  end
+
   # Lo usiamo in Sale#prepare_draft per pre-compilare il form per la UI
   def assign_smart_dates(manual_start_date: nil)
     self.start_date = manual_start_date if manual_start_date.present?

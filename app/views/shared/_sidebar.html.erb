@@ -5,17 +5,17 @@
   <aside class="bg-base-200 text-base-content flex flex-col min-h-screen w-72">
 
     <%# HEADER: Minimalista, niente sfondi sticky o bordi %>
-    <div class="flex h-16 shrink-0 items-center gap-3 px-6 mt-2">
-      <div class="text-primary"><%= icon("active_core", size: 28) %></div>
+    <div class="flex h-16 shrink-0 items-center gap-3 px-6">
+      <div class="text-primary"><%= icon("active_core", classes: "size-6") %></div>
       <span class="text-xl font-bold tracking-tight">ActiveCore</span>
     </div>
 
     <%# CORPO CENTRALE %>
     <nav class="flex-1 overflow-y-auto w-full px-2 py-4">
       <% if current_user.admin? %>
-        <%= render "shared/sidebar/admin", size: 20 %>
+        <%= render "shared/sidebar/admin" %>
       <% else %>
-        <%= render "shared/sidebar/staff", size: 20 %>
+        <%= render "shared/sidebar/staff" %>
       <% end %>
     </nav>
 
@@ -24,7 +24,7 @@
       <%= link_to new_feedback_path(current_page: request.original_url),
             class: "btn btn-ghost btn-sm w-full justify-start gap-3 text-base-content/70",
             data: { turbo_frame: "feedback_modal" } do %>
-        <%= icon("chat_bubble", size: 18) %>
+        <%= icon("chat_bubble") %>
         <span class="font-normal">Invia Feedback</span>
       <% end %>
     </div>

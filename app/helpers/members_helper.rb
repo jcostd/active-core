@@ -24,11 +24,11 @@ module MembersHelper
 
   def member_status_color_class(member)
     if member.membership_valid? && member.medical_certificate_valid?
-      "status-success"
+      "text-success"
     elsif member.membership_valid?
-      "status-warning"
+      "text-warning"
     else
-      "status-error"
+      "text-error"
     end
   end
 end

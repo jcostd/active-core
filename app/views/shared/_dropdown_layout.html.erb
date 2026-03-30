@@ -8,7 +8,7 @@
            aria-label="<%= local_assigns[:title] %>">
 
     <% if local_assigns[:icon_name] %>
-      <%= icon(local_assigns[:icon_name], size: 16, class: "text-base-content/70") %>
+      <%= icon(local_assigns[:icon_name], classes: "size-5 text-base-content/70") %>
     <% end %>
 
     <% if local_assigns[:summary_text] %>
@@ -17,7 +17,9 @@
       </span>
     <% end %>
 
-    <%= icon("arrow_drop_down", size: 16, class: "hidden opacity-60 sm:inline-block") %>
+    <% unless local_assigns[:with_no_arrow] %>
+      <%= icon("arrow_drop_down", classes: "size-5 hidden opacity-60 sm:inline-block") %>
+    <% end %>
   </summary>
 
   <ul class="dropdown-content menu <%= local_assigns.fetch(:menu_class, 'flex flex-col flex-nowrap bg-base-200 text-base-content rounded-box mt-2 w-52 overflow-y-auto overflow-x-hidden z-[1] border border-base-content/5 shadow-2xl p-2') %>">
