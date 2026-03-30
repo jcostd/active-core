@@ -64,12 +64,21 @@
   <%# -- Colonne 3: Azioni -- %>
   <% unless member.discarded? %>
     <div class="flex items-center gap-1 shrink-0">
-      <%= link_to edit_member_path(member), class: "btn btn-square btn-ghost text-base-content/40 hover:text-primary", data: { turbo_frame: "modal" }, title: "Modifica" do %>
+      <%= link_to edit_member_path(member),
+		  class: "btn btn-square btn-ghost text-base-content/40 hover:text-primary",
+		  data: { turbo_frame: "modal" },
+		  title: "Modifica" do %>
         <%= icon("edit") %>
       <% end %>
 
       <% if current_user.admin? %>
-        <%= button_to member, method: :delete, class: "btn btn-square btn-ghost text-base-content/30 hover:text-error hover:bg-error/10", form: { data: { turbo_confirm: "Sei sicuro?" } }, title: "Archivia" do %>
+        <%= link_to member,
+		    class: "btn btn-square btn-ghost text-base-content/30 hover:text-error hover:bg-error/10",
+		    title: "Archivia",
+		    data: {
+		      turbo_method: :delete,
+		      turbo_confirm: "Sei sicuro?"
+		    } do %>
           <%= icon("delete") %>
         <% end %>
       <% end %>

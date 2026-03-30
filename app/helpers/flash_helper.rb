@@ -1,4 +1,3 @@
-# app/helpers/flash_helper.rb
 module FlashHelper
   FLASH_CLASSES = {
     notice:  "alert-success text-white",
@@ -14,10 +13,10 @@ module FlashHelper
 
   def flash_icon_name(type)
     case type.to_sym
-    when :alert, :error then "x_circle"
-    when :notice, :success then "check_circle"
-    when :warning then "exclamation_triangle"
-    else "information_circle"
+    when :alert, :error then "error"
+    when :notice, :success then "success"
+    when :warning then "warning"
+    else "info"
     end
   end
 end
