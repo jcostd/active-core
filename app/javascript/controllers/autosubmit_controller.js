@@ -1,4 +1,3 @@
-// app/javascript/controllers/autosubmit_controller.js
 import { Controller } from "@hotwired/stimulus"
 import { debounce } from "utils/debounce"
 
