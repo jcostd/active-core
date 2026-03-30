@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t active_core_minimal .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name active_core_minimal active_core_minimal
+# docker build -t active-core .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name active-core active-core
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 

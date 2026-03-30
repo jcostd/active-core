@@ -12,4 +12,25 @@ module UiHelper
   def ui_badge(text, style: "ghost")
     content_tag :span, text, class: "badge badge-sm badge-#{style} uppercase text-[10px] font-bold"
   end
+
+  def ui_row_edit_button(path, title: "Modifica")
+    link_to path,
+            class: "btn btn-square btn-ghost text-base-content/50 hover:text-primary",
+            data: { turbo_frame: "modal" },
+            title: title do
+      icon("edit")
+    end
+  end
+
+  def ui_row_delete_button(path, confirm: "Sei sicuro?", title: "Archivia")
+    link_to path,
+            class: "btn btn-square btn-ghost text-base-content/50 hover:text-error hover:bg-error/10",
+            title: title,
+            data: {
+              turbo_method: :delete,
+              turbo_confirm: confirm
+            } do
+      icon("delete")
+    end
+  end
 end

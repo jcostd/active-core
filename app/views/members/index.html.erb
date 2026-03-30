@@ -54,22 +54,22 @@
         <fieldset>
           <label class="label font-bold text-sm">Stato Tesseramento</label>
           <%= form.select :membership_status, member_membership_filters,
-              { include_blank: "Tutti gli stati", selected: params[:membership_status] },
-           { class: "select select-bordered w-full", data: { action: "change->autosubmit#submit" } } %>
+           { include_blank: "Tutti gli stati", selected: params[:membership_status] },
+           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
 
         <fieldset>
           <label class="label font-bold text-sm">Certificato Medico</label>
           <%= form.select :med_cert, member_med_cert_filters,
-		   { include_blank: "Tutte le scadenze", selected: params[:med_cert] },
-           { class: "select select-bordered w-full", data: { action: "change->autosubmit#submit" } } %>
+	   { include_blank: "Tutte le scadenze", selected: params[:med_cert] },
+           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
 
         <fieldset>
           <label class="label font-bold text-sm">Stato in Archivio</label>
           <%= form.select :state, member_state_filters,
-                   { include_blank: "Mostra solo Attivi", selected: params[:state] },
-           { class: "select select-bordered w-full", data: { action: "change->autosubmit#submit" } } %>
+           { include_blank: "Mostra solo Attivi", selected: params[:state] },
+           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
       </div>
     <% end %>

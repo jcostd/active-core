@@ -1,6 +1,8 @@
 class Member < ApplicationRecord
   include FtsSearchable, SoftDeletable, Personable, HasAddress, Avatarable
 
+  broadcasts_refreshes
+
   normalizes :fiscal_code, with: ->(c) { c.strip.upcase }
 
   has_many :sales, dependent: :restrict_with_error

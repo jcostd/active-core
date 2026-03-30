@@ -1,0 +1,55 @@
+<% content_for :record_avatar do %>
+  <%= ui_avatar(user) %>
+<% end %>
+
+<% content_for :record_title, user.full_name %>
+
+<% content_for :record_subtitle do %>
+  <% if user.discarded? %>
+    <%= ui_badge("Archiviato", style: "error") %>
+  <% end %>
+<% end %>
+
+
+<%# Usiamo il content_for corretto e i badge classici di daisy %>
+<% content_for :record_status_badges do %>
+  <div class="badge badge-ghost badge-sm gap-1 font-mono text-xs opacity-70">
+    @<%= user.username %>
+  </div>
+
+  <% if user.discarded? %>
+    <div class="badge badge-error badge-sm font-bold uppercase text-[10px]">Archiviato</div>
+  <% else %>
+    <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-sm font-bold uppercase text-[10px]">
+      <%= user.role %>
+    </div>
+  <% end %>
+<% end %>
+
+<% content_for :record_actions do %>
+  <%= render layout: "shared/dropdown_layout", locals: {
+    group_name: "member_header_dropdowns",
+    summary_class: "btn-sm btn-square btn-ghost",
+    icon_name: "more",
+    with_no_arrow: true
+  } do %>
+    <li>
+      <%= link_to edit_user_path(user),
+		  data: { turbo_frame: "modal" } do %>
+	<%= icon("edit") %> Modifica Anagrafica
+      <% end %>
+    </li>
+    <li>
+      <%= link_to user_path(user),
+		  class: "text-error hover:bg-error/10 hover:text-error",
+		  data: {
+		    turbo_method: :delete,
+		    turbo_confirm: "Sei sicuro?"
+		  } do %>
+	<%= icon("delete") %> Archivia Utente
+      <% end %>
+    </li>
+  <% end %>
+<% end %>
+
+<%= render "shared/header/record" %>

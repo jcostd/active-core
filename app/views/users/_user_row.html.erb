@@ -1,74 +1,46 @@
-<tr id="<%= dom_id(user) %>_row">
-  <%# UTENTE (Avatar + Nome) %>
-  <td>
-    <div class="flex items-center gap-3">
-      <div class="avatar avatar-placeholder">
-        <div class="rounded-full w-10" style="<%= user.avatar_color_style %>">
-          <span class="font-bold font-mono"><%= user.initials %></span>
+<li
+  id="<%= dom_id(user) %>"
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if user.discarded? %>">
+
+  <%# -- Colonna 1: Avatar -- %>
+  <div class="shrink-0">
+    <%= ui_avatar(user, size: "size-10", text_size: "text-xs") %>
+  </div>
+
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="grid gap-1 min-w-0 grow">
+
+    <%# Riga A: Nome e Badge Ruolo/Stato %>
+    <div class="flex items-center gap-2 truncate">
+      <div class="font-bold text-base leading-none truncate">
+        <%= link_to user.full_name, user, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
+      </div>
+
+      <% if user.discarded? %>
+        <%= ui_badge("Archiviato") %>
+      <% else %>
+        <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-xs font-bold uppercase text-[9px] opacity-80">
+          <%= user.role %>
         </div>
-      </div>
-
-      <div>
-        <%= link_to [user],
-		    class: "font-bold text-base-content hover:text-primary transition-colors truncate" do %>
-          <%= highlight user.full_name, params.dig(:query, :query) %>
-        <% end %>
-
-        <div class="font-mono text-sm opacity-50">
-          Creato il <%= format_date(user.created_at) %>
-        </div>
-      </div>
-    </div>
-  </td>
-
-  <%# USERNAME %>
-  <td class="font-mono text-sm font-bold opacity-80">@<%= user.username %></td>
-
-  <%# RUOLO %>
-  <td class="text-center">
-    <% if user.admin? %>
-      <div class="badge badge-primary badge-outline font-bold gap-1">
-        <%= icon("shield", size: 12) %> Admin
-      </div>
-    <% else %>
-      <div class="badge badge-ghost gap-1">
-        <%= icon("badge", size: 12) %> Staff
-      </div>
-    <% end %>
-  </td>
-
-  <%# EMAIL %>
-  <td class="text-sm">
-    <%= mail_to user.email_address, class: "link link-hover opacity-70 flex items-center gap-1" do %>
-      <%= icon("mail", size: 14) %>
-      <%= user.email_address %>
-    <% end %>
-  </td>
-
-  <%# AZIONI %>
-  <td class="text-right w-1 pr-4 align-middle">
-    <div class="join">
-      <%= link_to [user],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Dettaglio" } do %>
-        <%= icon("view", size: 16) %>
-      <% end %>
-
-      <%= link_to [:edit, user],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Modifica", turbo_frame: "modal" } do %>
-        <%= icon("edit", size: 16) %>
-      <% end %>
-
-      <%= link_to [user],
-		  class: "join-item text-error btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: {
-		    tip: "Archivia",
-		    turbo_method: :delete,
-		    turbo_confirm: "Sei sicuro di voler revocare l'accesso a #{user.username}?"
-		  } do %>
-        <%= icon("delete", size: 16) %>
       <% end %>
     </div>
-  </td>
-</tr>
+
+    <%# Riga B: Dati Utente (Username, Email) %>
+    <div class="text-xs font-semibold opacity-60 flex flex-wrap items-center gap-2">
+      <span class="font-mono">@<%= user.username %></span>
+      <span class="opacity-40">•</span>
+      <span><%= user.email_address %></span>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <% unless user.discarded? %>
+    <div class="flex items-center gap-1 shrink-0">
+      <%= ui_row_edit_button(edit_user_path(user)) %>
+
+      <% if current_user.admin? && user != current_user %>
+        <%= ui_row_delete_button(user, confirm: "Sei sicuro di voler archiviare questo utente?") %>
+      <% end %>
+    </div>
+  <% end %>
+</li>

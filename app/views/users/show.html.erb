@@ -1,134 +1,79 @@
-<%# app/views/users/show.html.erb %>
+<%= turbo_stream_from @user %>
 
-<%= render layout: "users/shell", locals: { user: @user } do %>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <%# --- COLONNA SINISTRA: CREDENZIALI --- %>
-    <div class="lg:col-span-1 space-y-6">
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6">
-          <h3
-            class="
-              font-bold text-sm uppercase opacity-50 tracking-wider mb-4
-              flex items-center gap-2
-            "
-          >
-            <%= icon("badge", size: 18) %> Credenziali
-          </h3>
+<%= render "users/context", user: @user %>
 
-          <div class="space-y-5">
-            <%# Ruolo %>
-            <div>
-              <div class="text-xs opacity-60 mb-1 font-bold">Ruolo Sistema</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
-              <div class="badge <%= @user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-lg gap-2 w-full justify-start py-4">
-                <%= icon(@user.admin? ? "shield" : "support_agent", size: 18) %>
-                <%= display_value(@user.role.humanize) %>
-              </div>
-            </div>
+  <%# --- COLONNA SINISTRA: CREDENZIALI --- %>
+  <div class="lg:col-span-1">
+    <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
+      <%= icon("badge", classes: "size-4") %> Credenziali
+    </h3>
 
-            <%# Username %>
-            <div>
-              <div class="text-xs opacity-60 mb-1 font-bold">Username</div>
-
-              <div
-                class="
-                  font-mono text-base bg-base-200/50 p-2 rounded border
-                  border-base-200 flex items-center gap-2
-                "
-              >
-                <span class="opacity-30 select-none">@</span>
-                <%= display_value(@user.username) %>
-              </div>
-            </div>
-
-            <%# Email %>
-            <div>
-              <div class="text-xs opacity-60 mb-1 font-bold">Email</div>
-
-              <div class="flex items-center gap-2 truncate font-medium text-sm">
-                <%= icon("mail", size: 16, class: "opacity-50") %>
-                <%= format_email(@user.email_address) %>
-              </div>
-            </div>
-          </div>
+    <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
+      <li class="list-row items-center">
+        <div class="opacity-60 font-medium">Ruolo</div>
+        <div class="list-col-grow text-right">
+          <span class="badge <%= @user.admin? ? 'badge-primary' : 'badge-ghost' %> badge-sm">
+            <%= display_value(@user.role.humanize) %>
+          </span>
         </div>
-      </div>
-    </div>
-
-    <%# --- COLONNA DESTRA: OPERATIVITÀ --- %>
-    <div class="lg:col-span-2 space-y-6">
-      <%# STATISTICHE ATTIVE (Solo Vendite per ora) %>
-      <div class="stats shadow-sm border border-base-200 bg-base-100 w-full">
-        <div class="stat">
-          <div class="stat-figure text-primary/20">
-            <%= icon("sale", size: 40) %>
-          </div>
-
-          <div class="stat-title font-bold opacity-60">Vendite Totali</div>
-          <div class="stat-value text-primary"><%= @sales_count %></div>
-          <div class="stat-desc">Transazioni registrate da questo utente</div>
+      </li>
+      <li class="list-row items-center">
+        <div class="opacity-60 font-medium">Username</div>
+        <div class="list-col-grow text-right font-mono font-bold">
+          @<%= display_value(@user.username) %>
         </div>
-      </div>
-
-      <%# AUDIT LOG (Date e Metadati) %>
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6">
-          <h3
-            class="
-              font-bold text-sm uppercase opacity-50 tracking-wider mb-4
-              flex items-center gap-2
-            "
-          >
-            <%= icon("fingerprint", size: 18) %> Audit Log
-          </h3>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <%# Data Creazione %>
-            <div
-              class="
-                flex items-center gap-3 p-3 bg-base-200/30 rounded-lg border
-                border-base-200
-              "
-            >
-              <div class="p-2 bg-base-100 rounded-full shadow-sm text-base-content/50">
-                <%= icon("event", size: 20) %>
-              </div>
-
-              <div>
-                <div class="text-xs opacity-50 font-bold uppercase">
-                  Data Creazione
-                </div>
-
-                <div class="font-mono text-sm">
-                  <%= format_datetime(@user.created_at, format: :long) %>
-                </div>
-              </div>
-            </div>
-
-            <%# Ultima Modifica %>
-            <div
-              class="
-                flex items-center gap-3 p-3 bg-base-200/30 rounded-lg border
-                border-base-200
-              "
-            >
-              <div class="p-2 bg-base-100 rounded-full shadow-sm text-base-content/50">
-                <%= icon("update", size: 20) %>
-              </div>
-
-              <div>
-                <div class="text-xs opacity-50 font-bold uppercase">
-                  Ultima Modifica
-                </div>
-
-                <div class="font-mono text-sm">
-                  <%= format_datetime(@user.updated_at, format: :long) %>
-                </div>
-              </div>
-            </div>
-          </div>
+      </li>
+      <li class="list-row items-center">
+        <div class="opacity-60 font-medium">Email</div>
+        <div class="list-col-grow text-right truncate">
+          <%= format_email(@user.email_address) %>
         </div>
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
-<% end %>
+
+  <%# --- COLONNA DESTRA: OPERATIVITÀ --- %>
+  <div class="lg:col-span-2 flex flex-col gap-8">
+
+    <%# STATISTICHE %>
+    <div>
+      <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
+        <%= icon("monitoring", classes: "size-4") %> Performance
+      </h3>
+      <div class="stats shadow-sm bg-base-100 w-full">
+        <div class="stat">
+          <div class="stat-figure text-primary/30"><%= icon("sale", classes: "size-8") %></div>
+          <div class="stat-title opacity-60">Vendite Registrate</div>
+          <div class="stat-value text-primary"><%= @sales_count %></div>
+        </div>
+      </div>
+    </div>
+
+    <%# AUDIT LOG %>
+    <div>
+      <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
+        <%= icon("fingerprint", classes: "size-4") %> Audit Log
+      </h3>
+
+      <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
+        <li class="list-row items-center">
+          <div class="opacity-50"><%= icon("event", classes: "size-5") %></div>
+          <div class="opacity-60 font-medium">Creazione Profilo</div>
+          <div class="list-col-grow text-right font-mono text-xs">
+            <%= format_datetime(@user.created_at, format: :long) %>
+          </div>
+        </li>
+        <li class="list-row items-center">
+          <div class="opacity-50"><%= icon("update", classes: "size-5") %></div>
+          <div class="opacity-60 font-medium">Ultima Modifica</div>
+          <div class="list-col-grow text-right font-mono text-xs">
+            <%= format_datetime(@user.updated_at, format: :long) %>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>

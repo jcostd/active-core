@@ -1,4 +1,4 @@
-<%= form_with(model: member, class: "space-y-6") do |f| %>
+<%= form_with(model: member, class: "space-y-6", data: { turbo_frame: "_top" }) do |f| %>
   <%= render "shared/form_errors", model: member %>
 
   <%# --- SEZIONE 1: DATI ANAGRAFICI --- %>
