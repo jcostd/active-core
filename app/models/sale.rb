@@ -1,11 +1,14 @@
 class Sale < ApplicationRecord
   include SubscriptionIssuer, FiscalLockable, Monetizable, Trackable, SoftDeletable
+  include Refreshable
 
   monetize :amount
 
-  belongs_to :member
+  belongs_to :member, touch: true
   belongs_to :user
   belongs_to :product
+
+  has_many :subscriptions
 
   enum :payment_method, {
          cash: 1, credit_card: 2, bank_transfer: 3, other: 4

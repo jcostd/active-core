@@ -1,9 +1,9 @@
 class Subscription < ApplicationRecord
   include SoftDeletable, DateRangeable
 
-  belongs_to :member
+  belongs_to :member, touch: true
+  belongs_to :sale, inverse_of: :subscription, touch: true
   belongs_to :product
-  belongs_to :sale, inverse_of: :subscription
 
   validates :member, :product, :sale, presence: true
 

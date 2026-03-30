@@ -85,8 +85,8 @@
   <% if @members.empty? %>
     <%= render "shared/empty_state",
                icon_name: "filter_off",
-               title: t("search.results.zero", default: "Nessun socio trovato"),
-               message: t("search.results.hint", default: "Prova a cambiare i criteri di ricerca o rimuovere i filtri.") %>
+               title: "Nessun socio trovato",
+               message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
   <% else %>
 
     <%# 2. Feedback contestuale della ricerca %>

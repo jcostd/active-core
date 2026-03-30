@@ -1,19 +1,19 @@
-<%# app/views/shared/_empty_state.html.erb %>
-<%#
-  Mostra un messaggio per quando non ci sono dati.
-  Riceve `icon_name`, `title`, `message` e opzionalmente un blocco per le azioni.
-%>
+<div class="flex flex-col items-center justify-center py-24 px-4 text-center bg-base-100/70 rounded-box border-2 border-dashed border-base-300/70">
 
-<div class="text-center p-6 bg-base-200/60 rounded-lg">
-  <div class="inline-block p-3 bg-base-100 rounded-full">
-    <%= icon(icon_name, size: 24, class: "text-base-content/50") %>
-  </div>
+  <%= icon(icon_name, classes: "size-16 text-base-content/20 mb-6") %>
 
-  <h3 class="mt-3 text-md font-semibold"><%= title %></h3>
+  <h3 class="text-xl font-bold text-base-content tracking-tight">
+    <%= title %>
+  </h3>
 
-  <p class="mt-1 text-sm text-base-content/70"><%= message %></p>
+  <p class="mt-2 text-sm text-base-content/50 max-w-sm leading-relaxed">
+    <%= message %>
+  </p>
 
   <% if block_given? %>
-    <div class="mt-5"><%= yield %></div>
+    <div class="mt-8 flex items-center justify-center gap-3">
+      <%= yield %>
+    </div>
   <% end %>
+
 </div>

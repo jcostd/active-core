@@ -1,7 +1,6 @@
 class Member < ApplicationRecord
   include FtsSearchable, SoftDeletable, Personable, HasAddress, Avatarable
-
-  broadcasts_refreshes
+  include Refreshable
 
   normalizes :fiscal_code, with: ->(c) { c.strip.upcase }
 

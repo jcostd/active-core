@@ -1,10 +1,10 @@
 class User < ApplicationRecord
   include SoftDeletable, Personable, UserPreferences, Avatarable
-
-  broadcasts_refreshes
+  include Refreshable
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  after_discard :terminate_all_sessions
 
   has_many :sales, dependent: :restrict_with_error
   has_many :feedbacks, dependent: :restrict_with_error
@@ -29,4 +29,9 @@ class User < ApplicationRecord
       term: term
     )
   }
+
+  private
+    def terminate_all_sessions
+      sessions.delete_all
+    end
 end

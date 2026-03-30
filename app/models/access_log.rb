@@ -1,7 +1,10 @@
 class AccessLog < ApplicationRecord
-  belongs_to :member
-  belongs_to :subscription
+  include Refreshable
+
+  belongs_to :member, touch: true
+  belongs_to :subscription, optional: true, touch: true
   belongs_to :checkin_by_user, class_name: "User"
+  belongs_to :discipline, optional: true
 
   before_validation :set_defaults
 

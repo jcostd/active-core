@@ -1,3 +1,17 @@
+<% content_for :user_actions do %>
+  <ul>
+    <li class="menu-title px-4 py-2 opacity-50 text-xs font-bold uppercase tracking-wider mt-2">
+      <%= user.full_name %>
+    </li>
+
+    <li>
+      <%= active_link_to user_path(user), active: :exclusive do %>
+        <%= icon("user") %> Profilo
+      <% end %>
+    </li>
+  </ul>
+<% end %>
+
 <% content_for :record_avatar do %>
   <%= ui_avatar(user) %>
 <% end %>
@@ -10,20 +24,14 @@
   <% end %>
 <% end %>
 
-
-<%# Usiamo il content_for corretto e i badge classici di daisy %>
 <% content_for :record_status_badges do %>
   <div class="badge badge-ghost badge-sm gap-1 font-mono text-xs opacity-70">
     @<%= user.username %>
   </div>
 
-  <% if user.discarded? %>
-    <div class="badge badge-error badge-sm font-bold uppercase text-[10px]">Archiviato</div>
-  <% else %>
-    <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-sm font-bold uppercase text-[10px]">
-      <%= user.role %>
-    </div>
-  <% end %>
+  <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-sm font-bold uppercase text-[10px]">
+    <%= user.role %>
+  </div>
 <% end %>
 
 <% content_for :record_actions do %>
