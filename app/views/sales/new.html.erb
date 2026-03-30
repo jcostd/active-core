@@ -1,16 +1,6 @@
 <%# app/views/sales/new.html.erb %>
-<div class="container mx-auto max-w-6xl p-4 md:p-6">
-  <div class="mb-6 flex justify-between items-center border-b border-base-300 pb-4">
-    <div>
-      <h1 class="text-3xl font-extrabold text-base-content tracking-tight">Cassa / Nuova Vendita</h1>
-      <% if @sale.member %>
-        <p class="text-base-content/70 mt-1">
-          Stai operando sul socio: <span class="font-semibold text-primary"><%= @sale.member.full_name_ruby %></span>
-        </p>
-      <% end %>
-    </div>
-    <%= link_to "Torna indietro", sales_path, class: "btn btn-ghost" %>
-  </div>
 
-  <%= render "form", sale: @sale %>
-</div>
+<% content_for :title, "Terminale POS" %>
+<% content_for :modal_class, "max-w-5xl w-11/12" %>
+
+<%= render "form", sale: @sale %>

@@ -22,29 +22,42 @@ class Sale < ApplicationRecord
 
   def prepare_draft(options = {})
     self.sold_on ||= Date.current
+    self.member_id ||= options[:preset_member_id]
+
     build_subscription unless subscription
 
-    if options[:renew_subscription_id].present? && member.present?
-      old_sub = member.subscriptions.find_by(id: options[:renew_subscription_id])
-      if old_sub
-        self.product = old_sub.product
-        self.amount = product&.price if amount.blank? || amount.zero?
-      end
+    if options[:autosubmit]
+      reset_draft_if_changed(options[:previous_product_id], options[:previous_member_id])
+    elsif options[:renew_subscription_id].present?
+      apply_renewal_template(options[:renew_subscription_id])
     end
 
     if product_id.present? && (amount.blank? || amount.zero?)
       self.amount = product.price
     end
 
-    # 1. Passiamo alla Subscription le associazioni necessarie per fargli fare i calcoli
     sync_subscription_data
-
-    # 2. Tell, Don't Ask: Diciamo alla Subscription di calcolare le sue date,
-    # passandole l'eventuale forzatura dell'utente dal form.
     subscription.assign_smart_dates(manual_start_date: options[:manual_start_date])
   end
 
   private
+    def reset_draft_if_changed(prev_product, prev_member)
+      if prev_product.to_s != product_id.to_s || prev_member.to_s != member_id.to_s
+        self.amount = nil
+        subscription.start_date = nil
+      end
+    end
+
+    def apply_renewal_template(renew_id)
+      old_sub = Subscription.find_by(id: renew_id)
+      return unless old_sub
+
+      self.product_id ||= old_sub.product_id
+      self.member_id  ||= old_sub.member_id
+
+      subscription.start_date = old_sub.end_date >= Date.current ? (old_sub.end_date + 1.day) : Date.current
+    end
+
     def sync_subscription_data
       return unless subscription.present? && member.present? && product.present?
       subscription.member ||= self.member

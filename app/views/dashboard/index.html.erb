@@ -8,7 +8,9 @@
     </p>
   </div>
 
-  <%= link_to new_sale_path, class: "btn btn-primary shadow-sm" do %>
+  <%= link_to new_sale_path,
+	      class: "btn btn-primary shadow-sm",
+	      data: { turbo_frame: "modal" } do %>
     <%= icon("add", classes: "size-5") %> Nuova Vendita
   <% end %>
 </header>

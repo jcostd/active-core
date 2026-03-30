@@ -1,6 +1,8 @@
 class MembersController < ApplicationController
   before_action :set_member, only: [ :show, :edit, :update, :destroy ]
 
+  layout "modal", only: [ :new, :create, :edit, :update ]
+
   def index
     query_results = MembersQuery.new(filter_params).results
 
@@ -18,7 +20,6 @@ class MembersController < ApplicationController
 
   def new
     @member = Member.new
-    render layout: "modal"
   end
 
   def create
@@ -27,19 +28,17 @@ class MembersController < ApplicationController
     if @member.save
       redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
     else
-      render :new, layout: "modal", status: :unprocessable_entity
+      render :new, status: :unprocessable_entity
     end
   end
 
-  def edit
-    render layout: "modal"
-  end
+  def edit;  end
 
   def update
     if @member.update(member_params)
       redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
     else
-      render :edit, layout: "modal", status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 

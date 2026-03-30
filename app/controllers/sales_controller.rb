@@ -2,8 +2,7 @@ class SalesController < ApplicationController
   before_action :require_admin, only: [ :index ]
   before_action :set_sale, only: [ :show, :destroy ]
 
-  # 1. IL LAYOUT: Diciamo a Rails di usare il layout "pos" invece di quello standard
-  layout "pos", only: [ :new, :create ]
+  layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
 
   def index
     scope = Sale.kept
@@ -27,14 +26,14 @@ class SalesController < ApplicationController
 
   def new
     @sale = Sale.new(sale_params_for_build)
-    @sale.sold_on ||= Date.current
 
-    if params[:previous_product_id] != @sale.product_id.to_s || params[:previous_member_id] != @sale.member_id.to_s
-      @sale.amount = nil
-      @sale.subscription.start_date = nil if @sale.subscription
-    end
-
-    @sale.prepare_draft
+    @sale.prepare_draft(
+      autosubmit: params.has_key?(:sale),
+      preset_member_id: params[:member_id],
+      renew_subscription_id: params[:renew_subscription_id],
+      previous_product_id: params[:previous_product_id],
+      previous_member_id: params[:previous_member_id]
+    )
   end
 
   def create
@@ -44,12 +43,20 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
     else
-      # Se c'è un errore di validazione, dobbiamo ri-preparare la bozza per
-      # assicurarci che la UI abbia i calcoli live corretti prima di renderizzare
       @sale.prepare_draft(
         manual_start_date: params.dig(:sale, :subscription_attributes, :start_date)
       )
-      render :new, status: :unprocessable_entity
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+                   "pos_form_frame",
+                   template: "sales/new",
+                   layout: false
+                 ), status: :unprocessable_entity
+        end
+        format.html { render :new, status: :unprocessable_entity }
+      end
     end
   end
 

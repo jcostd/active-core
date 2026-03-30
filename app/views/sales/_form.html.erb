@@ -4,93 +4,130 @@
   <%= form_with model: sale,
                 url: new_sale_path,
                 method: :get,
-                data: { controller: "autosubmit" } do |f| %>
-
-    <%= render "shared/form_errors", model: sale %>
+                data: { controller: "autosubmit" },
+                class: "flex flex-col md:flex-row gap-8 lg:gap-12" do |f| %>
 
     <%= hidden_field_tag :previous_member_id, sale.member_id %>
     <%= hidden_field_tag :previous_product_id, sale.product_id %>
     <%= hidden_field_tag :renew_subscription_id, params[:renew_subscription_id] %>
 
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Anagrafica Cliente</legend>
+    <div class="flex-1 flex flex-col gap-8 py-2">
 
-      <div data-controller="autocomplete">
-        <%= f.hidden_field :member_id,
-             data: {
-               autocomplete_target: "hidden",
-               action: "change->autosubmit#submit"
-             } %>
+      <%= render "shared/form_errors", model: sale %>
 
-        <input type="text"
-               class="input"
-               placeholder="Cerca..."
-               value="<%= sale.member&.full_name_ruby %>"
-               autocomplete="off"
-               data-autocomplete-target="input"
-               data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
-               data-url="<%= members_searches_path %>">
+      <%# SEZIONE 1: Cliente %>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+          <%= icon("person_search", classes: "size-6 opacity-40") %> Anagrafica Cliente
+        </legend>
 
-        <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
-      </div>
-    </fieldset>
+        <div data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside" class="w-full relative">
+          <%= f.hidden_field :member_id, data: { autocomplete_target: "hidden", action: "change->autosubmit#submit" } %>
 
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Dettagli Acquisto</legend>
+          <input type="text"
+                 class="input w-full"
+                 placeholder="Cerca per nome o codice fiscale..."
+                 value="<%= sale.member&.full_name %>"
+                 autocomplete="off"
+                 data-autocomplete-target="input"
+                 data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+                 data-url="<%= members_searches_path %>">
 
-      <div>
-        <%= f.label :product_id, "Prodotto", class: "label" %>
-        <%= f.collection_select :product_id, Product.all, :id, :name,
-             { prompt: "Scegli..." },
-             { class: "select", data: { action: "change->autosubmit#submit" } } %>
-      </div>
-
-      <div>
-        <%= f.label :sold_on, "Data Contabile", class: "label" %>
-        <%# VIA IL VALUE OVERRIDE, CI PENSA RAILS %>
-        <%= f.date_field :sold_on, class: "input", data: { action: "change->autosubmit#submit" } %>
-      </div>
-
-      <div>
-        <%= f.label :amount, "Importo Pagato (€)", class: "label" %>
-        <%# VIA IL VALUE OVERRIDE, CI PENSA RAILS %>
-        <%= f.text_field :amount, class: "input", data: { action: "change->autosubmit#submit" } %>
-      </div>
-
-      <div>
-        <%= f.label :payment_method, "Metodo", class: "label" %>
-        <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select", data: { action: "change->autosubmit#submit" } %>
-      </div>
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Validità Iscrizione (Calcolo Smart)</legend>
-
-      <%= f.fields_for :subscription do |sub_f| %>
-        <div>
-          <%= sub_f.label :start_date, "Decorrenza", class: "label" %>
-          <%# VIA IL VALUE OVERRIDE %>
-          <%= sub_f.date_field :start_date, class: "input", data: { action: "change->autosubmit#submit" } %>
+          <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
         </div>
-        <div>
-          <label class="label">Scadenza (Calcolata)</label>
-          <%# QUI SERVE IL VALUE PERCHÉ È UN TAG HTML PURO, MA HO TOLTO LA VIRGOLA PRIMA DI DISABLED %>
-          <input type="date" value="<%= sale.subscription&.end_date %>" class="input" disabled />
+      </fieldset>
+
+      <%# SEZIONE 2: Prodotto %>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+          <%= icon("shopping_bag", classes: "size-6 opacity-40") %> Dettagli Acquisto
+        </legend>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <%= f.label :product_id, "Prodotto Selezionato", class: "label text-xs font-semibold uppercase opacity-70" %>
+            <%= f.collection_select :product_id, Product.all, :id, :name,
+                 { prompt: "Scegli un prodotto..." },
+                 { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+          </div>
+
+          <div>
+            <%= f.label :sold_on, "Data Contabile", class: "label text-xs font-semibold uppercase opacity-70" %>
+            <%= f.date_field :sold_on, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+          </div>
+
+          <div>
+            <%= f.label :payment_method, "Metodo di Pagamento", class: "label text-xs font-semibold uppercase opacity-70" %>
+            <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select w-full", data: { action: "change->autosubmit#submit" } %>
+          </div>
         </div>
-      <% end %>
-    </fieldset>
+      </fieldset>
 
-    <div>
-      <h3>Scontrino Live</h3>
-      <p>Socio: <%= sale.member&.full_name_ruby %></p>
-      <p>Prodotto: <%= sale.product&.name %></p>
-      <p>Totale: € <%= sale.amount %></p>
+      <%# SEZIONE 3: Iscrizione %>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+          <%= icon("calendar_today", classes: "size-6 opacity-40") %> Validità Iscrizione
+        </legend>
 
-      <%= f.button "Conferma e Incassa",
-            formmethod: "post",
-            formaction: sales_path,
-            data: { turbo_frame: "_top" },
-            disabled: sale.product.nil? || sale.member.nil? %>
+        <%= f.fields_for :subscription do |sub_f| %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <%= sub_f.label :start_date, "Decorrenza (Modificabile)", class: "label text-xs font-semibold uppercase opacity-70" %>
+              <%= sub_f.date_field :start_date, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+            </div>
+            <div>
+              <label class="label text-xs font-semibold uppercase opacity-70">Scadenza (Calcolata)</label>
+              <input type="date" value="<%= sale.subscription&.end_date %>" class="input w-full bg-transparent border-dashed text-base-content/50" disabled />
+            </div>
+          </div>
+        <% end %>
+      </fieldset>
+
+    </div>
+
+
+    <%# ========================================== %>
+    <%# COLONNA DESTRA: L'unica vera "Isola"       %>
+    <%# ========================================== %>
+    <div class="w-full md:w-80 lg:w-96 shrink-0">
+
+      <%# L'isola ha un background diverso e angoli molto smussati %>
+      <div class="bg-base-200/50 rounded-box p-6 sm:p-8 sticky top-4 flex flex-col h-full border border-base-200">
+
+        <h3 class="font-bold text-sm flex items-center gap-2 mb-6 uppercase tracking-widest opacity-60">
+          <%= icon("receipt") %> Riepilogo Scontrino
+        </h3>
+
+        <div class="flex flex-col gap-4 flex-1">
+          <div class="flex justify-between items-start border-b border-base-300 pb-3">
+            <span class="text-sm opacity-60 font-medium">Socio</span>
+            <span class="font-bold text-right max-w-[160px] truncate"><%= sale.member&.full_name || "---" %></span>
+          </div>
+
+          <div class="flex justify-between items-start border-b border-base-300 pb-3">
+            <span class="text-sm opacity-60 font-medium">Prodotto</span>
+            <span class="font-bold text-right max-w-[160px] leading-tight"><%= sale.product&.name || "---" %></span>
+          </div>
+
+          <div class="mt-auto pt-8 flex flex-col gap-2">
+            <%= f.label :amount, "Importo da Incassare (€)", class: "text-[10px] font-bold uppercase tracking-wider opacity-50" %>
+            <%= f.text_field :amount,
+	     class: "input input-lg w-full text-right font-mono text-3xl font-black focus:border-primary focus:ring-1 focus:ring-primary",
+             data: { action: "change->autosubmit#submit" } %>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <%= f.button formmethod: "post",
+                       formaction: sales_path,
+                       data: { turbo_frame: "_top" },
+                       disabled: sale.product.nil? || sale.member.nil?,
+                       class: "btn btn-primary btn-block btn-lg shadow-sm" do %>
+            <%= icon("sale", classes: "size-6") %> Conferma e Incassa
+          <% end %>
+        </div>
+
+      </div>
     </div>
 
   <% end %>
