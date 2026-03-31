@@ -1,14 +1,13 @@
 class UsersController < ApplicationController
+  include Filterable
+
   before_action :set_user, only: [ :show, :edit, :update, :destroy ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    query_results = UsersQuery.new(filter_params).results
-
     @total_active_users = User.kept.count
-    @pagy, @users = pagy(query_results)
-    @is_filtering = filter_params.to_h.except(:sort).reject { |_, v| v.blank? }.any?
+    @pagy, @users = pagy(UsersQuery.new(filter_params).results)
   end
 
   def show

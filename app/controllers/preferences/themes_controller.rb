@@ -2,6 +2,6 @@ class Preferences::ThemesController < ApplicationController
   def update
     current_user.update(theme: params.require(:theme))
 
-    redirect_back(fallback_location: root_path)
+    redirect_back_or_to root_path
   end
 end

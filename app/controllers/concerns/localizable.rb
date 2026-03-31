@@ -7,7 +7,7 @@ module Localizable
 
   private
     def switch_locale(&action)
-      locale = current_user&.locale_or_default || I18n.default_locale
+      locale = current_user&.locale || I18n.default_locale
 
       I18n.with_locale(locale, &action)
     end

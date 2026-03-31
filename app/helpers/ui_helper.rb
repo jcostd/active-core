@@ -33,4 +33,30 @@ module UiHelper
       icon("delete")
     end
   end
+
+  def ui_requirement_badge(condition, text:, icon_name:, active_class: "badge-info badge-soft")
+    if condition
+      content_tag(:div, class: "badge badge-sm gap-1 font-bold #{active_class}", title: "Richiede #{text}") do
+        icon(icon_name, classes: "size-3") + " #{text}"
+      end
+    else
+      content_tag(:div, class: "badge badge-sm badge-ghost opacity-40 gap-1 font-normal line-through", title: "Non richiede #{text}") do
+        "No #{text}"
+      end
+    end
+  end
+
+  def ui_status_badge(is_valid, valid_text:, invalid_text:, valid_class: "badge-success badge-soft", invalid_class: "badge-error badge-soft", icon_name: nil)
+    base_classes = "badge badge-sm gap-1 font-bold"
+
+    if is_valid
+      content_tag(:div, class: "#{base_classes} #{valid_class}") do
+        (icon_name ? icon(icon_name, classes: "size-3") + " " : "".html_safe) + valid_text
+      end
+    else
+      content_tag(:div, class: "#{base_classes} #{invalid_class}", title: "Attenzione: #{invalid_text}") do
+        icon("error", classes: "size-3") + " #{invalid_text}"
+      end
+    end
+  end
 end

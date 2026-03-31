@@ -15,18 +15,17 @@
       <%= ui_badge("Archiviato") if member.discarded? %>
     </div>
 
-    <%# Riga B: Dati fiscali e Status %>
     <div class="text-xs uppercase font-semibold opacity-60 flex flex-wrap items-center gap-2">
       <span><%= member.fiscal_code %></span>
       <span class="opacity-40">•</span>
-      <span class="<%= member.membership_valid? ? 'text-success' : 'text-error' %>">
-        <%= member.membership_valid? ? 'Tessera Attiva' : 'Tessera Scaduta' %>
-      </span>
+
+      <%= ui_status_badge(member.membership_valid?,
+			  valid_text: "Tessera Attiva", invalid_text: "Tessera Scaduta") %>
+
       <% unless member.medical_certificate_valid? %>
-        <span class="opacity-40">•</span>
-        <span class="text-warning flex items-center gap-0.5" title="Certificato Scaduto o Assente">
-          <%= icon("warning", classes: "size-4") %> Cert. Medico
-        </span>
+	<span class="opacity-40">•</span>
+	<%= ui_status_badge(false,
+			    valid_text: "", invalid_text: "Cert. Medico", invalid_class: "badge-warning badge-soft") %>
       <% end %>
     </div>
 

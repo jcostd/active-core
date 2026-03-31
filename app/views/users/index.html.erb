@@ -19,7 +19,7 @@
         html: {
           autocomplete: "off",
           id: "filter-form",
-          data: { controller: "autosubmit" }
+          data: { controller: "autosubmit drawer" }
         } do |form| %>
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
@@ -35,10 +35,10 @@
              data: { action: "input->autosubmit#submit" } %>
         </label>
 
-        <label for="users-filters" class="btn btn-outline bg-base-100 border-base-300 gap-2 shrink-0">
+        <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
           <%= icon("filter") %>
           <span class="hidden sm:inline">Filtri</span>
-        </label>
+        </button>
       </div>
 
       <%# DESTRA: Ordinamento %>

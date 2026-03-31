@@ -1,9 +1,7 @@
 class Preferences::LanguagesController < ApplicationController
   def update
-    if current_user.update(locale: params.require(:language))
-      I18n.locale = current_user.locale
-    end
+    current_user.update(locale: params.require(:language))
 
-    redirect_back(fallback_location: root_path)
+    redirect_back_or_to root_path
   end
 end

@@ -1,74 +1,42 @@
-<tr id="<%= dom_id(discipline) %>_row">
-  <%# NOME %>
-  <td class="pl-6 font-bold text-lg">
-    <%= link_to discipline.name, discipline, class: "font-bold text-base-content hover:text-primary transition-colors truncate" %>
-  </td>
+<li
+  id="<%= dom_id(discipline) %>"
+  class="list-row hover:bg-base-200/50 transition-colors">
 
-  <%# REGOLE (Badge) %>
-  <td class="text-center">
-    <div class="flex justify-center gap-2">
-      <%# Badge Certificato Medico %>
-      <% if discipline.requires_medical_certificate? %>
-        <div
-          class="badge badge-error badge-outline gap-1 text-xs font-bold"
-          title="Richiede Certificato Medico"
-        >
-          <%= icon("med", size: 12) %> Cert. Medico
-        </div>
-      <% else %>
-        <div
-          class="
-            badge badge-ghost badge-outline gap-1 text-xs opacity-30
-            strike-through
-          "
-        >
-          No Cert.
-        </div>
-      <% end %>
-
-      <%# Badge Membership %>
-      <% if discipline.requires_membership? %>
-        <div
-          class="badge badge-info badge-outline gap-1 text-xs font-bold"
-          title="Richiede Iscrizione/Tesseramento"
-        >
-          <%= icon("card_membership", size: 12) %> Iscrizione
-        </div>
-      <% end %>
+  <%# -- Colonna 1: Icona (Equivalente all'avatar di Member) -- %>
+  <div class="shrink-0">
+    <div class="flex items-center justify-center size-10 bg-base-200 rounded-full text-base-content/50">
+      <%= icon("category", classes: "size-5") %>
     </div>
-  </td>
+  </div>
 
-  <%# CONTEGGIO PRODOTTI %>
-  <td class="text-right pr-6 font-mono opacity-60">
-    <%= display_value(discipline.products.count) %>
-  </td>
-
-  <%# AZIONI %>
-  <td class="text-right w-1 pr-4 align-middle">
-    <div class="join">
-      <%= link_to [discipline],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Dettaglio" } do %>
-        <%= icon("view", size: 16) %>
-      <% end %>
-
-      <%= link_to [:edit, discipline],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Modifica", turbo_frame: "modal" } do %>
-        <%= icon("edit", size: 16) %>
-      <% end %>
-
-      <% if current_user.admin? %>
-        <%= link_to [discipline],
-		    class: "join-item text-error btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: {
-		      tip: "Archivia",
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro di voler archiviare #{discipline.name}?"
-		    } do %>
-          <%= icon("delete", size: 16) %>
-        <% end %>
-      <% end %>
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="grid gap-1 min-w-0 grow">
+    <%# Riga A: Nome %>
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to discipline.name, discipline, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
     </div>
-  </td>
-</tr>
+
+    <%# Riga B: Dati numerici %>
+    <div class="text-xs uppercase font-semibold opacity-60 flex flex-wrap items-center gap-2">
+      <span><%= display_value(discipline.products.count) %> Prodotti collegati</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 min-h-[1.75rem]">
+      <%= ui_requirement_badge(discipline.requires_medical_certificate?,
+			       text: "Cert. Medico", icon_name: "med", active_class: "badge-error badge-soft") %>
+
+      <%= ui_requirement_badge(discipline.requires_membership?,
+			       text: "Iscrizione", icon_name: "card_membership", active_class: "badge-info badge-soft") %>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <div class="flex items-center gap-1 shrink-0">
+    <%# Uso gli stessi helper puliti di member_row anziché il join vecchio %>
+    <%= ui_row_edit_button(edit_discipline_path(discipline)) %>
+
+    <% if current_user.admin? %>
+      <%= ui_row_delete_button(discipline, confirm: "Sei sicuro di voler archiviare #{discipline.name}?") %>
+    <% end %>
+  </div>
+</li>

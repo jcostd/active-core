@@ -1,15 +1,13 @@
 class MembersController < ApplicationController
+  include Filterable
+
   before_action :set_member, only: [ :show, :edit, :update, :destroy ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    query_results = MembersQuery.new(filter_params).results
-
     @total_active_members = Member.kept.count
-
-    @pagy, @members = pagy(query_results.includes(:subscriptions))
-    @is_filtering = filter_params.to_h.except(:sort).reject { |_, v| v.blank? }.any?
+    @pagy, @members = pagy(MembersQuery.new(filter_params).results.includes(:subscriptions))
   end
 
   def show

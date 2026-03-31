@@ -7,7 +7,7 @@
 
   <li class="menu-title">Temi</li>
 
-  <% UserPreferences::ALLOWED_THEMES.each do |theme| %>
+  <% UserPreferences::THEMES.each do |theme| %>
     <% is_active = current_user&.preferences&.dig("theme") == theme %>
 
     <li class="w-full">

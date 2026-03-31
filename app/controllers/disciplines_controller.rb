@@ -1,8 +1,13 @@
 class DisciplinesController < ApplicationController
+  include Filterable
+
   before_action :set_discipline, only: [ :show, :edit, :update, :destroy ]
 
+  layout "modal", only: [ :new, :create, :edit, :update ]
+
   def index
-    @pagy, @disciplines = pagy(Discipline.kept.order(:name))
+    @total_active_disciplines = Discipline.kept.count
+    @pagy, @disciplines = pagy(DisciplinesQuery.new(filter_params).results)
   end
 
   def show
@@ -14,37 +19,33 @@ class DisciplinesController < ApplicationController
       requires_medical_certificate: true,
       requires_membership: true
     )
-
-    render layout: "modal"
   end
 
   def create
     @discipline = Discipline.new(discipline_params)
 
     if @discipline.save
-      redirect_to disciplines_path, notice: t(".created", default: "Disciplina creata con successo.")
+      redirect_to disciplines_path, notice: "Disciplina creata con successo."
     else
-      render :new, layout: "modal", status: :unprocessable_entity
+      render :new, status: :unprocessable_entity
     end
   end
 
-  def edit
-    render layout: "modal"
-  end
+  def edit;  end
 
   def update
     if @discipline.update(discipline_params)
-      redirect_to disciplines_path, notice: t(".updated", default: "Disciplina aggiornata.")
+      redirect_to disciplines_path, notice: "Disciplina aggiornata."
     else
-      render :edit, layout: "modal", status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
     if @discipline.discard!
-      redirect_to disciplines_path, notice: t(".discarded", default: "Disciplina archiviata.")
+      redirect_to disciplines_path, notice: "Disciplina archiviata."
     else
-      redirect_to disciplines_path, alert: t(".error", default: "Impossibile archiviare.")
+      redirect_to disciplines_path, alert: "Impossibile archiviare."
     end
   end
 

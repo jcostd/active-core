@@ -1,27 +1,21 @@
 module UserPreferences
   extend ActiveSupport::Concern
 
-  ALLOWED_THEMES = %w[light dark cupcake bumblebee emerald corporate synthwave retro cyberpunk valentine halloween garden forest aqua lofi pastel fantasy wireframe black luxury dracula cmyk autumn business acid lemonade night coffee winter dim nord sunset caramellate abyss silk].freeze
+  THEMES = %w[light dark nord corporate business dim].freeze
 
   included do
     store_accessor :preferences, :theme, :locale
 
-    validates :theme, inclusion: { in: ALLOWED_THEMES }, allow_nil: true
-    validates :locale, inclusion: { in: I18n.available_locales.map(&:to_s) }, allow_nil: true
-
-    after_initialize :set_default_preferences, if: :new_record?
+    validates :theme, inclusion: { in: THEMES }, allow_blank: true
+    validates :locale, inclusion: { in: I18n.available_locales.map(&:to_s) }, allow_blank: true
   end
 
-  def theme_or_default
-    theme.presence || "light"
+  def theme
+    saved_theme = super.presence
+    THEMES.include?(saved_theme) ? saved_theme : "corporate"
   end
 
-  def locale_or_default
-    locale.presence || I18n.default_locale.to_s
+  def locale
+    super.presence || I18n.default_locale.to_s
   end
-
-  private
-    def set_default_preferences
-      self.preferences ||= {}
-    end
 end

@@ -2,11 +2,11 @@ module Themable
   extend ActiveSupport::Concern
 
   included do
-    before_action :set_theme
+    helper_method :current_theme
   end
 
   private
-    def set_theme
-      @theme = current_user&.theme_or_default || "light"
+    def current_theme
+      current_user&.theme || "corporate"
     end
 end
