@@ -14,10 +14,10 @@
       <%= render "shared/form_errors", model: sale %>
 
       <%# SEZIONE 1: Cliente %>
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+      <div class="fieldset">
+        <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
           <%= icon("person_search", classes: "size-6 opacity-40") %> Anagrafica Cliente
-        </legend>
+        </div>
 
         <div data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside" class="w-full relative">
           <%= f.hidden_field :member_id, data: { autocomplete_target: "hidden", action: "change->autosubmit#submit" } %>
@@ -33,13 +33,13 @@
 
           <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
         </div>
-      </fieldset>
+      </div>
 
       <%# SEZIONE 2: Prodotto %>
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+      <div class="fieldset">
+        <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
           <%= icon("shopping_bag", classes: "size-6 opacity-40") %> Dettagli Acquisto
-        </legend>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="sm:col-span-2">
@@ -59,13 +59,13 @@
             <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select w-full", data: { action: "change->autosubmit#submit" } %>
           </div>
         </div>
-      </fieldset>
+      </div>
 
       <%# SEZIONE 3: Iscrizione %>
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+      <div class="fieldset">
+        <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
           <%= icon("calendar_today", classes: "size-6 opacity-40") %> Validità Iscrizione
-        </legend>
+        </div>
 
         <%= f.fields_for :subscription do |sub_f| %>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -79,7 +79,7 @@
             </div>
           </div>
         <% end %>
-      </fieldset>
+      </div>
 
     </div>
 
