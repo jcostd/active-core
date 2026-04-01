@@ -33,20 +33,7 @@ module Authentication
     end
 
     def find_session_by_cookie
-      session = Session.find_by(id: cookies.signed[:session_id])
-      return nil unless session
-
-      if session.user.discarded?
-        session.destroy
-        return nil
-      end
-
-      if session.updated_at < 30.days.ago
-        session.destroy
-        return nil
-      end
-
-      session
+      Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
     end
 
     def current_user
