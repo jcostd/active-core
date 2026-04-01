@@ -4,6 +4,12 @@ class DisciplinesQuery < ApplicationQuery
       Discipline.all
     end
 
+    def filter_by_search(scope)
+      return scope if @params[:query].blank?
+
+      scope.where("disciplines.name LIKE ?", "%#{@params[:query]}%")
+    end
+
     def apply_sorting(scope)
       case @params[:sort]
       when "name_desc"    then scope.order(name: :desc)

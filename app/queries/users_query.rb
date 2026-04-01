@@ -7,9 +7,10 @@ class UsersQuery < ApplicationQuery
     def filter_by_search(scope)
       return scope if @params[:query].blank?
 
+      term = "%#{@params[:query]}%"
       scope.where(
-        "users.first_name LIKE :term OR users.last_name LIKE :term OR users.email_address LIKE :term OR users.username LIKE :term",
-        term: term
+        "users.first_name LIKE :q OR users.last_name LIKE :q OR users.email_address LIKE :q OR users.username LIKE :q",
+        q: term
       )
     end
 

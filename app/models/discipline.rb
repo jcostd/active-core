@@ -8,8 +8,6 @@ class Discipline < ApplicationRecord
   normalizes :name, with: ->(n) { n.squish.titleize }
   validates :name, presence: true, uniqueness: { conditions: -> { kept } }
 
-  scope :search_text, ->(query) { where("name LIKE ?", "%#{query}%") }
-
   def recent_subscriptions
     Subscription.kept
       .where(product_id: product_ids)

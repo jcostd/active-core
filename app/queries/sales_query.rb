@@ -12,7 +12,6 @@ class SalesQuery < ApplicationQuery
       return scope if @params[:query].blank?
 
       term = "%#{@params[:query]}%"
-
       scope.joins(:member).where(
         "CAST(sales.receipt_number AS TEXT) LIKE :q OR members.first_name LIKE :q OR members.last_name LIKE :q",
         q: term

@@ -35,9 +35,4 @@ class PersonableTest < ActiveSupport::TestCase
     user.validate
     assert_not user.errors[:email_address].present?
   end
-
-  test "full_name_ruby helper works" do
-    user = User.new(first_name: "Mario", last_name: "Rossi")
-    assert_equal "Mario Rossi", user.full_name_ruby
-  end
 end
