@@ -57,4 +57,8 @@ class DisciplinesController < ApplicationController
     def discipline_params
       params.require(:discipline).permit(:name, :requires_medical_certificate, :requires_membership)
     end
+
+    def filter_params
+      params.permit(:query, :sort, :state)
+    end
 end

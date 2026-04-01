@@ -7,7 +7,10 @@ class MembersController < ApplicationController
 
   def index
     @total_active_members = Member.kept.count
-    @pagy, @members = pagy(MembersQuery.new(filter_params).results.includes(:subscriptions))
+    @pagy, @members = pagy(
+      MembersQuery.new(filter_params)
+        .results
+        .includes(subscriptions: :product))
   end
 
   def show

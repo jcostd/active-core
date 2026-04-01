@@ -1,6 +1,18 @@
 class SubscriptionsController < ApplicationController
   before_action :set_subscription, only: [ :edit, :update, :destroy ]
 
+  def index
+    @subscriptions = Subscription.kept.includes(:member, :product)
+
+    if params[:filter] == "expiring"
+      @subscriptions = @subscriptions.where(end_date: Date.current..7.days.from_now).order(:end_date)
+    else
+      @subscriptions = @subscriptions.order(created_at: :desc)
+    end
+
+    @pagy, @subscriptions = pagy(@subscriptions)
+  end
+
   def edit; end
 
   def update

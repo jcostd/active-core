@@ -22,14 +22,6 @@ class User < ApplicationRecord
 
   validates :password, length: { minimum: 4 }, allow_nil: true
 
-  scope :search_text, ->(query) {
-    term = "%#{query}%"
-    where(
-      "first_name LIKE :term OR last_name LIKE :term OR email_address LIKE :term OR username LIKE :term",
-      term: term
-    )
-  }
-
   private
     def terminate_all_sessions
       sessions.delete_all

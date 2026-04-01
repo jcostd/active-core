@@ -22,7 +22,7 @@ class ApplicationQuery
     end
 
     def filter_by_state(scope)
-      if @params[:state] == "archived"
+      if @params[:state] == "discarded"
         scope.discarded
       else
         scope.kept

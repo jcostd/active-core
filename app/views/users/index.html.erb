@@ -6,8 +6,8 @@
 
 <% content_for :page_actions do %>
   <%= link_to [:new, :user],
-          class: "btn btn-primary gap-2",
-          data: { turbo_frame: "modal" } do %>
+              class: "btn btn-primary gap-2",
+              data: { turbo_frame: "modal" } do %>
     <%= icon("add") %>
     <span class="hidden sm:inline">Nuovo</span>
   <% end %>
@@ -15,12 +15,16 @@
 
 <% content_for :page_search_and_filters do %>
   <%= form_with url: users_path,
-        method: :get,
-        html: {
-          autocomplete: "off",
-          id: "filter-form",
-          data: { controller: "autosubmit drawer" }
-        } do |form| %>
+		method: :get,
+		html: {
+		  autocomplete: "off",
+		  id: "filter-form",
+		  data: {
+		    controller: "autosubmit drawer",
+		    turbo_frame: "users_list",
+		    turbo_action: "advance"
+		  }
+		} do |form| %>
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
 
@@ -29,10 +33,10 @@
           <%= icon("search", classes: "size-5 opacity-50") %>
 
           <%= form.search_field :query,
-             value: params[:query],
-             placeholder: "Cerca nome, email...",
-             class: "grow",
-             data: { action: "input->autosubmit#submit" } %>
+           value: params[:query],
+           placeholder: "Cerca nome, email...",
+           class: "grow",
+           data: { action: "input->autosubmit#submit" } %>
         </label>
 
         <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
@@ -60,8 +64,8 @@
 
         <fieldset>
           <label class="label font-bold text-sm">Stato in Archivio</label>
-          <%= form.select :state, [["Attivi", "active"], ["Archiviati", "archived"]],
-           { include_blank: "Mostra solo Attivi", selected: params[:state] },
+          <%= form.select :state, state_filters,
+		   { include_blank: "Mostra solo Attivi", selected: params[:state] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
       </div>
@@ -71,33 +75,25 @@
 
 <%= render "shared/header/page" %>
 
-<%= render "shared/filter/active", filter_keys: [:role, :state] %>
+<%= turbo_frame_tag "users_list" do %>
+  <%= render "shared/filter/active", filter_keys: [:role, :state] %>
 
-<%# --- INIZIO LISTA --- %>
-<div class="mt-6">
-  <% if @users.empty? %>
-    <%= render "shared/empty_state",
-               icon_name: "filter_off",
-               title: t("search.results.zero", default: "Nessun utente trovato"),
-               message: t("search.results.hint", default: "Prova a cambiare i criteri di ricerca o rimuovere i filtri.") %>
-  <% else %>
+  <%# --- INIZIO LISTA --- %>
+  <div class="mt-6">
+    <% if @users.empty? %>
+      <%= render "shared/empty_state",
+		 icon_name: "filter_off",
+		 title: t("search.results.zero", default: "Nessun utente trovato"),
+		 message: t("search.results.hint", default: "Prova a cambiare i criteri di ricerca o rimuovere i filtri.") %>
+    <% else %>
 
-    <%# Feedback contestuale della ricerca %>
-    <% if @is_filtering %>
-      <div class="mb-4 text-sm font-medium text-base-content/70">
-        Trovati <%= @pagy.count %> risultati
-      </div>
+      <%= filtered_results_counter(@pagy) %>
+
+      <ul id="users" class="list bg-base-100 rounded-box shadow-sm">
+	<%= render partial: "user_row", collection: @users, as: :user %>
+      </ul>
+
+      <%= render "shared/pagination" %>
     <% end %>
-
-    <ul id="users" class="list bg-base-100 rounded-box shadow-sm">
-      <%= render partial: "user_row", collection: @users, as: :user %>
-    </ul>
-
-    <% if @pagy.pages > 1 %>
-      <div class="mt-8 border-t border-base-200 pt-6 flex justify-center">
-        <%= render "shared/pagination", pagy: @pagy %>
-      </div>
-    <% end %>
-
-  <% end %>
-</div>
+  </div>
+<% end %>

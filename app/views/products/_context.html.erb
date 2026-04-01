@@ -1,0 +1,57 @@
+<% content_for :product_actions do %>
+  <ul class="menu w-full">
+    <li class="menu-title px-4 py-2 opacity-50 text-xs font-bold uppercase tracking-wider">
+      <%= product.name %>
+    </li>
+
+    <li>
+      <%= active_link_to product_path(product), active: :exclusive do %>
+        <%= icon("inventory_2") %> Dettagli Prodotto
+      <% end %>
+    </li>
+  </ul>
+<% end %>
+
+<% content_for :record_avatar do %>
+  <div class="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/50">
+    <%= icon("local_mall", size: 24) %>
+  </div>
+<% end %>
+
+<% content_for :record_title, product.name %>
+
+<% content_for :record_subtitle do %>
+  <% if product.discarded? %>
+    <%= ui_badge("Archiviato", style: "error") %>
+  <% end %>
+<% end %>
+
+<% content_for :record_actions do %>
+  <div class="flex items-center gap-2">
+    <%= link_to edit_product_path(product),
+        class: "btn btn-primary btn-sm gap-2",
+        data: { turbo_frame: "modal" } do %>
+      <%= icon("edit") %> <span class="hidden sm:inline">Modifica</span>
+    <% end %>
+
+    <%= render layout: "shared/dropdown_layout", locals: {
+      group_name: "product_header_dropdowns",
+      summary_class: "btn-sm btn-square btn-ghost",
+      icon_name: "more",
+      with_no_arrow: true
+    } do %>
+      <li>
+        <%= link_to product_path(product),
+		    class: "text-error hover:bg-error/10 hover:text-error",
+		    data: {
+		      turbo_method: :delete,
+		      turbo_confirm: "Sei sicuro di voler archiviare questo prodotto?"
+		    } do %>
+          <%= icon("delete") %> Archivia Prodotto
+        <% end %>
+      </li>
+    <% end %>
+  </div>
+<% end %>
+
+<%= render "shared/header/record" %>

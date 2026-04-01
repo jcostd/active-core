@@ -19,13 +19,17 @@
 		html: {
 		  autocomplete: "off",
 		  id: "filter-form",
-		  data: { controller: "autosubmit drawer" }
+		  data: {
+		    controller: "autosubmit drawer",
+		    turbo_frame: "members_list",
+		    turbo_action: "advance"
+		  }
 		} do |form| %>
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
 
       <div class="flex items-center gap-2 w-full md:w-1/2 lg:w-1/3">
-        <label class="input flex items-center gap-2 w-full">
+        <label class="input w-full">
           <%= icon("search", classes: "size-5 opacity-50") %>
           <%= form.search_field :query,
 	   value: params[:query],
@@ -53,21 +57,21 @@
         <fieldset>
           <label class="label font-bold text-sm">Stato Tesseramento</label>
           <%= form.select :membership_status, member_membership_filters,
-           { include_blank: "Tutti gli stati", selected: params[:membership_status] },
+              { include_blank: "Tutti gli stati", selected: params[:membership_status] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
 
         <fieldset>
           <label class="label font-bold text-sm">Certificato Medico</label>
           <%= form.select :med_cert, member_med_cert_filters,
-	   { include_blank: "Tutte le scadenze", selected: params[:med_cert] },
+		   { include_blank: "Tutte le scadenze", selected: params[:med_cert] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
 
         <fieldset>
           <label class="label font-bold text-sm">Stato in Archivio</label>
-          <%= form.select :state, member_state_filters,
-           { include_blank: "Mostra solo Attivi", selected: params[:state] },
+          <%= form.select :state, state_filters,
+		   { include_blank: "Mostra solo Attivi", selected: params[:state] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
       </div>
@@ -77,32 +81,26 @@
 
 <%= render "shared/header/page" %>
 
-<%= render "shared/filter/active", filter_keys: [:membership_status, :med_cert, :state] %>
+<%= turbo_frame_tag "members_list" do %>
+  <%= render "shared/filter/active", filter_keys: [:membership_status, :med_cert, :state] %>
 
-<%# --- INIZIO LISTA --- %>
-<div class="mt-6">
-  <% if @members.empty? %>
-    <%= render "shared/empty_state",
-               icon_name: "filter_off",
-               title: "Nessun socio trovato",
-               message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
-  <% else %>
+  <%# --- INIZIO LISTA --- %>
+  <div class="mt-6">
+    <% if @members.empty? %>
+      <%= render "shared/empty_state",
+		 icon_name: "filter_off",
+		 title: "Nessun socio trovato",
+		 message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
+    <% else %>
 
-    <% if filtering? %>
-      <div class="mb-4 text-sm font-medium text-base-content/70">
-        Trovati <%= @pagy.count %> risultati
-      </div>
+      <%= filtered_results_counter(@pagy) %>
+
+      <ul id="members" class="list bg-base-100 rounded-box shadow-sm">
+	<%= render partial: "member_row", collection: @members, as: :member %>
+      </ul>
+
+      <%= render "shared/pagination" %>
     <% end %>
+  </div>
 
-    <ul id="members" class="list bg-base-100 rounded-box shadow-sm">
-      <%= render partial: "member_row", collection: @members, as: :member %>
-    </ul>
-
-    <% if @pagy.pages > 1 %>
-      <div class="mt-8 border-t border-base-200 pt-6 flex justify-center">
-        <%= render "shared/pagination", pagy: @pagy %>
-      </div>
-    <% end %>
-
-  <% end %>
-</div>
+<% end %>

@@ -2,15 +2,15 @@ module Filterable
   extend ActiveSupport::Concern
 
   included do
-    helper_method :filtering?
+    helper_method :filtering?, :active_filters
   end
 
   private
     def filtering?
-      filter_params.to_h.except(:sort).reject { |_, v| v.blank? }.any?
+      active_filters.any?
     end
 
-    def filter_params
-      params.permit(:query, :sort, :state)
+    def active_filters
+      request.query_parameters.except(:sort, :commit, :page).reject { |_, v| v.blank? }
     end
 end

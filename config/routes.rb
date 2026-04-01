@@ -41,7 +41,7 @@ Rails.application.routes.draw do
   # ============================================================================
   resources :sales, only: [ :index, :new, :create, :show, :destroy ]
 
-  resources :subscriptions, only: [ :edit, :update, :destroy ]
+  resources :subscriptions, only: [ :index, :edit, :update, :destroy ]
   resources :receipt_counters
 
   # ============================================================================

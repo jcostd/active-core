@@ -4,14 +4,17 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
     remove(event) {
 	const key = event.params.key
-
 	const form = document.getElementById("filter-form")
 	if (!form || !key) return
 
 	const input = form.querySelector(`[name="${key}"]`) || form.querySelector(`[name$="[${key}]"]`)
 
 	if (input) {
-	    input.value = ""
+	    if (input.type === 'checkbox' || input.type === 'radio') {
+		input.checked = false
+	    } else {
+		input.value = ""
+	    }
 	    form.requestSubmit()
 	}
     }
@@ -21,7 +24,16 @@ export default class extends Controller {
 	const form = document.getElementById("filter-form")
 	if (!form) return
 
-	form.reset()
+	const inputs = form.querySelectorAll('input:not([type="hidden"]), select:not([name="sort"]), textarea')
+
+	inputs.forEach(input => {
+	    if (input.type === 'checkbox' || input.type === 'radio') {
+		input.checked = false
+	    } else {
+		input.value = ""
+	    }
+	})
+
 	form.requestSubmit()
     }
 }

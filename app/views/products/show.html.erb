@@ -1,143 +1,108 @@
-<%= render layout: "products/shell", locals: { product: @product } do %>
+<%= turbo_stream_from @product %>
+
+<%= render "products/context", product: @product %>
+
+<%# --- CONTENUTO PRINCIPALE (La Grid) --- %>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+  <%# -- COLONNA SINISTRA: DETTAGLI -- %>
   <div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <%# Prezzo %>
-      <div class="stats shadow-sm border border-base-200 bg-base-100">
-        <div class="stat">
-          <div class="stat-figure text-primary opacity-20">
-            <%= icon("euro_symbol", size: 32) %>
-          </div>
-
-          <div class="stat-title">Prezzo al Pubblico</div>
-
-          <div class="stat-value text-primary">
-            <%= format_money(@product.price) %>
-          </div>
-        </div>
-      </div>
-
-      <%# Durata %>
-      <div class="stats shadow-sm border border-base-200 bg-base-100">
-        <div class="stat">
-          <div class="stat-figure text-secondary opacity-20">
-            <%= icon("clock", size: 32) %>
-          </div>
-
-          <div class="stat-title">Validità</div>
-
-          <div class="stat-value text-secondary">
-            <%= display_value(@product.duration_days) %>
-            <span class="text-lg">gg</span>
-          </div>
-
-          <div class="stat-desc">Giorni solari dall'attivazione</div>
-        </div>
-      </div>
-
-      <%# Categoria %>
-      <div class="stats shadow-sm border border-base-200 bg-base-100">
-        <div class="stat">
-          <div class="stat-figure opacity-20">
-            <%= icon("receipt", size: 32) %>
-          </div>
-
-          <div class="stat-title">Contabilità</div>
-
-          <div class="stat-value text-base">
-            <% if @product.associative? %>
-              <span class="text-info">Istituzionale</span>
-            <% else %>
-              <span class="text-warning">Associativo</span>
-            <% end %>
-          </div>
-
-          <div class="stat-desc">Regime fiscale applicato</div>
-        </div>
-      </div>
-    </div>
-
-    <%# --- 2. CONTENUTO (Discipline) --- %>
     <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="font-bold text-lg opacity-70 flex items-center gap-2">
-            <%= icon("fitness_center", size: 20) %> Discipline Abilitate
-          </h3>
-        </div>
+      <div class="card-body p-4 text-sm">
+        <h3 class="text-xs font-bold uppercase opacity-50 tracking-wider mb-3 flex items-center gap-2">
+          <%= icon("info") %> Specifiche
+        </h3>
 
-        <p class="text-sm opacity-60 mb-4">
-          L'acquisto di questo prodotto sblocca l'accesso ai tornelli per le
-          seguenti attività:
-        </p>
+        <ul class="space-y-4">
+          <li class="flex gap-3 items-center">
+            <div class="p-2 rounded-box bg-primary/10 text-primary shrink-0">
+              <%= icon("euro_symbol", size: 20) %>
+            </div>
+            <div class="leading-tight">
+              <div class="text-[10px] opacity-50 uppercase font-bold tracking-wider">Prezzo</div>
+              <div class="font-bold text-primary text-lg"><%= format_money(@product.price) %></div>
+            </div>
+          </li>
 
-        <% if @product.disciplines.any? %>
-          <div class="grid grid-cols-1 gap-2">
-            <% @product.disciplines.each do |discipline| %>
-              <div
-                class="
-                  flex items-center justify-between p-4 bg-base-200/30
-                  rounded-lg border border-base-200
-                "
-              >
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-base-100 rounded-lg shadow-sm">
-                    <%= icon("success", size: 20, class: "text-success opacity-80") %>
-                  </div>
+          <li class="flex gap-3 items-center">
+            <div class="p-2 rounded-box bg-secondary/10 text-secondary shrink-0">
+              <%= icon("clock", size: 20) %>
+            </div>
+            <div class="leading-tight">
+              <div class="text-[10px] opacity-50 uppercase font-bold tracking-wider">Validità</div>
+              <div class="font-bold"><%= display_value(@product.duration_days) %> <span class="text-xs opacity-70">giorni solari</span></div>
+            </div>
+          </li>
 
-                  <span class="font-bold">
-                    <%= display_value(discipline.name) %>
-                  </span>
-                </div>
-
-                <div class="flex gap-2">
-                  <% if discipline.requires_medical_certificate? %>
-                    <div
-                      class="
-                        badge badge-sm badge-ghost text-error gap-1
-                        border-error/20 bg-error/5
-                      "
-                      title="Richiede Certificato Medico"
-                    >
-                      <%= icon("med", size: 14) %> Cert. Medico
-                    </div>
-                  <% end %>
-
-                  <% if discipline.requires_membership? %>
-                    <div
-                      class="
-                        badge badge-sm badge-ghost text-info gap-1
-                        border-info/20 bg-info/5
-                      "
-                      title="Richiede Tesseramento"
-                    >
-                      <%= icon("card_membership", size: 14) %> Tesseramento
-                    </div>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        <% else %>
-          <%# EMPTY STATE %>
-          <div
-            class="
-              alert alert-warning bg-warning/10 text-warning-content
-              border-warning/20
-            "
-          >
-            <%= icon("warning", size: 20) %>
-
-            <div>
-              <h3 class="font-bold">Nessuna disciplina collegata!</h3>
-
-              <div class="text-xs">
-                Questo prodotto non permette nessun accesso fisico. Utile solo
-                per servizi extra.
+          <li class="flex gap-3 items-center">
+            <div class="p-2 rounded-box bg-base-200 shrink-0 opacity-70">
+              <%= icon("receipt", size: 20) %>
+            </div>
+            <div class="leading-tight">
+              <div class="text-[10px] opacity-50 uppercase font-bold tracking-wider">Contabilità</div>
+              <div class="font-bold">
+                <%= product_category_text(@product) %>
               </div>
             </div>
-          </div>
-        <% end %>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
-<% end %>
+
+  <%# -- COLONNA DESTRA: DISCIPLINE (2/3 width) -- %>
+  <div class="lg:col-span-2 space-y-6">
+    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+      <div class="p-4 bg-base-200/30 border-b border-base-200 flex justify-between items-center">
+        <h3 class="font-bold text-sm uppercase opacity-70 tracking-wider flex items-center gap-2">
+          <%= icon("fitness_center") %> Discipline Abilitate
+        </h3>
+      </div>
+
+      <div class="p-4 bg-base-100/50 border-b border-base-200 text-sm opacity-70">
+        L'acquisto di questo prodotto sblocca l'accesso ai tornelli per le seguenti attività:
+      </div>
+
+      <% if @product.disciplines.any? %>
+        <ul class="list bg-base-100 rounded-none w-full">
+          <% @product.disciplines.each do |discipline| %>
+            <li class="list-row items-center">
+              <div>
+                <div class="p-2 rounded-box bg-success/10 text-success">
+                  <%= icon("check", size: 20) %>
+                </div>
+              </div>
+              <div class="grow min-w-0">
+                <div class="font-bold text-base"><%= display_value(discipline.name) %></div>
+              </div>
+              <div class="shrink-0 flex items-center gap-2 flex-wrap justify-end">
+                <% if discipline.requires_medical_certificate? %>
+                  <div class="badge badge-sm badge-ghost text-error gap-1 border-error/20 bg-error/5" title="Richiede Certificato Medico">
+                    <%= icon("med", size: 14) %> <span class="hidden sm:inline">Cert. Medico</span>
+                  </div>
+                <% end %>
+
+                <% if discipline.requires_membership? %>
+                  <div class="badge badge-sm badge-ghost text-info gap-1 border-info/20 bg-info/5" title="Richiede Tesseramento">
+                    <%= icon("card_membership", size: 14) %> <span class="hidden sm:inline">Tesseramento</span>
+                  </div>
+                <% end %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="p-8 text-center">
+          <div class="bg-warning/10 text-warning w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+            <%= icon("warning") %>
+          </div>
+          <h4 class="font-bold">Nessuna disciplina collegata!</h4>
+          <p class="text-sm opacity-60 mt-1 max-w-sm mx-auto">
+            Questo prodotto non permette nessun accesso fisico ai varchi. È utile solo come servizio extra o prodotto da banco.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+</div>

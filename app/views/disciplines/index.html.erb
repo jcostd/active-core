@@ -19,7 +19,11 @@
 		html: {
 		  autocomplete: "off",
 		  id: "filter-form",
-		  data: { controller: "autosubmit drawer" }
+		  data: {
+		    controller: "autosubmit drawer",
+		    turbo_frame: "disciplines_list",
+		    turbo_action: "advance"
+		  }
 		} do |form| %>
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
@@ -53,12 +57,10 @@
         <%# Esempio di filtro: adattalo ai tuoi scope reali delle discipline %>
         <fieldset>
           <label class="label font-bold text-sm">Stato</label>
-          <%= form.select :state, [["Attive", "active"], ["Archiviate", "archived"]],
-           { include_blank: "Tutti gli stati", selected: params[:state] },
+          <%= form.select :state, state_filters,
+              { include_blank: "Tutti gli stati", selected: params[:state] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
-
-        <%# Aggiungi qui eventuali altri filtri specifici %>
 
       </div>
     <% end %>
@@ -67,31 +69,24 @@
 
 <%= render "shared/header/page" %>
 
-<%= render "shared/filter/active", filter_keys: @keys %>
+<%= turbo_frame_tag "disciplines_list" do %>
+  <%= render "shared/filter/active", filter_keys: @keys %>
 
-<div class="mt-6">
-  <% if @disciplines.empty? %>
-    <%= render "shared/empty_state",
-               icon_name: "category",
-               title: "Nessuna disciplina trovata",
-               message: "Prova a cambiare i criteri di ricerca o crea una nuova disciplina." %>
-  <% else %>
+  <div class="mt-6">
+    <% if @disciplines.empty? %>
+      <%= render "shared/empty_state",
+		 icon_name: "category",
+		 title: "Nessuna disciplina trovata",
+		 message: "Prova a cambiare i criteri di ricerca o crea una nuova disciplina." %>
+    <% else %>
 
-    <% if filtering? %>
-      <div class="mb-4 text-sm font-medium text-base-content/70">
-        Trovati <%= @pagy.count %> risultati
-      </div>
+      <%= filtered_results_counter(@pagy) %>
+
+      <ul id="disciplines" class="list bg-base-100 rounded-box shadow-sm">
+	<%= render partial: "discipline_row", collection: @disciplines, as: :discipline %>
+      </ul>
+
+      <%= render "shared/pagination" %>
     <% end %>
-
-    <ul id="disciplines" class="list bg-base-100 rounded-box shadow-sm">
-      <%= render partial: "discipline_row", collection: @disciplines, as: :discipline %>
-    </ul>
-
-    <% if @pagy.pages > 1 %>
-      <div class="mt-8 border-t border-base-200 pt-6 flex justify-center">
-        <%= render "shared/pagination", pagy: @pagy %>
-      </div>
-    <% end %>
-
-  <% end %>
-</div>
+  </div>
+<% end %>

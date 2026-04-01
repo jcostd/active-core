@@ -15,13 +15,6 @@ module MembersHelper
     ]
   end
 
-  def member_state_filters
-    [
-      [ "Attivi", "active" ],
-      [ "Archiviati", "archived" ]
-    ]
-  end
-
   def member_status_color_class(member)
     if member.membership_valid? && member.medical_certificate_valid?
       "text-success"

@@ -1,8 +1,13 @@
 class ProductsController < ApplicationController
+  include Filterable
+
   before_action :set_product, only: [ :show, :edit, :update, :destroy ]
 
+  layout "modal", only: [ :new, :create, :edit, :update ]
+
   def index
-    @pagy, @products = pagy(Product.kept.includes(:disciplines).order(:name))
+    @total_active_products = Product.kept.count
+    @pagy, @products = pagy(ProductsQuery.new(filter_params).results.includes(:disciplines))
   end
 
   def show; end
@@ -15,8 +20,6 @@ class ProductsController < ApplicationController
       accounting_category: :institutional,
       duration_days: 30
     )
-
-    render layout: "modal"
   end
 
   def create
@@ -25,19 +28,17 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
     else
-      render :new, layout: "modal", status: :unprocessable_entity
+      render :new, status: :unprocessable_entity
     end
   end
 
-  def edit
-    render layout: "modal"
-  end
+  def edit; end
 
   def update
     if @product.update(product_params)
       redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
     else
-      render :edit, layout: "modal", status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -50,7 +51,6 @@ class ProductsController < ApplicationController
   end
 
   private
-
     def set_product
       @product = Product.find(params[:id])
     end
@@ -63,5 +63,9 @@ class ProductsController < ApplicationController
         :accounting_category,
         discipline_ids: []
       )
+    end
+
+    def filter_params
+      params.permit(:query, :sort, :state, :accounting_category)
     end
 end

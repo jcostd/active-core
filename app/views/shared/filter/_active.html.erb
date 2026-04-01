@@ -1,30 +1,33 @@
 <% filter_keys ||= [] %>
-<%
-filter_params = params.permit(*filter_keys)
-active_filters = filter_params.to_h.reject { |k, v| v.blank? || k == "query" }
-%>
+<% active_badges = active_filters.slice(*filter_keys.map(&:to_s)) %>
 
-<% if active_filters.any? %>
-  <div class="flex flex-wrap items-center gap-2 mb-6" data-controller="filter-badge">
-    <% active_filters.each do |key, value| %>
-      <div class="badge badge-info badge-lg gap-2">
-        <span class="text-xs uppercase opacity-70"><%= key.humanize %>:</span>
-        <strong class="text-sm font-bold"><%= value %></strong>
+<% if active_badges.any? %>
+  <div class="flex flex-wrap items-center gap-2" data-controller="filter-badge">
+
+    <% active_badges.each do |key, value| %>
+      <div class="badge badge-neutral gap-1 pl-2 pr-1 py-3 shadow-sm">
+        <span class="text-[0.65rem] uppercase tracking-wider opacity-60 font-semibold">
+          <%= humanize_filter_key(key) %>:
+        </span>
+
+        <strong class="text-sm font-bold truncate max-w-[150px]">
+          <%= humanize_filter_value(key, value) %>
+        </strong>
 
         <button type="button"
                 data-action="filter-badge#remove"
                 data-filter-badge-key-param="<%= key %>"
-                class="hover:text-error transition-colors flex items-center"
-                aria-label="Rimuovi filtro <%= key.humanize %>">
-          <%= icon("close", size: 14) %>
+                class="btn btn-ghost btn-xs btn-circle ml-1 hover:bg-base-200/50"
+                aria-label="Rimuovi filtro <%= humanize_filter_key(key) %>">
+          <%= icon("close", classes: "size-3.5") %>
         </button>
       </div>
     <% end %>
 
     <button type="button"
             data-action="filter-badge#clearAll"
-            class="btn btn-ghost btn-sm text-base-content/60 hover:bg-transparent hover:underline font-normal">
-      Annulla filtri
+            class="text-xs font-semibold text-base-content/50 hover:text-error ml-2 transition-colors">
+      Azzera filtri
     </button>
   </div>
 <% end %>

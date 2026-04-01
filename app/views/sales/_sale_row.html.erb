@@ -1,71 +1,56 @@
-<tr>
-  <%# DATA %>
-  <td class="pl-6 font-mono text-sm opacity-80">
-    <%= format_date(sale.sold_on, format: :long) %>
-  </td>
+<li
+  id="<%= dom_id(sale) %>"
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if sale.discarded? %>">
 
-  <%# RICEVUTA %>
-  <td class="font-mono font-bold text-xs">
-    <%= display_value(sale.receipt_code) %>
-  </td>
-
-  <%# SOCIO %>
-  <td>
-    <%= link_to sale.member.full_name, member_path(sale.member), class: "font-bold text-base-content hover:text-primary transition-colors truncate" %>
-  </td>
-
-  <%# PRODOTTO %>
-  <td>
-    <div class="font-medium"><%= sale.product_name_snapshot %></div>
-
-    <div class="text-[10px] opacity-50 flex items-center gap-1">
-      <%= icon("badge", size: 10) %> op: <%= sale.user.username %>
+  <div class="shrink-0">
+    <div class="size-10 bg-base-200/50 rounded-box flex items-center justify-center text-base-content/40">
+      <%= icon("receipt") %>
     </div>
-  </td>
+  </div>
 
-  <%# METODO PAGAMENTO %>
-  <td class="text-center">
-    <% case sale.payment_method %>
-    <% when 'cash' %>
-      <div class="badge badge-success badge-outline gap-1 text-xs">
-        <%= icon("payments", size: 12) %> Contanti
-      </div>
-    <% when 'credit_card' %>
-      <div class="badge badge-info badge-outline gap-1 text-xs">
-        <%= icon("credit_card", size: 12) %> Carta
-      </div>
-    <% else %>
-      <div class="badge badge-ghost badge-outline text-xs">
-        <%= sale.payment_method.humanize %>
+  <div class="grid gap-1 min-w-0 grow">
+
+    <%# Riga A: Prodotto e Socio %>
+    <div class="font-bold text-base leading-none truncate flex items-center gap-2">
+      <%= link_to sale.product_name_snapshot, sale_path(sale),
+		  data: { turbo_frame: "_top" },
+		  class: "hover:underline hover:text-primary transition-colors" %>
+      <%= ui_badge("Archiviato") if sale.discarded? %>
+    </div>
+
+    <div class="text-sm truncate">
+      <span class="opacity-50 text-xs mr-1">Socio:</span>
+      <%= link_to sale.member.full_name, member_path(sale.member),
+		  data: { turbo_frame: "_top" },
+		  class: "hover:underline hover:text-primary transition-colors font-medium text-base-content/80" %>
+    </div>
+
+    <%# Riga C: Metadati (Data, Ricevuta, Operatore) %>
+    <div class="text-xs font-mono opacity-60 flex flex-wrap items-center gap-2 mt-1">
+      <span class="font-bold text-base-content"><%= format_date(sale.sold_on, format: :short) %></span>
+      <span class="opacity-40">•</span>
+      <span title="Codice Ricevuta">#<%= display_value(sale.receipt_code) %></span>
+      <span class="opacity-40">•</span>
+      <span class="flex items-center gap-1">
+        <%= icon("badge", size: 12) %> <%= sale.user.username %>
+      </span>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Importo e Pagamento -- %>
+  <div class="flex flex-col items-end justify-center gap-1.5 shrink-0 px-2 mr-2 pr-4">
+    <div class="font-mono font-black text-lg text-primary leading-none">
+      <%= format_money(sale.amount) %>
+    </div>
+
+    <%= payment_method_badge(sale.payment_method) %>
+  </div>
+
+  <% unless sale.discarded? %>
+    <% if current_user.admin? && sale.created_at > 24.hours.ago %>
+      <div class="flex items-center gap-1 shrink-0">
+	<%= ui_row_delete_button(sale, confirm: "Sei sicuro di voler archiviare questa vendita?") %>
       </div>
     <% end %>
-  </td>
-
-  <%# IMPORTO %>
-  <td class="text-right pr-6 font-mono font-bold text-lg">
-    <%= format_money(sale.amount) %>
-  </td>
-
-  <%# AZIONI %>
-  <td class="text-right w-1 pr-4 align-middle">
-    <div class="join">
-      <%= link_to [sale],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Dettaglio" } do %>
-        <%= icon("view", size: 16) %>
-      <% end %>
-
-      <% if current_user.admin? && sale.created_at > 24.hours.ago %>
-        <%= link_to [sale],
-		    class: "join-item text-error btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: {
-		      tip: "Archivia",
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro di volerla archiviare?"
-		    } do %>
-          <%= icon("delete", size: 16) %>
-        <% end %>
-      <% end %>
-    </div>
-  </td>
-</tr>
+  <% end %>
+</li>

@@ -4,14 +4,16 @@
 
   <%# -- Colonna 1: Avatar con Helper -- %>
   <div class="shrink-0">
-    <%= ui_avatar(member, size: "size-10", text_size: "text-xs") %>
+    <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
   </div>
 
   <%# -- Colonna 2: Contenuto centrale -- %>
   <div class="grid gap-1 min-w-0 grow">
     <%# Riga A: Nome %>
     <div class="font-bold truncate text-base leading-none">
-      <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
+      <%= link_to member.full_name, member,
+		  data: { turbo_frame: "_top" },
+		  class: "hover:underline hover:text-primary transition-colors" %>
       <%= ui_badge("Archiviato") if member.discarded? %>
     </div>
 

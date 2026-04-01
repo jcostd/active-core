@@ -25,20 +25,27 @@ class Member < ApplicationRecord
     medical_certificate_expiry.present? && medical_certificate_expiry >= date
   end
 
-  def membership_valid?(date = Date.current)
-    expiry = memberships.kept.maximum(:end_date)
-    expiry.present? && expiry >= date
-  end
-
   def compliant?(date = Date.current)
     medical_certificate_valid?(date) && membership_valid?(date)
   end
 
+  def membership_valid?(date = Date.current)
+    expiry = subscriptions
+               .reject(&:discarded?)
+               .select { |s| s.product&.associative? }
+               .map(&:end_date)
+               .compact
+               .max
+
+    expiry.present? && expiry >= date
+  end
+
   def relevant_subscriptions(date = Date.current)
     subscriptions
-      .kept
-      .where("end_date >= ?", date - 30.days)
-      .order(end_date: :desc)
+      .reject(&:discarded?)
+      .select { |s| s.end_date && s.end_date >= (date - 30.days) }
+      .sort_by { |s| s.end_date || Date.new(1970) }
+      .reverse
   end
 
   def renewal_info_for(product)

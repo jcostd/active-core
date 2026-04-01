@@ -11,7 +11,7 @@
   <%= link_to new_sale_path,
 	      class: "btn btn-primary shadow-sm",
 	      data: { turbo_frame: "modal" } do %>
-    <%= icon("add", classes: "size-5") %> Nuova Vendita
+    <%= icon("add") %> Nuova Vendita
   <% end %>
 </header>
 
@@ -19,19 +19,19 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
   <div class="stat bg-base-100 rounded-box shadow-sm">
-    <div class="stat-figure text-success/50"><%= icon("payments", classes: "size-8") %></div>
+    <div class="stat-figure text-success/50"><%= icon("sunny", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Mattina</div>
     <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.morning_total) %></div>
   </div>
 
   <div class="stat bg-base-100 rounded-box shadow-sm">
-    <div class="stat-figure text-success/50"><%= icon("payments", classes: "size-8") %></div>
+    <div class="stat-figure text-success/50"><%= icon("moon", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Pomeriggio</div>
     <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.afternoon_total) %></div>
   </div>
 
   <div class="stat bg-base-100 rounded-box shadow-sm">
-    <div class="stat-figure text-info/50"><%= icon("login", classes: "size-8") %></div>
+    <div class="stat-figure text-info/50"><%= icon("access", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Ingressi Oggi</div>
     <div class="stat-value text-xl md:text-2xl"><%= @today_accesses_count %></div>
   </div>
@@ -82,7 +82,6 @@
             </div>
 
             <div class="flex items-center gap-4 text-right">
-              <%# Fix: size-3 per le icone dentro i badge %>
               <% if log.status == 0 || log.status == 'ok' %>
                 <div class="badge badge-success badge-sm badge-outline gap-1 hidden sm:inline-flex">
                   <%= icon("check", classes: "size-3") %> OK
@@ -108,13 +107,13 @@
   <%# COLONNA 2: Scadenze (Task list) %>
   <div class="flex flex-col bg-base-100 rounded-box shadow-sm p-5 md:p-6">
     <h2 class="text-base font-bold flex items-center gap-2 mb-6">
-      <%= icon("schedule", classes: "size-5 text-warning") %> In Scadenza
+      <%= icon("event", classes: "size-6 text-warning") %> In Scadenza
     </h2>
 
     <% if @expiring_subscriptions.any? %>
       <ul class="flex-1 flex flex-col gap-3">
         <% @expiring_subscriptions.each do |sub| %>
-          <%# Uso del componente Card per i task per un look più pulito %>
+
           <li class="card bg-base-200/30 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
             <div class="card-body p-4 gap-2">
               <div class="flex justify-between items-start">
@@ -124,7 +123,9 @@
                 <span class="badge badge-ghost badge-sm font-mono shrink-0"><%= sub.end_date.strftime("%d/%m") %></span>
               </div>
 
-              <%= link_to new_sale_path(member_id: sub.member_id), class: "btn btn-sm btn-outline btn-block mt-2" do %>
+              <%= link_to new_sale_path(member_id: sub.member_id, renew_subscription_id: sub.id),
+			  data: { turbo_frame: "modal" },
+			  class: "btn btn-sm btn-outline btn-block mt-2" do %>
                 Rinnova
               <% end %>
             </div>

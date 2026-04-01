@@ -20,7 +20,7 @@
 
   <%# ====== RIGA 2: Search + Filters ====== %>
   <% if content_for?(:page_search_and_filters) %>
-    <div id="page_search_bar_<%= controller_name %>" data-turbo-permanent class="w-full">
+    <div id="page_search_bar_<%= controller_name %>" class="w-full">
       <%= yield :page_search_and_filters %>
     </div>
   <% end %>

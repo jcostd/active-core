@@ -1,11 +1,11 @@
 <li
   id="<%= dom_id(discipline) %>"
-  class="list-row hover:bg-base-200/50 transition-colors">
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if discipline.discarded? %>">
 
   <%# -- Colonna 1: Icona (Equivalente all'avatar di Member) -- %>
   <div class="shrink-0">
-    <div class="flex items-center justify-center size-10 bg-base-200 rounded-full text-base-content/50">
-      <%= icon("category", classes: "size-5") %>
+    <div class="size-10 bg-base-200/50 rounded-box flex items-center justify-center text-base-content/40">
+      <%= icon("category") %>
     </div>
   </div>
 
@@ -32,7 +32,6 @@
 
   <%# -- Colonna 3: Azioni -- %>
   <div class="flex items-center gap-1 shrink-0">
-    <%# Uso gli stessi helper puliti di member_row anziché il join vecchio %>
     <%= ui_row_edit_button(edit_discipline_path(discipline)) %>
 
     <% if current_user.admin? %>

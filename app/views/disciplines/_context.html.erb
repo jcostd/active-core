@@ -1,0 +1,67 @@
+<% content_for :discipline_actions do %>
+  <ul>
+    <li class="menu-title px-4 py-2 opacity-50 text-xs font-bold uppercase tracking-wider mt-2">
+      <%= discipline.name %>
+    </li>
+
+    <li>
+      <%= active_link_to discipline_path(discipline), active: :exclusive do %>
+        <%= icon("badge") %> <%= t("disciplines.sidebar.details", default: "Panoramica") %>
+      <% end %>
+    </li>
+
+    <li>
+      <%= active_link_to discipline_members_path(discipline), active: :exclusive do %>
+        <%= icon("group") %> <%= t("disciplines.sidebar.members", default: "Registro Iscritti") %>
+      <% end %>
+    </li>
+  </ul>
+<% end %>
+
+<% content_for :record_avatar do %>
+  <%= icon("category", classes: "size-14 opacity-50") %>
+<% end %>
+<% content_for :record_title, discipline.name %>
+
+<% content_for :record_subtitle do %>
+  <div class="flex items-center gap-2 text-sm opacity-70">
+    <div class="badge badge-sm badge-ghost gap-1">
+      <%= icon("calendar_today", classes: "size-3") %>
+      <%= t("disciplines.joined", default: "Dal") %> <%= format_date(discipline.created_at) %>
+    </div>
+
+    <% if discipline.discarded? %>
+      <%= ui_badge("Archiviato", style: "error") %>
+    <% end %>
+  </div>
+<% end %>
+
+<% content_for :record_actions do %>
+  <%= render layout: "shared/dropdown_layout", locals: {
+    group_name: "discipline_header_dropdowns",
+    summary_class: "btn-sm btn-square btn-ghost",
+    icon_name: "more",
+    with_no_arrow: true
+  } do %>
+    <li>
+      <%= link_to edit_discipline_path(discipline), data: { turbo_frame: "modal" } do %>
+        <%= icon("edit") %> Modifica
+      <% end %>
+    </li>
+
+    <div class="divider my-1"></div>
+
+    <li>
+      <%= link_to discipline_path(discipline),
+		  class: "text-error hover:bg-error/10 hover:text-error",
+		  data: {
+		    turbo_method: :delete,
+		    turbo_confirm: "Sei sicuro di voler archiviare questa disciplina?"
+		  } do %>
+        <%= icon("delete") %> Archivia Disciplina
+      <% end %>
+    </li>
+  <% end %>
+<% end %>
+
+<%= render "shared/header/record" %>

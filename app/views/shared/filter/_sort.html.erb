@@ -10,7 +10,7 @@ default_sort ||= "created_desc"
 
 <%= form.select :sort,
  sort_options,
- { selected: params[:sort] || default_sort },
- { class: "select w-full sm:w-auto",
+ { prompt: "Ordina per...", selected: params[:sort] || default_sort },
+ { class: "select select-bordered w-full sm:w-auto",
    data: { action: "change->autosubmit#submit" },
    aria: { label: "Ordina per" } } %>

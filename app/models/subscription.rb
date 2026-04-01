@@ -17,8 +17,12 @@ class Subscription < ApplicationRecord
     start_date > Date.current
   end
 
-  def expired?
-    days_left < 0
+  def expired?(date = Date.current)
+    end_date < date
+  end
+
+  def days_difference(date = Date.current)
+    (date - end_date).to_i.abs
   end
 
   def expiring_soon?

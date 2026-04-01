@@ -1,0 +1,47 @@
+<% member = subscription.member %>
+<% is_expired = subscription.expired? %>
+
+<li class="list-row items-center gap-4 p-3 sm:p-4 hover:bg-base-200/40 transition-colors group">
+
+  <%# 1. Avatar (Pulito) %>
+  <div class="shrink-0">
+    <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+  </div>
+
+  <%# 2. Anagrafica e Status (list-col-grow spinge gli altri elementi a destra) %>
+  <div class="list-col-grow min-w-0">
+    <div class="flex items-center gap-2">
+      <%= link_to member.full_name, member_path(member), class: "font-semibold text-base-content hover:text-primary transition-colors truncate" %>
+
+      <div class="size-2 rounded-full shrink-0 <%= is_expired ? 'bg-error animate-pulse' : 'bg-success' %>" title="<%= is_expired ? 'Scaduto' : 'Attivo' %>"></div>
+    </div>
+    <div class="text-xs text-base-content/50 font-mono mt-0.5 truncate"><%= member.fiscal_code %></div>
+  </div>
+
+  <%# 3. Prodotto (Nascosto su mobile piccolissimo per evitare affollamento) %>
+  <div class="hidden sm:block w-32 md:w-48 shrink-0">
+    <span class="text-sm text-base-content/70 truncate block">
+      <%= display_value(subscription.product.name) %>
+    </span>
+  </div>
+
+  <%# 4. Scadenza (Tabulare e chiara) %>
+  <div class="flex flex-col items-end shrink-0 w-24 sm:w-28 text-right">
+    <span class="text-sm font-mono tabular-nums <%= is_expired ? 'text-error font-bold' : 'text-base-content' %>">
+      <%= format_date(subscription.end_date, format: :default) %>
+    </span>
+    <span class="text-[0.65rem] uppercase tracking-wider font-semibold mt-0.5 <%= is_expired ? 'text-error' : 'text-base-content/40' %>">
+      <%= is_expired ? "Da #{subscription.days_difference}g" : "Tra #{subscription.days_difference}g" %>
+    </span>
+  </div>
+
+  <%# 5. Azione Rapida (Bottone Ghost che appare/si colora in hover) %>
+  <div class="pl-2 shrink-0">
+    <%= link_to new_sale_path(member_id: member.id, renew_subscription_id: subscription.id),
+		class: "btn btn-sm btn-square btn-ghost text-base-content/40 hover:text-primary hover:bg-primary/10",
+		data: { turbo_frame: "modal" },
+		title: "Rinnova Abbonamento" do %>
+      <%= icon("reset", classes: "size-5") %>
+    <% end %>
+  </div>
+</li>

@@ -1,14 +1,18 @@
 class SalesController < ApplicationController
+  include Filterable
+
   before_action :require_admin, only: [ :index ]
   before_action :set_sale, only: [ :show, :destroy ]
 
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
 
   def index
-    scope = Sale.kept
-                .includes(:member, :user)
-                .order(sold_on: :desc, created_at: :desc)
-    @pagy, @sales = pagy(scope)
+    @total_active_sales = Sale.kept.count
+    @pagy, @sales = pagy(
+      SalesQuery.new(filter_params)
+        .results
+        .includes(:member, :user)
+    )
   end
 
   def show
@@ -19,7 +23,7 @@ class SalesController < ApplicationController
         send_data pdf.render,
                   filename: "ricevuta_#{@sale.id}_#{@sale.member.last_name}.pdf",
                   type: "application/pdf",
-                  disposition: "inline"
+                  disposition: "_blank"
       end
     end
   end
@@ -69,27 +73,22 @@ class SalesController < ApplicationController
   end
 
   private
-
     def set_sale
       @sale = Sale.find(params[:id])
     end
 
-    # Questo ci serve perché la action `new` ora viene chiamata in due modi:
-    # 1. Link normale (params[:sale] non esiste -> solleverebbe errore con `require`)
-    # 2. Autosubmit di Turbo (params[:sale] esiste e vogliamo i dati)
     def sale_params_for_build
       params.has_key?(:sale) ? sale_params : {}
     end
 
     def sale_params
       params.require(:sale).permit(
-        :member_id,
-        :product_id,
-        :amount,
-        :payment_method,
-        :sold_on,
-        :notes,
-        subscription_attributes: [ :start_date ]
+        :member_id, :product_id, :amount, :payment_method,
+        :sold_on, :notes, subscription_attributes: [ :start_date ]
       )
+    end
+
+    def filter_params
+      params.permit(:query, :sort, :payment_method)
     end
 end
