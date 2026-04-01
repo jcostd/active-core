@@ -52,21 +52,11 @@ class DailyCash
   # --- LOGICA DI AGGREGAZIONE ---
 
   def morning_cents
-    # Se abbiamo i dati in memoria, usiamo Ruby (SUM veloce su Array)
-    if @preloaded_sales
-      @morning_cents ||= @preloaded_sales.select { |s| s.created_at < split_time }.sum(&:amount_cents)
-    else
-      # Altrimenti facciamo la query SQL
-      @morning_cents ||= base_scope.where("created_at < ?", split_time).sum(:amount_cents)
-    end
+    @morning_cents ||= base_scope.to_a.select { |s| s.created_at.in_time_zone.hour < SPLIT_HOUR }.sum(&:amount_cents)
   end
 
   def afternoon_cents
-    if @preloaded_sales
-      @afternoon_cents ||= @preloaded_sales.select { |s| s.created_at >= split_time }.sum(&:amount_cents)
-    else
-      @afternoon_cents ||= base_scope.where("created_at >= ?", split_time).sum(:amount_cents)
-    end
+    @afternoon_cents ||= base_scope.to_a.select { |s| s.created_at.in_time_zone.hour >= SPLIT_HOUR }.sum(&:amount_cents)
   end
 
   def total_cents

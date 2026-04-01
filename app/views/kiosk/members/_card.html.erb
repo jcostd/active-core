@@ -1,0 +1,26 @@
+<%# app/views/kiosk/members/_card.html.erb %>
+<div id="kiosk_member_<%= member.id %>" class="card bg-base-100 shadow-sm border border-base-200 hover:border-primary transition-colors">
+  <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
+
+    <div class="flex items-center gap-4">
+      <%= ui_avatar(member, size: "size-12", text_size: "text-md") %>
+      <div>
+        <h4 class="font-bold text-lg leading-tight truncate max-w-[180px]"><%= member.full_name %></h4>
+        <% if !member.medical_certificate_valid? %>
+          <span class="text-[10px] uppercase font-bold text-error flex items-center gap-1">
+            <%= icon("warning", classes: "size-3") %> Cert. Scaduto
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <%# IL BOTTONE DI CHECK-IN (Invia la POST ad AccessLogsController) %>
+    <%= button_to kiosk_discipline_access_logs_path(discipline),
+    params: { member_id: member.id },
+                  class: "btn btn-circle btn-primary btn-lg shadow-md",
+                  data: { turbo: true } do %>
+      <%= icon("check", classes: "size-8") %>
+    <% end %>
+
+  </div>
+</div>

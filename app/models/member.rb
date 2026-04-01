@@ -30,14 +30,18 @@ class Member < ApplicationRecord
   end
 
   def membership_valid?(date = Date.current)
-    expiry = subscriptions
-               .reject(&:discarded?)
-               .select { |s| s.product&.associative? }
-               .map(&:end_date)
-               .compact
-               .max
+    if memberships.loaded?
+      expiry = memberships.reject(&:discarded?).filter_map(&:end_date).max
+      expiry.present? && expiry >= date
+    else
+      memberships.kept.where("end_date >= ?", date).exists?
+    end
+  end
 
-    expiry.present? && expiry >= date
+  def valid_subscription_for(discipline)
+    active_subscriptions
+      .joins(product: :disciplines)
+      .find_by(disciplines: { id: discipline.id })
   end
 
   def relevant_subscriptions(date = Date.current)

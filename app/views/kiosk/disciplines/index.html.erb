@@ -1,0 +1,29 @@
+<div class="flex flex-col items-center justify-center flex-grow text-center max-w-4xl mx-auto w-full">
+
+  <div class="mb-12">
+    <h2 class="text-4xl font-black mb-4">Seleziona il Corso</h2>
+    <p class="text-xl opacity-60">Tocca il corso che stai per iniziare per fare l'appello.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+    <% @disciplines.each do |discipline| %>
+      <%= link_to kiosk_discipline_path(discipline),
+      class: "card bg-base-100 hover:bg-primary hover:text-primary-content transition-all duration-200 shadow-sm hover:shadow-xl hover:-translate-y-1 group border border-base-200" do %>
+
+        <div class="card-body items-center text-center p-10">
+          <%# Cambia l'icona in base al nome o mettine una generica %>
+          <div class="mb-4 text-base-content/30 group-hover:text-primary-content/50 transition-colors">
+            <%= icon("sports_gymnastics", classes: "size-16") %>
+          </div>
+
+          <h3 class="card-title text-2xl font-bold uppercase tracking-wider"><%= discipline.name %></h3>
+
+          <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span class="btn btn-sm btn-ghost uppercase tracking-widest text-xs">Inizia Appello <%= icon("arrow_forward") %></span>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+</div>

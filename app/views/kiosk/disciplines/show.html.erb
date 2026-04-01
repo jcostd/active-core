@@ -1,0 +1,54 @@
+<%# app/views/kiosk/disciplines/show.html.erb %>
+
+<div class="flex items-center gap-4 mb-8">
+  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost bg-base-100 text-base-content/50" do %>
+    <%= icon("arrow_back", classes: "size-6") %>
+  <% end %>
+  <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-8">
+
+  <%# COLONNA SINISTRA: La Ricerca Veloce (Autocomplete) %>
+  <div class="w-full lg:w-1/3 flex flex-col gap-4">
+    <div class="card bg-base-100 shadow-sm border border-base-200">
+      <div class="card-body p-6">
+        <h3 class="font-bold uppercase tracking-wider text-sm opacity-50 mb-2">Ricerca Rapida</h3>
+        <p class="text-xs mb-4">Cerca un socio non in lista (es. per recuperi o PT).</p>
+
+        <%# Usiamo il tuo controller autocomplete esistente! %>
+        <div data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside" class="relative">
+          <input type="text"
+                 class="input input-lg w-full font-bold focus:border-primary focus:ring-1 focus:ring-primary"
+                 placeholder="Cerca nome o CF..."
+                 autocomplete="off"
+                 data-autocomplete-target="input"
+                 data-action="input->autocomplete#fetch"
+                 data-autocomplete-url-value="<%= members_searches_path %>">
+
+          <ul data-autocomplete-target="results"
+              class="absolute z-50 mt-2 w-full bg-base-100 shadow-xl rounded-box border border-base-200 hidden overflow-hidden">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# COLONNA DESTRA: I Soci Attesi %>
+  <div class="w-full lg:w-2/3">
+    <h3 class="font-bold uppercase tracking-wider text-sm opacity-50 mb-4">Soci Attesi Oggi</h3>
+
+    <div id="expected-members" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <% @expected_members.each do |member| %>
+        <%= render "kiosk/members/card", member: member, discipline: @discipline %>
+      <% end %>
+
+      <% if @expected_members.empty? %>
+        <div class="col-span-full p-8 text-center border-2 border-dashed border-base-200 rounded-xl opacity-50 font-bold">
+          Nessun socio previsto in lista per oggi.
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+</div>

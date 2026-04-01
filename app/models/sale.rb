@@ -8,8 +8,6 @@ class Sale < ApplicationRecord
   belongs_to :user
   belongs_to :product
 
-  has_many :subscriptions
-
   enum :payment_method, {
          cash: 1, credit_card: 2, bank_transfer: 3, other: 4
        }, default: :credit_card, validate: true
@@ -27,20 +25,34 @@ class Sale < ApplicationRecord
     self.sold_on ||= Date.current
     self.member_id ||= options[:preset_member_id]
 
-    build_subscription unless subscription
+    if options[:installment_for_subscription_id].present?
+      self.subscription = Subscription.find_by(id: options[:installment_for_subscription_id])
 
-    if options[:autosubmit]
-      reset_draft_if_changed(options[:previous_product_id], options[:previous_member_id])
-    elsif options[:renew_subscription_id].present?
-      apply_renewal_template(options[:renew_subscription_id])
+      if self.subscription.present?
+        self.member_id  ||= self.subscription.member_id
+        self.product_id ||= self.subscription.product_id
+
+        if amount.blank? || amount.zero?
+          missing_cents = product.price_cents - self.subscription.amount_paid
+          self.amount_cents = [ missing_cents, 0 ].max
+        end
+      end
+    else
+      build_subscription unless subscription
+
+      if options[:autosubmit]
+        reset_draft_if_changed(options[:previous_product_id], options[:previous_member_id])
+      elsif options[:renew_subscription_id].present?
+        apply_renewal_template(options[:renew_subscription_id])
+      end
+
+      if product_id.present? && (amount.blank? || amount.zero?)
+        self.amount = product.price
+      end
+
+      sync_subscription_data
+      subscription.assign_smart_dates(manual_start_date: options[:manual_start_date]) if subscription.new_record?
     end
-
-    if product_id.present? && (amount.blank? || amount.zero?)
-      self.amount = product.price
-    end
-
-    sync_subscription_data
-    subscription.assign_smart_dates(manual_start_date: options[:manual_start_date])
   end
 
   private
@@ -62,7 +74,7 @@ class Sale < ApplicationRecord
     end
 
     def sync_subscription_data
-      return unless subscription.present? && member.present? && product.present?
+      return unless subscription.present? && subscription.new_record? && member.present? && product.present?
       subscription.member ||= self.member
       subscription.product ||= self.product
     end

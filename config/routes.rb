@@ -60,4 +60,13 @@ Rails.application.routes.draw do
   # ============================================================================
   get "up" => "rails/health#show", as: :rails_health_check
   root "dashboard#index"
+
+  # --- KIOSK MODE (iPad Appello) ---
+  namespace :kiosk do
+    root to: "disciplines#index"
+
+    resources :disciplines, only: [ :index, :show ] do
+      resources :access_logs, only: [ :create ]
+    end
+  end
 end

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kiosk - <%= content_for(:title) || "Active Core" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Active Core Kiosk">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-base-300 text-base-content min-h-screen flex flex-col selection:bg-primary selection:text-white overscroll-none">
+
+    <%# HEADER MINIMALE KIOSK %>
+    <header class="bg-base-100 shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+      <div class="flex items-center gap-4">
+        <%= icon("fitness_center", classes: "size-10 text-primary") %>
+        <div>
+          <h1 class="text-2xl font-black tracking-tight leading-none uppercase">Kiosk Accessi</h1>
+          <p class="text-sm opacity-50 font-bold tracking-widest uppercase mt-1"><%= GymProfile.current&.name || "La Tua Palestra" %></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <%# Pulsante GIGANTE per uscire (lontano da click accidentali) %>
+        <%= link_to root_path, class: "btn btn-ghost btn-circle btn-lg text-base-content/50 hover:text-error hover:bg-error/10", title: "Esci dal Kiosk" do %>
+          <%= icon("logout", classes: "size-8") %>
+        <% end %>
+      </div>
+    </header>
+
+    <%# CONTENITORE PRINCIPALE %>
+    <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col">
+      <%= yield %>
+    </main>
+
+    <%# FLASH MESSAGES FLOTTANTI %>
+    <div id="flash-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
+      <%= render "shared/flash" %>
+    </div>
+
+    <%= turbo_frame_tag "modal" %>
+  </body>
+</html>
