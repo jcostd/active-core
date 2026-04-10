@@ -1,0 +1,49 @@
+<div class="fieldset">
+  <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+    <%= icon("shopping_bag", classes: "size-6 opacity-40") %> Dettagli Acquisto
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="sm:col-span-2">
+      <%= f.label :product_id, "Prodotto Selezionato", class: "label text-xs font-semibold uppercase opacity-70" %>
+      <% if is_installment %>
+        <%= f.hidden_field :product_id %>
+        <input type="text" class="input w-full bg-base-200 text-base-content/70 cursor-not-allowed" value="<%= sale.product&.name %>" disabled>
+      <% else %>
+        <%= f.collection_select :product_id, Product.all, :id, :name,
+             { prompt: "Scegli un prodotto..." },
+             { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+      <% end %>
+    </div>
+
+    <div>
+      <%= f.label :sold_on, "Data Contabile", class: "label text-xs font-semibold uppercase opacity-70" %>
+      <%= f.date_field :sold_on, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+    </div>
+
+    <div>
+      <%= f.label :payment_method, "Metodo di Pagamento", class: "label text-xs font-semibold uppercase opacity-70" %>
+      <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select w-full", data: { action: "change->autosubmit#submit" } %>
+    </div>
+  </div>
+
+  <% unless is_installment %>
+    <%= f.fields_for :subscription do |sub_f| %>
+      <div class="bg-base-200/50 p-4 rounded-box border border-base-300 mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="font-bold text-sm flex items-center gap-2">
+            <%= icon("euro_symbol", classes: "size-4 text-warning") %> Prezzo Concordato
+          </div>
+          <div class="text-xs opacity-70 mt-0.5">Modifica questo valore solo per applicare uno sconto.</div>
+        </div>
+        <div class="flex items-center shrink-0">
+          <%= sub_f.text_field :agreed_price,
+                value: sale.subscription&.agreed_price || sale.product&.price,
+                class: "input input-sm input-bordered w-24 font-bold text-right rounded-r-none focus:border-warning focus:ring-1 focus:ring-warning",
+                data: { action: "change->autosubmit#submit" } %>
+          <span class="bg-base-300 px-3 py-1.5 text-sm font-bold border border-l-0 border-base-300 rounded-r-lg">€</span>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

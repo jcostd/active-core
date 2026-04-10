@@ -16,11 +16,26 @@ module DateRangeable
     date.between?(start_date, end_date)
   end
 
-  private
-
-  def end_date_after_start_date
-    if start_date && end_date && end_date < start_date
-      errors.add(:end_date, "must be after or equal to start date")
-    end
+  def future?
+    start_date > Date.current
   end
+
+  def expired?(date = Date.current)
+    end_date < date
+  end
+
+  def days_left
+    (end_date - Date.current).to_i
+  end
+
+  def expiring_soon?
+    !future? && days_left.between?(0, 7)
+  end
+
+  private
+    def end_date_after_start_date
+      if start_date && end_date && end_date < start_date
+        errors.add(:end_date, "deve essere successiva o uguale alla data di inizio")
+      end
+    end
 end

@@ -3,7 +3,8 @@
     <ul class="list bg-base-100 w-full shadow-2xl rounded-box border border-base-300 absolute z-50 mt-1 max-h-72 overflow-y-auto">
 
       <% @members.each do |member| %>
-        <li class="list-row p-0 text-left flex flex-col justify-center gap-1.5 px-4 py-3 hover:bg-base-200/60 transition-colors"
+        <li class="list-row p-0 text-left flex flex-col justify-center gap-1.5
+		   px-4 py-3 hover:bg-base-200/60 transition-colors cursor-pointer"
 	    data-action="click->autocomplete#select"
             data-id="<%= member.id %>"
             data-name="<%= member.full_name %>">

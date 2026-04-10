@@ -1,5 +1,7 @@
 class Subscription < ApplicationRecord
-  include SoftDeletable, DateRangeable
+  include SoftDeletable, DateRangeable, Monetizable
+
+  monetize :agreed_price
 
   belongs_to :member, touch: true
   belongs_to :product
@@ -7,31 +9,8 @@ class Subscription < ApplicationRecord
   has_many :sales, inverse_of: :subscription, dependent: :nullify
   has_many :access_logs, dependent: :nullify
 
+  before_validation :set_default_agreed_price, on: :create
   before_validation :apply_business_rules, on: :create
-
-  def days_left
-    (end_date - Date.current).to_i
-  end
-
-  def active?(date = Date.current)
-    start_date <= date && end_date >= date
-  end
-
-  def future?
-    start_date > Date.current
-  end
-
-  def expired?(date = Date.current)
-    end_date < date
-  end
-
-  def days_difference(date = Date.current)
-    (date - end_date).to_i.abs
-  end
-
-  def expiring_soon?
-    !future? && days_left.between?(0, 7)
-  end
 
   def assign_smart_dates(manual_start_date: nil)
     self.start_date = manual_start_date if manual_start_date.present?
@@ -43,7 +22,7 @@ class Subscription < ApplicationRecord
   end
 
   def fully_paid?
-    amount_paid >= product.price_cents
+    amount_paid >= agreed_price_cents
   end
 
   def unlimited_entries?
@@ -51,6 +30,12 @@ class Subscription < ApplicationRecord
   end
 
   private
+    def set_default_agreed_price
+      if (agreed_price_cents.nil? || agreed_price_cents.zero?) && product.present?
+        self.agreed_price_cents = product.price_cents
+      end
+    end
+
     def apply_business_rules
       return unless product.present? && member.present?
 

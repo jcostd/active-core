@@ -21,58 +21,7 @@ class Sale < ApplicationRecord
   before_validation :sync_subscription_data
   before_validation :assign_receipt_number, on: :create
 
-  def prepare_draft(options = {})
-    self.sold_on ||= Date.current
-    self.member_id ||= options[:preset_member_id]
-
-    if options[:installment_for_subscription_id].present?
-      self.subscription = Subscription.find_by(id: options[:installment_for_subscription_id])
-
-      if self.subscription.present?
-        self.member_id  ||= self.subscription.member_id
-        self.product_id ||= self.subscription.product_id
-
-        if amount.blank? || amount.zero?
-          missing_cents = product.price_cents - self.subscription.amount_paid
-          self.amount_cents = [ missing_cents, 0 ].max
-        end
-      end
-    else
-      build_subscription unless subscription
-
-      if options[:autosubmit]
-        reset_draft_if_changed(options[:previous_product_id], options[:previous_member_id])
-      elsif options[:renew_subscription_id].present?
-        apply_renewal_template(options[:renew_subscription_id])
-      end
-
-      if product_id.present? && (amount.blank? || amount.zero?)
-        self.amount = product.price
-      end
-
-      sync_subscription_data
-      subscription.assign_smart_dates(manual_start_date: options[:manual_start_date]) if subscription.new_record?
-    end
-  end
-
   private
-    def reset_draft_if_changed(prev_product, prev_member)
-      if prev_product.to_s != product_id.to_s || prev_member.to_s != member_id.to_s
-        self.amount = nil
-        subscription.start_date = nil
-      end
-    end
-
-    def apply_renewal_template(renew_id)
-      old_sub = Subscription.find_by(id: renew_id)
-      return unless old_sub
-
-      self.product_id ||= old_sub.product_id
-      self.member_id  ||= old_sub.member_id
-
-      subscription.start_date = old_sub.end_date >= Date.current ? (old_sub.end_date + 1.day) : Date.current
-    end
-
     def sync_subscription_data
       return unless subscription.present? && subscription.new_record? && member.present? && product.present?
       subscription.member ||= self.member

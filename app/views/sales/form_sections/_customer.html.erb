@@ -1,0 +1,24 @@
+<div class="fieldset">
+  <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+    <%= icon("person_search", classes: "size-6 opacity-40") %> Anagrafica Cliente
+  </div>
+
+  <div data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside" class="w-full relative">
+    <% if is_installment %>
+      <%= f.hidden_field :member_id %>
+      <input type="text" class="input w-full bg-base-200 text-base-content/70 cursor-not-allowed" value="<%= sale.member&.full_name %>" disabled>
+      <div class="text-xs text-info mt-1 font-medium">Socio bloccato (Pagamento rata)</div>
+    <% else %>
+      <%= f.hidden_field :member_id, data: { autocomplete_target: "hidden", action: "change->autosubmit#submit" } %>
+      <input type="text"
+             class="input w-full"
+             placeholder="Cerca per nome o codice fiscale..."
+             value="<%= sale.member&.full_name %>"
+             autocomplete="off"
+             data-autocomplete-target="input"
+             data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+             data-url="<%= members_searches_path %>">
+      <turbo-frame id="member_search_results" data-autocomplete-target="frame"></turbo-frame>
+    <% end %>
+  </div>
+</div>

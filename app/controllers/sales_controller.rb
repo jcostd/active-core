@@ -29,15 +29,10 @@ class SalesController < ApplicationController
   end
 
   def new
-    @sale = Sale.new(sale_params_for_build)
-
-    @sale.prepare_draft(
-      autosubmit: params.has_key?(:sale),
-      preset_member_id: params[:member_id],
-      renew_subscription_id: params[:renew_subscription_id],
-      previous_product_id: params[:previous_product_id],
-      previous_member_id: params[:previous_member_id]
-    )
+    @sale = PosDraftBuilder.new(
+      sale_params: sale_params_for_build,
+      context_params: params
+    ).build
   end
 
   def create
@@ -47,9 +42,11 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
     else
-      @sale.prepare_draft(
-        manual_start_date: params.dig(:sale, :subscription_attributes, :start_date)
-      )
+      @sale = PosDraftBuilder.new(
+        sale_params: sale_params,
+        context_params: params,
+        existing_sale: @sale
+      ).build
 
       respond_to do |format|
         format.turbo_stream do
@@ -82,9 +79,16 @@ class SalesController < ApplicationController
     end
 
     def sale_params
+      permitted_sub_attrs = [ :start_date, :agreed_price ]
+
+      if current_user.respond_to?(:admin?) && current_user.admin?
+        permitted_sub_attrs << :end_date
+      end
+
       params.require(:sale).permit(
         :member_id, :product_id, :amount, :payment_method,
-        :sold_on, :notes, subscription_attributes: [ :start_date ]
+        :sold_on, :notes, :subscription_id,
+        subscription_attributes: permitted_sub_attrs
       )
     end
 
