@@ -10,9 +10,10 @@
         <%= f.hidden_field :product_id %>
         <input type="text" class="input w-full bg-base-200 text-base-content/70 cursor-not-allowed" value="<%= sale.product&.name %>" disabled>
       <% else %>
-        <%= f.collection_select :product_id, Product.all, :id, :name,
-             { prompt: "Scegli un prodotto..." },
-             { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        <%= f.select :product_id,
+	    grouped_options_for_select(grouped_product_options, sale.product_id),
+	 { prompt: "Scegli un prodotto..." },
+	 { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
       <% end %>
     </div>
 
@@ -23,29 +24,52 @@
 
     <div>
       <%= f.label :payment_method, "Metodo di Pagamento", class: "label text-xs font-semibold uppercase opacity-70" %>
-      <%= f.select :payment_method, Sale.payment_methods.keys, {}, class: "select w-full", data: { action: "change->autosubmit#submit" } %>
+      <%= f.select :payment_method,
+	  payment_method_options,
+	  { prompt: "Seleziona metodo..." },
+       class: "select w-full",
+       data: { action: "change->autosubmit#submit" } %>
     </div>
   </div>
 
   <% unless is_installment %>
     <%= f.fields_for :subscription do |sub_f| %>
-      <div class="bg-base-200/50 p-4 rounded-box border border-base-300 mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div class="font-bold text-sm flex items-center gap-2">
-            <%= icon("euro_symbol", classes: "size-4 text-warning") %> Prezzo Concordato
+      <fieldset class="bg-base-200/40 p-4 rounded-box border border-base-300 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+	<%# --- SINISTRA: Titolo e Descrizione --- %>
+	<div>
+          <legend class="font-bold text-sm mb-0.5">
+            <%= current_user&.admin? ? "Prezzo Concordato (Admin)" : "Prezzo di Listino" %>
+          </legend>
+          <div class="text-xs opacity-70">
+            <%= current_user&.admin? ? "Applica uno sconto o sovrapprezzo manuale per questo acquisto." : "Questo valore è bloccato e non può essere modificato." %>
           </div>
-          <div class="text-xs opacity-70 mt-0.5">Modifica questo valore solo per applicare uno sconto.</div>
-        </div>
-        <div class="flex items-center shrink-0">
-          <%= sub_f.text_field :agreed_price,
-	   autocomplete: "off",
-	   name: "agreed_price_selection",
-           value: sale.subscription&.agreed_price || sale.product&.price,
-           class: "input input-sm w-24 font-bold text-right rounded-r-none focus:border-warning focus:ring-1 focus:ring-warning",
-           data: { action: "change->autosubmit#submit" } %>
-          <span class="bg-base-300 px-3 py-1.5 text-sm font-bold border border-l-0 border-base-300 rounded-r-lg">€</span>
-        </div>
-      </div>
+	</div>
+
+	<%# --- DESTRA: Campo (Editabile o Bloccato) --- %>
+	<div class="shrink-0">
+          <% if current_user&.admin? %>
+
+            <label class="input input-sm focus-within:border-warning focus-within:ring-warning w-32">
+              <span class="label"><%= icon("euro_symbol", classes: "size-4 text-base-content/50") %></span>
+              <%= sub_f.text_field :agreed_price,
+                autocomplete: "off",
+                data: { action: "change->autosubmit#submit" },
+               value: sale.subscription&.agreed_price || sale.product&.price,
+               class: "grow text-right font-bold" %>
+            </label>
+
+          <% else %>
+
+            <div class="input input-sm cursor-not-allowed bg-base-100 w-32" disabled>
+              <span class="label"><%= icon("euro_symbol", classes: "size-4 opacity-50") %></span>
+              <span class="grow text-right font-bold opacity-70"><%= format_money(sale.subscription&.agreed_price || sale.product&.price) %></span>
+            </div>
+
+          <% end %>
+	</div>
+
+      </fieldset>
     <% end %>
   <% end %>
 </div>

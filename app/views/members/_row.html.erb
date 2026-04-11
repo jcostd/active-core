@@ -1,58 +1,43 @@
 <%# locals: (member:) %>
 
-<li
-  id="<%= dom_id(member) %>"
-  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if member.discarded? %>">
+<li id="<%= dom_id(member) %>" class="<%= class_names("list-row hover:bg-base-200/50 transition-colors", "opacity-60 grayscale": member.discarded?) %>">
 
-  <%# -- Colonna 1: Avatar con Helper -- %>
-  <div class="shrink-0">
-    <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+  <%# -- Colonna 1: Avatar -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to member, data: { turbo_frame: "_top" }, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+    <% end %>
   </div>
 
   <%# -- Colonna 2: Contenuto centrale -- %>
-  <div class="grid gap-1 min-w-0 grow">
+  <div class="flex flex-col gap-1 min-w-0 grow">
+
     <%# Riga A: Nome %>
     <div class="font-bold truncate text-base leading-none">
-      <%= link_to member.full_name, member,
-          data: { turbo_frame: "_top" },
-          class: "hover:underline hover:text-primary transition-colors" %>
+      <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "hover:text-primary transition-colors focus:outline-none" %>
       <%= ui_badge("Archiviato") if member.discarded? %>
     </div>
 
-    <div class="text-xs uppercase font-semibold opacity-60 flex flex-wrap items-center gap-2">
-      <%# Sfruttiamo il tuo FormatHelper per gestire i CF vuoti %>
+    <%# Riga B: Dettagli Fiscali e Status %>
+    <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5">
       <span><%= display_value(member.fiscal_code) %></span>
-      <span class="opacity-40">•</span>
 
-      <%= ui_status_badge(member.membership_valid?,
-              valid_text: "Tessera Attiva", invalid_text: "Tessera Scaduta") %>
-
-      <% unless member.medical_certificate_valid? %>
-        <span class="opacity-40">•</span>
-        <%= ui_status_badge(false,
-                    valid_text: "", invalid_text: "Cert. Medico", invalid_class: "badge-warning badge-soft") %>
-      <% end %>
+      <%= member_status_badges(member) %>
     </div>
 
     <%# Riga C: Abbonamenti & Quick Actions %>
-    <div class="flex flex-wrap items-center gap-2 min-h-[1.75rem]">
-      <% if member.relevant_subscriptions.any? %>
-        <%# MAGIA RAILS: iteriamo sfruttando la collection e il nostro nuovo partial %>
-        <%= render partial: "subscriptions/compact", collection: member.relevant_subscriptions, as: :subscription %>
-      <% else %>
-        <span class="text-[10px] uppercase font-bold tracking-wider opacity-30 flex items-center gap-1">
-          <span class="size-1.5 rounded-full bg-current"></span> Nessuna attività
-        </span>
-      <% end %>
+    <div class="flex flex-wrap items-center gap-2 mt-0.5 min-h-[1.5rem]">
+      <%= render(partial: "subscriptions/compact", collection: member.relevant_subscriptions, as: :subscription) || member_empty_subscriptions_badge %>
     </div>
+
   </div>
 
-  <%# -- Colonne 3: Azioni -- %>
+  <%# -- Colonna 3: Azioni -- %>
   <% unless member.discarded? %>
-    <div class="flex items-center gap-1 shrink-0">
+    <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
       <%= ui_row_edit_button(edit_member_path(member)) %>
 
-      <% if current_user.try(:admin?) %>
+      <% if current_user&.admin? %>
         <%= ui_row_delete_button(member, confirm: "Sei sicuro di voler archiviare questo socio?") %>
       <% end %>
     </div>

@@ -28,12 +28,16 @@
         </div>
       <% end %>
 
-      <div class="mt-auto pt-8 flex flex-col gap-2">
-        <%= f.label :amount, "Importo da Incassare (€)", class: "label text-[10px] font-bold uppercase tracking-wider opacity-50" %>
-        <%= f.text_field :amount,
-	    autocomplete: "off",
-            class: "input input-lg w-full text-right font-mono text-3xl",
-            data: { action: "change->autosubmit#submit" } %>
+      <div class="mt-auto flex flex-col">
+        <%= f.label :amount, "Importo da Incassare", class: "label text-sm font-bold uppercase tracking-wider opacity-50" %>
+
+	<label class="input input-lg w-full">
+	  <span class="label"><%= icon("euro_symbol", classes: "size-5 text-content/50") %></span>
+          <%= f.text_field :amount,
+	   autocomplete: "off",
+	   class: "grow text-right text-3xl font-mono",
+	   data: { action: "change->autosubmit#submit" } %>
+	</label>
       </div>
     </div>
 

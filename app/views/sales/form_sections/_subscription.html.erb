@@ -7,13 +7,13 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <fieldset class="fieldset">
         <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza</label>
-        <%= date_field_tag nil, sale.subscription.start_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed", disabled: true %>
+        <%= date_field_tag nil, sale.subscription.start_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
       </fieldset>
 
       <fieldset class="fieldset">
         <label class="label text-xs font-semibold uppercase opacity-70">Scadenza
         </label>
-        <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed", disabled: true %>
+        <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
       </fieldset>
     </div>
     <div class="text-xs text-info font-medium">Le date non sono modificabili durante il saldo di una rata.</div>
@@ -41,12 +41,12 @@
             <% if override_active %>
               <%= sub_f.date_field :end_date, class: "input w-full border-warning text-warning focus:ring-warning", data: { action: "change->autosubmit#submit" } %>
             <% else %>
-              <%= sub_f.date_field :end_date, class: "input w-full bg-base-200 text-base-content/50 cursor-not-allowed", disabled: true %>
+              <%= sub_f.date_field :end_date, class: "input w-full bg-base-200 text-base-content/50 cursor-not-allowed focus:outline-none", readonly: true %>
             <% end %>
 
           <% else %>
             <label class="label text-xs font-semibold uppercase opacity-70">Scadenza (Calcolata)</label>
-            <%= sub_f.date_field :end_date, class: "input w-full bg-transparent border-dashed text-base-content/50", disabled: true %>
+            <%= sub_f.date_field :end_date, class: "input w-full bg-transparent border-dashed text-base-content/50 focus:outline-none", readonly: true %>
           <% end %>
         </fieldset>
 

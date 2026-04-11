@@ -53,7 +53,9 @@ class PosDraftBuilder
 
     def apply_default_price
       if sale.product_id.present?
-        sale.subscription.agreed_price ||= sale.product.price
+        if sale.subscription.agreed_price.blank? || sale.subscription.agreed_price.zero?
+          sale.subscription.agreed_price = sale.product.price
+        end
 
         if sale.amount.blank? || sale.amount.zero?
           sale.amount = sale.subscription.agreed_price

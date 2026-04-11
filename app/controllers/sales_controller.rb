@@ -79,10 +79,11 @@ class SalesController < ApplicationController
     end
 
     def sale_params
-      permitted_sub_attrs = [ :start_date, :agreed_price ]
+      permitted_sub_attrs = [ :start_date ]
 
       if current_user.respond_to?(:admin?) && current_user.admin?
         permitted_sub_attrs << :end_date
+        permitted_sub_attrs << :agreed_price
       end
 
       params.require(:sale).permit(

@@ -6,6 +6,14 @@ module SalesHelper
     "other"         => { label: "Altro",       icon: "receipt",         color: "badge-ghost" }
   }.freeze
 
+  def grouped_product_options
+    Discipline.kept.order(:name).includes(:products).map do |discipline|
+      active_products = discipline.products.kept.order(:name).pluck(:name, :id)
+
+      [discipline.name, active_products]
+    end.reject { |_, products| products.empty? }
+  end
+
   # PER I FORM: f.select :payment_method, payment_method_options
   def payment_method_options
     PAYMENT_METHODS.map { |key, data| [ data[:label], key ] }
