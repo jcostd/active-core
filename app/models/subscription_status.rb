@@ -6,7 +6,7 @@ class SubscriptionStatus
   end
 
   def requires_attention?
-    [:pending_payment, :expired, :expiring_soon].include?(key)
+    [ :pending_payment, :expired, :expiring_soon ].include?(key)
   end
 
   def key
@@ -46,10 +46,10 @@ class SubscriptionStatus
   def icon
     case key
     when :pending_payment then "payments"
-    when :expired         then "event_busy"
-    when :future          then "event_upcoming"
+    when :expired         then "history"
+    when :future          then "calendar_today"
     when :expiring_soon   then "notification_important"
-    when :active          then "check_circle"
+    when :active          then "success"
     end
   end
 

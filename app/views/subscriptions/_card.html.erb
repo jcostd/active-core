@@ -39,13 +39,11 @@
       max="<%= subscription.agreed_price_cents.to_i %>">
     </progress>
 
-    <%# Bottoni d'azione in base allo stato %>
     <div class="card-actions justify-end mt-4">
-      <%= link_to "Dettagli", subscription_path(subscription), class: "btn btn-sm btn-ghost" %>
+      <%= link_to "Dettagli", member_subscription_path(subscription.member, subscription), class: "btn btn-sm btn-ghost" %>
 
       <% if subscription.status.key == :pending_payment %>
-        <%# Qui si chiude il cerchio col tuo POS! %>
-        <%= link_to "Incassa Rata", new_member_sale_path(subscription.member, installment_for_subscription_id: subscription.id), class: "btn btn-sm btn-primary" %>
+        <%= link_to "Incassa Rata", new_sale_path(member_id: subscription.member_id, installment_for_subscription_id: subscription.id), class: "btn btn-sm btn-primary" %>
       <% end %>
     </div>
 

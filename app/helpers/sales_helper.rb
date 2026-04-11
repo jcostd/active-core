@@ -1,33 +1,25 @@
 module SalesHelper
-  def payment_method_badge(method)
-    base_class = "badge badge-sm badge-soft gap-1 text-[10px] uppercase font-bold tracking-wider"
+  PAYMENT_METHODS = {
+    "cash"          => { label: "Contanti",    icon: "payments",        color: "badge-success" },
+    "credit_card"   => { label: "Carta / POS", icon: "credit_card",     color: "badge-info" },
+    "bank_transfer" => { label: "Bonifico",    icon: "account_balance", color: "badge-warning" },
+    "other"         => { label: "Altro",       icon: "receipt",         color: "badge-ghost" }
+  }.freeze
 
-    case method.to_s
-    when "cash"
-      content_tag(:div, class: "#{base_class} badge-success") do
-        icon("payments", classes: "size-3") + " Contanti"
-      end
-    when "credit_card"
-      content_tag(:div, class: "#{base_class} badge-info") do
-        icon("credit_card", classes: "size-3") + " Carta"
-      end
-    when "bank_transfer"
-      content_tag(:div, class: "#{base_class} badge-warning") do
-        icon("account_balance", classes: "size-3") + " Bonifico"
-      end
-    else
-      content_tag(:div, class: "#{base_class} badge-ghost") do
-        method.to_s.humanize
-      end
-    end
+  # PER I FORM: f.select :payment_method, payment_method_options
+  def payment_method_options
+    PAYMENT_METHODS.map { |key, data| [ data[:label], key ] }
   end
 
   def payment_method_icon(method, classes: "size-6")
-    case method.to_s
-    when "cash"          then icon("payments", classes: classes)
-    when "credit_card"   then icon("credit_card", classes: classes)
-    when "bank_transfer" then icon("account_balance", classes: classes)
-    else                      icon("paid", classes: classes)
+    data = PAYMENT_METHODS[method.to_s] || PAYMENT_METHODS["other"]
+    icon(data[:icon], classes: classes)
+  end
+
+  def payment_method_badge(method)
+    data = PAYMENT_METHODS[method.to_s] || PAYMENT_METHODS["other"]
+    content_tag(:div, class: "badge badge-sm badge-soft gap-1 text-[10px] uppercase font-bold tracking-wider #{data[:color]}") do
+      icon(data[:icon], classes: "size-3") + " #{data[:label]}"
     end
   end
 

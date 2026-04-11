@@ -16,7 +16,7 @@
 
 <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
   <% if @sales.any? %>
-    <%= render partial: "sale_row", collection: @sales, as: :sale %>
+    <%= render partial: "members/sales/row", collection: @sales, as: :sale %>
   <% else %>
     <li class="p-10 text-center opacity-50 text-sm italic">Nessun acquisto registrato.</li>
   <% end %>

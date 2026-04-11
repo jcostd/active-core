@@ -2,25 +2,44 @@
 
   <%# -- Icona Metodo di Pagamento -- %>
   <div class="opacity-40">
-    <% icon_name = case sale.payment_method
-       when "cash" then "payments"
-       when "credit_card" then "credit_card"
-       when "bank_transfer" then "account_balance"
-       else "receipt" end %>
-    <div class="p-2 bg-base-200 rounded-box"><%= icon(icon_name) %></div>
+    <div class="p-2 bg-base-200 rounded-box">
+      <%= payment_method_icon(sale.payment_method, classes: "size-5") %>
+    </div>
   </div>
 
   <%# -- Dati Principali -- %>
   <div class="grow min-w-0 flex flex-col gap-0.5">
-    <div class="font-bold text-sm truncate group-hover:text-primary transition-colors">
-      <%= sale.product_name_snapshot %>
+
+    <%# NOME PRODOTTO E BADGE %>
+    <div class="flex items-center gap-2">
+      <div class="font-bold text-sm truncate group-hover:text-primary transition-colors">
+        <%= sale.product_name_snapshot %>
+      </div>
+
+      <% if sale.subscription.present? %>
+        <%= render "subscriptions/badge", subscription: sale.subscription %>
+      <% end %>
     </div>
+
+    <%# DATA INCASSO & RICEVUTA %>
     <div class="flex items-center gap-2 text-[11px] opacity-60 font-mono">
       <span><%= format_date(sale.sold_on) %></span>
       <% if sale.receipt_number.present? %>
         <span class="text-primary font-bold"><%= sale.receipt_code %></span>
       <% end %>
     </div>
+
+    <%# CONTESTO ABBONAMENTO (Nessun if inutile, andiamo dritti al punto) %>
+    <% if sale.subscription.present? %>
+      <div class="flex items-center gap-1 text-[10.5px] font-medium text-info/80 mt-0.5">
+        <%= icon("calendar_today", classes: "size-3") %>
+        <span>
+          Valido: <%= format_date(sale.subscription.start_date) %> &rarr; <%= format_date(sale.subscription.end_date) %>
+        </span>
+      </div>
+    <% end %>
+
+    <%# NOTE %>
     <% if sale.notes.present? %>
       <div class="text-[10px] opacity-50 truncate max-w-[200px] mt-0.5"><%= sale.notes %></div>
     <% end %>
@@ -35,19 +54,15 @@
   <%# -- Azioni -- %>
   <div class="shrink-0 flex items-center gap-1 pl-2">
     <div class="font-mono font-bold text-sm sm:hidden mr-2"><%= format_money(sale.amount) %></div>
+
     <%= link_to [sale], class: "btn btn-square btn-xs btn-ghost", title: "Dettaglio" do %>
       <%= icon("view") %>
     <% end %>
 
     <% if sale.created_at > 24.hours.ago %>
-      <%= link_to [sale], class: "btn btn-square btn-xs btn-ghost text-error hover:bg-error/20",
-		  data: {
-		    turbo_method: :delete,
-		    turbo_confirm: "Annullare VENDITA e abbonamento? Irreversibile."
-		  },
-		  title: "Annulla" do %>
-        <%= icon("delete") %>
-      <% end %>
+      <%= ui_row_delete_button(sale,
+			       confirm: "Annullare VENDITA e abbonamento? Irreversibile.",
+			       title: "Annulla") %>
     <% end %>
   </div>
 </li>
