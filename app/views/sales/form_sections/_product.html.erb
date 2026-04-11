@@ -38,9 +38,11 @@
         </div>
         <div class="flex items-center shrink-0">
           <%= sub_f.text_field :agreed_price,
-                value: sale.subscription&.agreed_price || sale.product&.price,
-                class: "input input-sm input-bordered w-24 font-bold text-right rounded-r-none focus:border-warning focus:ring-1 focus:ring-warning",
-                data: { action: "change->autosubmit#submit" } %>
+	   autocomplete: "off",
+	   name: "agreed_price_selection",
+           value: sale.subscription&.agreed_price || sale.product&.price,
+           class: "input input-sm w-24 font-bold text-right rounded-r-none focus:border-warning focus:ring-1 focus:ring-warning",
+           data: { action: "change->autosubmit#submit" } %>
           <span class="bg-base-300 px-3 py-1.5 text-sm font-bold border border-l-0 border-base-300 rounded-r-lg">€</span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-<div>
+<div class="fieldset">
   <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
     <%= icon("calendar_today", classes: "size-6 opacity-40") %> Validità Iscrizione
   </div>
@@ -16,7 +16,7 @@
         <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed", disabled: true %>
       </fieldset>
     </div>
-    <div class="text-xs text-info mt-2 font-medium">Le date non sono modificabili durante il saldo di una rata.</div>
+    <div class="text-xs text-info font-medium">Le date non sono modificabili durante il saldo di una rata.</div>
   <% else %>
     <%= f.fields_for :subscription do |sub_f| %>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

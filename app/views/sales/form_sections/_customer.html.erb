@@ -11,6 +11,7 @@
     <% else %>
       <%= f.hidden_field :member_id, data: { autocomplete_target: "hidden", action: "change->autosubmit#submit" } %>
       <input type="text"
+	     name="members_search"
              class="input w-full"
              placeholder="Cerca per nome o codice fiscale..."
              value="<%= sale.member&.full_name %>"

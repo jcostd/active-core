@@ -17,7 +17,7 @@
       <%= hidden_field_tag :installment_for_subscription_id, params[:installment_for_subscription_id] %>
     <% end %>
 
-    <div class="flex-1 flex flex-col gap-4 py-2">
+    <div class="flex-1 flex flex-col gap-4">
       <%= render "shared/form_errors", model: sale %>
 
       <%= render "sales/form_sections/customer", f: f, sale: sale, is_installment: is_installment %>
