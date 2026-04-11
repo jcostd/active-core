@@ -12,6 +12,10 @@ class Subscription < ApplicationRecord
   before_validation :set_default_agreed_price, on: :create
   before_validation :apply_business_rules, on: :create
 
+  def status
+    @status ||= SubscriptionStatus.new(self)
+  end
+
   def assign_smart_dates(manual_start_date: nil)
     self.start_date = manual_start_date if manual_start_date.present?
     apply_business_rules

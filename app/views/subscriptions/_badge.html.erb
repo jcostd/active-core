@@ -1,0 +1,8 @@
+<%# locals: (subscription:) %>
+
+<div class="badge badge-<%= subscription.status.color %> gap-1 border-0">
+  <%= icon(subscription.status.icon, classes: "size-3.5") %>
+  <span class="text-xs font-bold uppercase tracking-wide">
+    <%= subscription.status.label %>
+  </span>
+</div>

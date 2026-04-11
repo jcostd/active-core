@@ -1,0 +1,53 @@
+<%# locals: (subscription:) %>
+
+<div class="card bg-base-100 border border-base-200 shadow-sm">
+  <div class="card-body p-5">
+
+    <%# Intestazione: Nome Prodotto e Badge %>
+    <div class="flex justify-between items-start gap-4">
+      <div>
+        <h3 class="card-title text-lg"><%= subscription.product.name %></h3>
+        <p class="text-sm opacity-70 mt-1">
+          Dal <%= subscription.start_date&.strftime("%d %b %Y") %> al <%= subscription.end_date&.strftime("%d %b %Y") %>
+        </p>
+      </div>
+      <%= render "subscriptions/badge", subscription: subscription %>
+    </div>
+
+    <div class="divider my-1"></div>
+
+    <%# Sezione Finanziaria %>
+    <div class="flex items-end justify-between mt-2">
+      <div>
+        <div class="text-[10px] font-bold uppercase opacity-50 mb-1">Stato Pagamento</div>
+        <div class="font-mono text-lg font-semibold">
+          <%= humanized_money_with_symbol(subscription.amount_paid) %> / <%= humanized_money_with_symbol(subscription.agreed_price) %>
+        </div>
+      </div>
+
+      <% unless subscription.fully_paid? %>
+        <div class="text-error text-sm font-bold">
+          Resta: <%= humanized_money_with_symbol(subscription.agreed_price - (subscription.amount_paid || 0)) %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# La barra di progresso DaisyUI prende lo stesso colore dello stato! %>
+    <progress
+      class="progress progress-<%= subscription.status.color %> w-full mt-2"
+      value="<%= subscription.amount_paid_cents.to_i %>"
+      max="<%= subscription.agreed_price_cents.to_i %>">
+    </progress>
+
+    <%# Bottoni d'azione in base allo stato %>
+    <div class="card-actions justify-end mt-4">
+      <%= link_to "Dettagli", subscription_path(subscription), class: "btn btn-sm btn-ghost" %>
+
+      <% if subscription.status.key == :pending_payment %>
+        <%# Qui si chiude il cerchio col tuo POS! %>
+        <%= link_to "Incassa Rata", new_member_sale_path(subscription.member, installment_for_subscription_id: subscription.id), class: "btn btn-sm btn-primary" %>
+      <% end %>
+    </div>
+
+  </div>
+</div>

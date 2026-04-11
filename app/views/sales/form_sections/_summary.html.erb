@@ -16,30 +16,31 @@
       </div>
 
       <% if is_installment %>
-        <div class="bg-base-100 border border-base-300 rounded-lg p-3 text-xs mt-2 space-y-2">
+        <div class="bg-base-100 border border-base-300 rounded-box p-3 text-xs mt-2 space-y-2">
           <div class="flex justify-between font-medium opacity-60">
             <span>Costo Totale:</span>
-            <span><%= format_money(sale.subscription.agreed_price) rescue "---" %></span>
+            <span><%= format_money(sale.subscription.agreed_price) %></span>
           </div>
           <div class="flex justify-between font-medium text-success">
             <span>Già versato:</span>
-            <span><%= format_cents(sale.subscription.amount_paid) rescue "---" %></span>
+            <span><%= format_cents(sale.subscription.amount_paid) %></span>
           </div>
         </div>
       <% end %>
 
       <div class="mt-auto pt-8 flex flex-col gap-2">
-        <%= f.label :amount, "Importo da Incassare (€)", class: "text-[10px] font-bold uppercase tracking-wider opacity-50" %>
+        <%= f.label :amount, "Importo da Incassare (€)", class: "label text-[10px] font-bold uppercase tracking-wider opacity-50" %>
         <%= f.text_field :amount,
-             class: "input input-lg w-full text-right font-mono text-3xl font-black focus:border-primary focus:ring-1 focus:ring-primary",
-             data: { action: "change->autosubmit#submit" } %>
+	    autocomplete: "off",
+            class: "input input-lg w-full text-right font-mono text-3xl",
+            data: { action: "change->autosubmit#submit" } %>
       </div>
     </div>
 
     <div class="mt-8">
       <%= f.button formmethod: "post",
-	 formaction: sales_path,
-	 data: { turbo_frame: "_top" },
+       formaction: sales_path,
+       data: { turbo_frame: "_top" },
        disabled: sale.product.nil? || sale.member.nil?,
        class: "btn btn-primary btn-block btn-lg shadow-sm" do %>
         <%= icon("sale", classes: "size-6") %> <%= is_installment ? "Incassa Rata" : "Conferma e Incassa" %>

@@ -2,7 +2,7 @@ module SubscriptionIssuer
   extend ActiveSupport::Concern
 
   included do
-    belongs_to :subscription, optional: true, autosave: true
+    belongs_to :subscription, optional: true, autosave: true, touch: true
     accepts_nested_attributes_for :subscription, reject_if: :all_blank
 
     after_discard :discard_subscription_if_empty

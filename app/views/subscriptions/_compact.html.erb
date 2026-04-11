@@ -1,0 +1,42 @@
+<%# locals: (subscription:) %>
+
+<% status = subscription.status %>
+
+<% bg_class = status.requires_attention? ? "badge-#{status.color} badge-soft" : "badge-ghost opacity-60" %>
+<% padding_class = status.requires_attention? ? "pl-2 pr-0.5 py-3" : "py-3" %>
+
+<div class="badge badge-sm gap-1 font-normal <%= bg_class %> <%= padding_class %>">
+  <span class="truncate max-w-[120px] <%= 'font-semibold' if status.requires_attention? %>" title="<%= subscription.product.name %>">
+    <%= subscription.product.name %>
+  </span>
+
+  <span class="font-mono text-[10px] opacity-70 border-l border-current/20 pl-1">
+
+    <% if status.key == :pending_payment %>
+      -<%= format_cents(subscription.agreed_price_cents - subscription.amount_paid) %>
+    <% elsif status.key == :expired %>
+      SCADUTO
+    <% elsif subscription.respond_to?(:days_left) && subscription.days_left.present? %>
+      -<%= subscription.days_left %>gg
+    <% else %>
+      <%= format_date(subscription.end_date, format: :short) %>
+    <% end %>
+  </span>
+
+  <% if status.key == :pending_payment %>
+    <%# AZIONE A: Paga la rata %>
+    <%= link_to new_sale_path(member_id: subscription.member_id, installment_for_subscription_id: subscription.id),
+		class: "btn btn-ghost btn-xs btn-circle ml-0.5 hover:bg-current/20 text-current",
+		data: { turbo_frame: "modal" }, title: "Incassa Rata" do %>
+      <%= icon("payments", classes: "size-4") %>
+    <% end %>
+
+  <% elsif [:expired, :expiring_soon].include?(status.key) %>
+    <%# AZIONE B: Rinnova abbonamento %>
+    <%= link_to new_sale_path(member_id: subscription.member_id, renew_subscription_id: subscription.id),
+		class: "btn btn-ghost btn-xs btn-circle ml-0.5 hover:bg-current/20 text-current",
+		data: { turbo_frame: "modal" }, title: "Rinnova al volo" do %>
+      <%= icon("reset", classes: "size-4") %>
+    <% end %>
+  <% end %>
+</div>

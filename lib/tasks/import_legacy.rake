@@ -1,6 +1,3 @@
-# lib/tasks/import_legacy.rake
-
-# Definiamo il modulo FUORI dal namespace per chiarezza e per evitare problemi di scope
 module Source
   DB_FILE = "legacy.sqlite3"
 

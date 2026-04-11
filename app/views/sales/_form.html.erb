@@ -3,10 +3,12 @@
                 url: new_sale_path,
                 method: :get,
                 data: { controller: "autosubmit" },
-                class: "flex flex-col md:flex-row gap-8 lg:gap-12" do |f| %>
+                class: "flex flex-col md:flex-row gap-4" do |f| %>
 
     <% is_installment = sale.subscription&.persisted? %>
 
+    <%# === VARIABILI DI STATO DEL FORM === %>
+    <%= f.hidden_field :subscription_id %>
     <%= hidden_field_tag :previous_member_id, sale.member_id %>
     <%= hidden_field_tag :previous_product_id, sale.product_id %>
     <%= hidden_field_tag :renew_subscription_id, params[:renew_subscription_id] %>
@@ -15,16 +17,14 @@
       <%= hidden_field_tag :installment_for_subscription_id, params[:installment_for_subscription_id] %>
     <% end %>
 
-    <div class="flex-1 flex flex-col gap-8 py-2">
+    <div class="flex-1 flex flex-col gap-4 py-2">
       <%= render "shared/form_errors", model: sale %>
 
-      <%# I 3 BLOCCHI PRINCIPALI DIVISI IN PARTIALS %>
       <%= render "sales/form_sections/customer", f: f, sale: sale, is_installment: is_installment %>
       <%= render "sales/form_sections/product", f: f, sale: sale, is_installment: is_installment %>
       <%= render "sales/form_sections/subscription", f: f, sale: sale, is_installment: is_installment %>
     </div>
 
-    <%# LA COLONNA DI DESTRA %>
     <%= render "sales/form_sections/summary", f: f, sale: sale, is_installment: is_installment %>
 
   <% end %>
