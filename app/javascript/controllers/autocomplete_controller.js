@@ -35,11 +35,11 @@ export default class extends Controller {
     select(event) {
         event.preventDefault()
 
-        const button = event.currentTarget
-        this.inputTarget.value = button.dataset.name
+        const item = event.currentTarget
+        this.inputTarget.value = item.dataset.name
 
         if (this.hasHiddenTarget) {
-            this.hiddenTarget.value = button.dataset.id
+            this.hiddenTarget.value = item.dataset.id
             this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
         }
 

@@ -1,7 +1,9 @@
 <%# app/views/kiosk/disciplines/show.html.erb %>
 
+<%= turbo_stream_from "access_logs" %>
+
 <div class="flex items-center gap-4 mb-8">
-  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost bg-base-100 text-base-content/50", data: { turbo_action: "replace" } do %>
+  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost bg-base-100 text-base-content/50" do %>
     <%= icon("arrow_back", classes: "size-6") %>
   <% end %>
   <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
@@ -13,16 +15,16 @@
     <div class="card-body p-4 flex flex-row items-center gap-4">
 
       <div class="flex-grow" data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside">
-	<input type="text"
-	       name="<%=@discipline.id %>_member_search"
-	       class="input input-lg w-full font-bold focus:border-primary focus:ring-1 focus:ring-primary bg-base-200"
-	       placeholder="🔍 Cerca nome, cognome o CF di un socio non in lista..."
-	       autocomplete="off"
-	       data-autocomplete-target="input"
-	       data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
-	       data-url="<%= kiosk_discipline_member_searches_path(@discipline) %>">
+        <input type="text"
+               class="input input-lg w-full font-bold focus:border-primary focus:ring-1 focus:ring-primary bg-base-200"
+               placeholder="🔍 Cerca nome, cognome o CF di un socio non in lista..."
+               autocomplete="off"
+               data-autocomplete-target="input"
+               data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+               data-url="<%= kiosk_discipline_member_searches_path(@discipline) %>">
 
-	<turbo-frame id="<%=@discipline.id %>_member_search_results" data-autocomplete-target="frame"></turbo-frame>
+        <%# MAGIA 1: dom_id per il target del turbo frame %>
+        <turbo-frame id="<%= dom_id(@discipline, :member_search_results) %>" data-autocomplete-target="frame"></turbo-frame>
       </div>
 
     </div>
@@ -43,9 +45,11 @@
         Nessun socio da smarcare.
       </div>
     <% else %>
-      <% @pending_members.each do |member| %>
-        <%= render "kiosk/members/card", member: member, discipline: @discipline %>
-      <% end %>
+      <%# MAGIA 2: Rendering della collection! Rails renderizzerà tutte le card in un solo passaggio %>
+      <%= render partial: "kiosk/members/card",
+                 collection: @pending_members,
+                 as: :member,
+                 locals: { discipline: @discipline } %>
     <% end %>
   </div>
 
@@ -60,10 +64,10 @@
         Nessuno ha ancora fatto check-in.
       </div>
     <% else %>
-      <% @today_accesses.each do |log| %>
-        <%# ATTENZIONE: Qui passiamo il LOG, non il member, per avere il design verde/rosso %>
-        <%= render "kiosk/members/checked_in_card", log: log %>
-      <% end %>
+      <%# MAGIA 2: Di nuovo collection rendering per i log %>
+      <%= render partial: "kiosk/members/checked_in_card",
+      collection: @today_accesses,
+      as: :log %>
     <% end %>
   </div>
 
