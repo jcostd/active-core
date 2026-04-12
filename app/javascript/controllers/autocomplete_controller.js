@@ -25,27 +25,31 @@ export default class extends Controller {
 
         const url = new URL(urlString, window.location.origin)
         url.searchParams.set("query", query)
-        url.searchParams.set("frame_id", this.frameTarget.id)
 
-        this.frameTarget.src = url.toString()
+        if (this.hasFrameTarget) {
+            url.searchParams.set("frame_id", this.frameTarget.id)
+            this.frameTarget.src = url.toString()
+        }
     }
 
     select(event) {
         event.preventDefault()
 
         const button = event.currentTarget
-        this.hiddenTarget.value = button.dataset.id
         this.inputTarget.value = button.dataset.name
+
+        if (this.hasHiddenTarget) {
+            this.hiddenTarget.value = button.dataset.id
+            this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
+        }
 
         this.closeFrame()
         this.inputTarget.blur()
-
-        this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
     }
 
     clearIfEmpty() {
         if (this.inputTarget.value.trim() === "") {
-            if (this.hiddenTarget.value !== "") {
+            if (this.hasHiddenTarget && this.hiddenTarget.value !== "") {
                 this.hiddenTarget.value = ""
                 this.hiddenTarget.dispatchEvent(new Event("change", { bubbles: true }))
             }

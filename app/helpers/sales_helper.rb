@@ -10,7 +10,7 @@ module SalesHelper
     Discipline.kept.order(:name).includes(:products).map do |discipline|
       active_products = discipline.products.kept.order(:name).pluck(:name, :id)
 
-      [discipline.name, active_products]
+      [ discipline.name, active_products ]
     end.reject { |_, products| products.empty? }
   end
 

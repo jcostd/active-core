@@ -4,6 +4,7 @@ class Discipline < ApplicationRecord
 
   has_many :product_disciplines, dependent: :destroy
   has_many :products, through: :product_disciplines
+  has_many :access_logs, dependent: :nullify
 
   normalizes :name, with: ->(n) { n.squish.titleize }
   validates :name, presence: true, uniqueness: { conditions: -> { kept } }

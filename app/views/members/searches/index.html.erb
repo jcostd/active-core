@@ -14,10 +14,10 @@
               <%= member.full_name %>
             </div>
 
-            <div class="text-xs opacity-60 w-full truncate font-mono">
-              CF: <%= member.fiscal_code.presence || "N/A" %>
-	      <span class="opacity-40 mx-1">•</span>
-              BIRTH: <%= format_date(member.birth_date).presence || "N/A" %>
+            <div class="flex flex-wrap items-center gap-1 text-xs opacity-60 w-full truncate font-mono">
+              CF: <%= display_value(member.fiscal_code, placeholder: "N/A") %>
+	      <span class="w-1 h-1 rounded-full bg-base-content/30 hidden sm:block"></span>
+              BIRTH: <%= format_date(member.birth_date) %>
             </div>
         </li>
       <% end %>

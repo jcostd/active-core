@@ -66,7 +66,8 @@ Rails.application.routes.draw do
     root to: "disciplines#index"
 
     resources :disciplines, only: [ :index, :show ] do
-      resources :access_logs, only: [ :create ]
+      resources :access_logs, only: [ :create, :destroy ]
+      resources :member_searches, only: [ :index ]
     end
   end
 end
