@@ -8,7 +8,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
 
     <link rel="icon" href="/icon.png" type="image/png">
@@ -16,39 +15,38 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-base-300 text-base-content min-h-screen flex flex-col selection:bg-primary selection:text-white overscroll-none">
+  <body class="bg-base-200 text-base-content min-h-screen flex flex-col overscroll-none selection:bg-primary selection:text-primary-content">
 
-    <%# HEADER MINIMALE KIOSK %>
-    <header class="bg-base-100 shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-      <div class="flex items-center gap-4">
-        <%= icon("fitness_center", classes: "size-10 text-primary") %>
+    <%# NAVBAR NATIVA DAISYUI %>
+    <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50 px-4 md:px-8">
+      <div class="navbar-start gap-4">
+        <div class="text-primary">
+          <%= icon("fitness_center", classes: "size-10") %>
+        </div>
         <div>
           <h1 class="text-2xl font-black tracking-tight leading-none uppercase">Kiosk Accessi</h1>
-          <p class="text-sm opacity-50 font-bold tracking-widest uppercase mt-1"><%= GymProfile.current&.name || "La Tua Palestra" %></p>
+          <p class="text-xs font-bold opacity-50 tracking-widest uppercase mt-1"><%= GymProfile.current&.name || "La Tua Palestra" %></p>
         </div>
       </div>
 
-      <div class="flex items-center gap-4">
-        <%# Pulsante GIGANTE per uscire (lontano da click accidentali) %>
-        <%= link_to root_path, class: "btn btn-ghost btn-circle btn-lg text-base-content/50 hover:text-error hover:bg-error/10", title: "Esci dal Kiosk" do %>
-          <%= icon("logout", classes: "size-8") %>
+      <div class="navbar-end">
+        <%= link_to root_path, class: "btn btn-ghost btn-circle", title: "Esci dal Kiosk" do %>
+          <%= icon("logout", classes: "size-7") %>
         <% end %>
       </div>
-    </header>
+    </div>
 
     <%# CONTENITORE PRINCIPALE %>
-    <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col">
+    <main class="flex-grow p-4 md:p-8 container mx-auto w-full flex flex-col gap-8">
       <%= yield %>
     </main>
 
-    <%# FLASH MESSAGES FLOTTANTI %>
-    <div id="flash-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
+    <%# TOAST NATIVO DAISYUI PER I FLASH (iPad friendly, non copre bottoni in basso) %>
+    <div id="flash-container" class="toast toast-end toast-bottom z-[100]">
       <%= render "shared/flash" %>
     </div>
 

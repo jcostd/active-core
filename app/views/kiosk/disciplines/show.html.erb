@@ -1,73 +1,59 @@
-<%# app/views/kiosk/disciplines/show.html.erb %>
-
 <%= turbo_stream_from "access_logs" %>
 
-<div class="flex items-center gap-4 mb-8">
-  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost bg-base-100 text-base-content/50" do %>
-    <%= icon("arrow_back", classes: "size-6") %>
+<div class="flex items-center gap-4">
+  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost" do %>
+    <%= icon("arrow_left", classes: "size-6") %>
   <% end %>
   <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
 </div>
 
-<%# LA RICERCA A TUTTA LARGHEZZA IN ALTO %>
-<div class="w-full mb-8">
-  <div class="card bg-base-100 shadow-sm border border-base-200">
-    <div class="card-body p-4 flex flex-row items-center gap-4">
+<%# RICERCA A TUTTA LARGHEZZA MINIMAL %>
+<div class="relative" data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside">
+  <label class="input input-xl w-full focus-within:outline-primary shadow-sm bg-base-100 border-base-200">
+    <%= icon("search", classes: "size-6 opacity-50") %>
+    <input type="text"
+           class="grow font-bold placeholder:font-normal placeholder:opacity-50"
+           placeholder="Cerca nome, cognome o CF..."
+           autocomplete="off"
+           data-autocomplete-target="input"
+           data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+           data-url="<%= kiosk_discipline_member_searches_path(@discipline) %>" />
+  </label>
 
-      <div class="flex-grow" data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside">
-        <input type="text"
-               class="input input-lg w-full font-bold focus:border-primary focus:ring-1 focus:ring-primary bg-base-200"
-               placeholder="🔍 Cerca nome, cognome o CF di un socio non in lista..."
-               autocomplete="off"
-               data-autocomplete-target="input"
-               data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
-               data-url="<%= kiosk_discipline_member_searches_path(@discipline) %>">
-
-        <%# MAGIA 1: dom_id per il target del turbo frame %>
-        <turbo-frame id="<%= dom_id(@discipline, :member_search_results) %>" data-autocomplete-target="frame"></turbo-frame>
-      </div>
-
-    </div>
-  </div>
+  <turbo-frame id="<%= dom_id(@discipline, :member_search_results) %>" data-autocomplete-target="frame"></turbo-frame>
 </div>
 
-<%# LO SPLIT A DUE COLONNE %>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<%# SPLIT A DUE COLONNE %>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
 
-  <%# COLONNA SINISTRA: DA SMARCARE %>
-  <div class="flex flex-col gap-4">
-    <h3 class="font-bold uppercase tracking-wider text-sm opacity-50 sticky top-0 bg-base-200/90 backdrop-blur py-2 z-10">
+  <div class="flex flex-col gap-3">
+    <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
       Da Smarcare (<%= @pending_members.size %>)
-    </h3>
+    </div>
 
     <% if @pending_members.empty? %>
-      <div class="p-8 text-center border-2 border-dashed border-base-200 rounded-xl opacity-50 font-bold">
-        Nessun socio da smarcare.
-      </div>
+      <%= render "shared/empty_state",
+                 icon_name: "check",
+                 title: "Tutti presenti!",
+                 message: "Hai smarcato tutti i soci previsti per questo corso." %>
     <% else %>
-      <%# MAGIA 2: Rendering della collection! Rails renderizzerà tutte le card in un solo passaggio %>
-      <%= render partial: "kiosk/members/card",
-                 collection: @pending_members,
-                 as: :member,
-                 locals: { discipline: @discipline } %>
+      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { discipline: @discipline } %>
     <% end %>
   </div>
 
   <%# COLONNA DESTRA: PRESENTI IN SALA %>
-  <div class="flex flex-col gap-4">
-    <h3 class="font-bold uppercase tracking-wider text-sm opacity-50 sticky top-0 bg-base-200/90 backdrop-blur py-2 z-10">
+  <div class="flex flex-col gap-3">
+    <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
       Oggi in Sala (<%= @today_accesses.size %>)
-    </h3>
+    </div>
 
     <% if @today_accesses.empty? %>
-      <div class="p-8 text-center border-2 border-dashed border-base-200 rounded-xl opacity-50 font-bold">
-        Nessuno ha ancora fatto check-in.
-      </div>
+      <%= render "shared/empty_state",
+      icon_name: "clock",
+      title: "Nessuno in sala.",
+      message: "In attesa dei primi check-in..." %>
     <% else %>
-      <%# MAGIA 2: Di nuovo collection rendering per i log %>
-      <%= render partial: "kiosk/members/checked_in_card",
-      collection: @today_accesses,
-      as: :log %>
+      <%= render partial: "kiosk/members/checked_in_card", collection: @today_accesses, as: :log %>
     <% end %>
   </div>
 
