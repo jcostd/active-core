@@ -1,91 +1,114 @@
 <%= render "disciplines/context", discipline: @discipline %>
 
-<div class="flex flex-col gap-4">
-
-  <div>
-    <h2 class="text-xl font-bold text-base-content">Registro Iscritti</h2>
-    <p class="text-sm text-base-content/60 mt-0.5">
-      Gestisci gli abbonamenti per <%= @discipline.name %>
-    </p>
-  </div>
-
-  <div class="mb-2">
-    <%= form_with url: discipline_members_path(@discipline),
-                  method: :get,
-                  html: {
-                    autocomplete: "off",
-                    id: "filter-form",
-                    data: {
-		      controller: "autosubmit drawer",
-		      turbo_frame: "discipline_members_list",
-		      turbo_action: "advance"
-		    }
-                  } do |form| %>
-
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
-
-        <div class="flex items-center gap-2 w-full md:w-1/2">
-          <label class="input w-full">
-            <%= icon("search", classes: "size-5 opacity-50") %>
-            <%= form.search_field :query,
-	     value: params[:query],
-             placeholder: "Cerca iscritto...",
-             class: "grow",
-             data: { action: "input->autosubmit#submit" } %>
-          </label>
-
-	  <% if @products.any? %>
-	    <%= form.select :product_id,
-              options_from_collection_for_select(@products, :id, :name, params[:product_id]),
-             { prompt: "Tutti i Corsi" },
-             class: "select select-bordered w-full sm:w-auto shrink-0",
-             data: { action: "change->autosubmit#submit" } %>
-	  <% end %>
-
-	  <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
-            <%= icon("filter") %>
-	    <span class="hidden sm:inline">Filtri</span>
-	  </button>
-        </div>
-
-	<div class="w-full md:w-auto shrink-0">
-          <%= render "shared/filter/sort",
-		     form: form,
-		     default_sort: "recent",
-		     sort_options: [["Scadenza: Imminenti", "expiring_asc"], ["Scadenza: Lontane", "expiring_desc"], ["Più recenti", "recent"]] %>
-	</div>
-      </div>
-
-      <%= render "shared/filter/drawer", title: "Filtri Abbonamenti" do %>
-        <div class="space-y-6">
-          <fieldset>
-            <label class="label font-bold text-sm">Stato Iscrizione</label>
-            <%= form.select :state,
-                options_for_select(state_filters, params[:state]),
-             { include_blank: "Tutti" },
-             { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-          </fieldset>
-        </div>
-      <% end %>
-    <% end %>
-  </div>
+<div class="items-center mb-6 mt-6">
+  <h2 class="text-xl font-bold flex items-center gap-2">
+    <%= icon("group", classes: "size-6 opacity-50") %> Registro Iscritti
+  </h2>
 </div>
 
+<%# --- FORM DI RICERCA E FILTRI --- %>
+<%= form_with url: discipline_members_path(@discipline),
+              method: :get,
+              html: {
+                autocomplete: "off",
+                id: "filter-form",
+                data: {
+                  controller: "autosubmit drawer",
+                  turbo_frame: "discipline_members_list",
+                  turbo_action: "advance"
+                }
+              } do |form| %>
+
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
+
+    <div class="flex items-center gap-2 w-full md:w-1/2">
+      <label class="input w-full">
+        <%= icon("search", classes: "size-5 opacity-50") %>
+        <%= form.search_field :query,
+         value: params[:query],
+         placeholder: "Cerca iscritto...",
+         class: "grow",
+         data: { action: "input->autosubmit#submit" } %>
+      </label>
+
+
+      <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
+        <%= icon("filter") %>
+        <span class="hidden sm:inline">Filtri</span>
+      </button>
+    </div>
+
+    <%# DESTRA: Ordinamento %>
+    <div class="w-full md:w-auto shrink-0">
+      <%= render "shared/filter/sort",
+		 form: form,
+		 default_sort: "recent",
+		 sort_options: [
+		   ["Scadenza: Imminenti", "expiring_asc"],
+		   ["Scadenza: Lontane", "expiring_desc"],
+		   ["Più recenti", "recent"]
+		 ] %>
+    </div>
+  </div>
+
+  <%# IL CASSETTO DEI FILTRI %>
+  <%= render "shared/filter/drawer", title: "Filtri Iscritti" do %>
+    <div class="space-y-4">
+
+      <fieldset>
+        <label class="label font-bold text-sm">Corso</label>
+	<%= form.select :product_id,
+         options_from_collection_for_select(@products, :id, :name, params[:product_id]),
+         { include_blank: "Tutti i Corsi" },
+         { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+      </fieldset>
+
+      <fieldset>
+        <label class="label font-bold text-sm">Stato Iscrizione al Corso</label>
+        <%= form.select :state,
+           options_for_select([["Attive", "active"], ["Scadute", "expired"], ["Future", "upcoming"]], params[:state]),
+         { include_blank: "Tutti gli stati" },
+         { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+      </fieldset>
+
+      <%# Filtro Stato Tesseramento (Member) %>
+      <fieldset>
+        <label class="label font-bold text-sm">Tesseramento (Status Socio)</label>
+        <%= form.select :membership_status,
+		 options_for_select([["Attivo", "active"], ["Scaduto", "expired"]], params[:membership_status]),
+         { include_blank: "Qualsiasi" },
+         { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+      </fieldset>
+
+      <%# Filtro Certificato Medico (Member) %>
+      <fieldset>
+        <label class="label font-bold text-sm">Certificato Medico</label>
+        <%= form.select :med_cert,
+		 options_for_select([["Valido", "valid"], ["In Scadenza", "expiring"], ["Scaduto/Assente", "invalid"]], params[:med_cert]),
+         { include_blank: "Qualsiasi" },
+         { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+      </fieldset>
+
+    </div>
+  <% end %>
+
+<% end %>
+
 <%= turbo_frame_tag "discipline_members_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:product_id, :sort] %>
+  <%= render "shared/filter/active", filter_keys: [:product_id, :sort, :state, :membership_status, :med_cert] %>
 
   <div class="mt-6">
     <% if @subscriptions.empty? %>
       <%= render "shared/empty_state",
-		 icon_name: "filter_off",
-		 title: "Nessun socio trovato",
-		 message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
+                 icon_name: "filter_off",
+                 title: "Nessun socio trovato",
+                 message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
     <% else %>
 
       <%= filtered_results_counter(@pagy) %>
 
-      <ul id="subscriptions" class="list bg-base-100 rounded-box shadow-sm">
-	<%= render partial: "subscription_row", collection: @subscriptions, as: :subscription %>
+      <ul id="subscriptions" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+        <%= render partial: "disciplines/members/row", collection: @subscriptions, as: :subscription %>
       </ul>
 
       <%= render "shared/pagination" %>

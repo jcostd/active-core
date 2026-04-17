@@ -1,5 +1,9 @@
 class SubscriptionsController < ApplicationController
+  before_action :require_admin, only: [ :edit, :update ]
   before_action :set_subscription, only: [ :edit, :update, :destroy ]
+
+  layout "modal", only: [ :edit, :update ]
+
 
   def index
     @subscriptions = Subscription.kept.includes(:member, :product)
@@ -37,12 +41,6 @@ class SubscriptionsController < ApplicationController
     end
 
     def subscription_params
-      permitted = [ :start_date ]
-
-      if current_user.respond_to?(:admin?) && current_user.admin?
-        permitted << :end_date
-      end
-
-      params.require(:subscription).permit(permitted)
+      params.require(:subscription).permit([ :start_date, :end_date ])
     end
 end

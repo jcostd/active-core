@@ -5,160 +5,114 @@
 <%= render "sales/context", sale: @sale %>
 
 <%# --- CONTENUTO PRINCIPALE --- %>
-<div class="space-y-6 mt-6">
+<div class="w-full max-w-6xl mx-auto mt-6 space-y-8">
 
-  <%# --- 1. RIGA DEI TOTALI (KPI) --- %>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <%# --- 1. HERO: STATS COMPONENT (Disteso e nativo DaisyUI) --- %>
+  <div class="stats stats-vertical md:stats-horizontal w-full bg-base-100 shadow-sm border border-base-200">
 
-    <%# Card 1: IMPORTO %>
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-5">
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="text-xs uppercase font-bold opacity-50 tracking-wider mb-1">Importo</div>
-            <div class="text-3xl font-mono font-black text-primary tracking-tight">
-              <%= format_money(@sale.amount) %>
-            </div>
-          </div>
-          <div class="p-3 bg-primary/10 rounded-xl text-primary">
-            <%= icon("euro_symbol", classes: "size-6") %>
-          </div>
-        </div>
-        <div class="mt-2 text-xs">
-          <%= transaction_status_indicator(@sale) %>
-        </div>
+    <%# Stat 1: Prodotto %>
+    <div class="stat">
+      <div class="stat-figure text-base-content/30">
+        <%= transaction_status_indicator(@sale) %>
+      </div>
+      <div class="stat-title">Acquistato il <%= format_date(@sale.sold_on) %></div>
+      <div class="stat-value text-2xl lg:text-4xl text-wrap mt-1">
+        <%= display_value(@sale.product_name_snapshot) %>
+      </div>
+      <div class="stat-desc mt-2">
+        <% if @sale.product %>
+          <%= link_to "Vedi prodotto collegato", [@sale.product], class: "link link-hover", data: { turbo_frame: "_top" } %>
+        <% else %>
+          Prodotto non più a catalogo
+        <% end %>
       </div>
     </div>
 
-    <%# Card 2: METODO PAGAMENTO %>
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-5">
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="text-xs uppercase font-bold opacity-50 tracking-wider mb-1">Metodo</div>
-            <div class="text-xl font-bold capitalize mt-1">
-              <%= display_value(@sale.payment_method.humanize) %>
-            </div>
-          </div>
-          <div class="p-3 bg-secondary/10 rounded-xl text-secondary">
-	    <%= payment_method_icon(@sale.payment_method, classes: "size-6") %>
-          </div>
-        </div>
-        <div class="mt-2 text-xs opacity-50">Registrato a sistema</div>
+    <%# Stat 2: Importo %>
+    <div class="stat md:w-1/3 border-t md:border-t-0 md:border-l border-base-200">
+      <div class="stat-figure text-primary/30">
+        <%= payment_method_icon(@sale.payment_method, classes: "size-8") %>
+      </div>
+      <div class="stat-title capitalize"><%= display_value(@sale.payment_method.humanize) %></div>
+      <div class="stat-value text-primary font-mono mt-1">
+        <%= format_money(@sale.amount) %>
       </div>
     </div>
 
-    <%# Card 3: RIFERIMENTO FISCALE %>
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-5">
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="text-xs uppercase font-bold opacity-50 tracking-wider mb-1">Ricevuta</div>
-            <div class="text-xl font-mono font-bold mt-1">
-              <%= display_value(@sale.receipt_code, placeholder: "N/A") %>
-            </div>
-          </div>
-          <div class="p-3 bg-base-200 rounded-xl opacity-70">
-            <%= icon("receipt", classes: "size-6") %>
-          </div>
-        </div>
-        <div class="mt-2 text-xs opacity-50">
-          Anno <%= display_value(@sale.receipt_year) %> - Seq. <%= display_value(@sale.receipt_sequence) %>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <%# --- 2. DETTAGLI (Layout 2/3 + 1/3) --- %>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <%# --- 2. DETTAGLI: LIST COMPONENT (Moderno e coerente) --- %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-    <%# COLONNA SINISTRA: OGGETTO DELLA VENDITA (2/3) %>
-    <div class="lg:col-span-2 space-y-6">
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-6">
-          <h3 class="font-bold text-sm uppercase opacity-70 tracking-wider mb-4 flex items-center gap-2">
-            <%= icon("bag", classes: "size-5") %> Dettagli Prodotto
-          </h3>
-
-          <%# Box Prodotto %>
-          <div class="p-5 bg-base-200/40 rounded-xl border border-base-200 flex justify-between items-center">
-            <div>
-              <div class="font-bold text-xl">
-                <%= display_value(@sale.product_name_snapshot) %>
-              </div>
-              <div class="text-sm opacity-60 mt-1">
-                Data operazione: <%= format_date(@sale.sold_on, format: :long) %>
-              </div>
-            </div>
-
-            <% if @sale.product %>
-              <%= link_to [@sale.product], class: "btn btn-sm btn-ghost gap-2 opacity-60 hover:opacity-100" do %>
-                Vedi Prodotto <%= icon("arrow_forward", classes: "size-4") %>
-              <% end %>
-            <% end %>
-          </div>
-
-          <%# Note %>
-          <div class="mt-6">
-            <h4 class="text-xs uppercase font-bold opacity-40 mb-3">Note Transazione</h4>
-            <% if @sale.notes.present? %>
-              <div class="p-4 bg-warning/10 text-warning-content rounded-xl text-sm border border-warning/20 leading-relaxed">
-                <%= icon("sticky_note_2", classes: "size-4 float-left mr-2 mt-0.5 opacity-70") %>
-                <%= @sale.notes %>
-              </div>
-            <% else %>
-              <div class="p-4 bg-base-200/20 rounded-xl text-sm opacity-40 italic border border-base-200 border-dashed">
-                Nessuna nota aggiuntiva registrata per questa transazione.
-              </div>
-            <% end %>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <%# COLONNA DESTRA: SOGGETTI (CHI E CHI) (1/3) %>
+    <%# COLONNA SINISTRA %>
     <div class="space-y-6">
 
-      <%# BOX CLIENTE %>
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-5">
-          <h3 class="font-bold text-xs uppercase opacity-50 tracking-wider mb-4 flex items-center gap-2">
-            <%= icon("member") %> Cliente
-          </h3>
-          <div class="flex items-center gap-4">
-            <%= ui_avatar(@sale.member, size: "size-10", text_size: "text-md") %>
-            <div>
-              <div class="font-bold text-base hover:text-primary transition-colors">
-                <%= link_to @sale.member.full_name, member_path(@sale.member) %>
-              </div>
-              <div class="text-xs font-mono opacity-60 mt-0.5">
-                CF: <%= @sale.member.fiscal_code.presence || "N/A" %>
-              </div>
-            </div>
-          </div>
-        </div>
+      <%# Riferimenti %>
+      <div>
+        <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Riferimenti Documento</h2>
+        <ul class="list bg-base-100 rounded-box shadow-sm border border-base-200 w-full text-sm">
+          <li class="list-row justify-between items-center">
+            <span class="opacity-70">Numero Ricevuta</span>
+            <span class="font-mono font-bold"><%= display_value(@sale.receipt_code, placeholder: "N/A") %></span>
+          </li>
+          <li class="list-row justify-between items-center">
+            <span class="opacity-70">Anno Fiscale</span>
+            <span class="font-mono"><%= display_value(@sale.receipt_year) %></span>
+          </li>
+          <li class="list-row justify-between items-center">
+            <span class="opacity-70">Sequenza / Categoria</span>
+            <span class="font-mono"><%= display_value(@sale.receipt_sequence) %></span>
+          </li>
+        </ul>
       </div>
 
-      <%# BOX OPERATORE %>
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-5">
-          <h3 class="font-bold text-xs uppercase opacity-50 tracking-wider mb-4 flex items-center gap-2">
-            <%= icon("badge") %> Operatore
-          </h3>
-          <div class="flex items-center gap-4">
-            <%= ui_avatar(@sale.user, size: "size-10", text_size: "text-md") %>
-            <div>
-              <div class="font-bold text-sm">
-                <%= display_value(@sale.user.full_name) %>
-              </div>
-              <div class="text-xs opacity-50 mt-0.5">
-                Registrato il <%= format_date(@sale.created_at) %>
-              </div>
+      <%# Note %>
+      <% if @sale.notes.present? %>
+        <div>
+          <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Note Transazione</h2>
+          <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card-body p-5 text-sm italic opacity-80 leading-relaxed">
+              <%= @sale.notes %>
             </div>
           </div>
         </div>
-      </div>
+      <% end %>
 
     </div>
+
+    <%# COLONNA DESTRA %>
+    <div>
+      <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Soggetti Coinvolti</h2>
+      <ul class="list bg-base-100 rounded-box shadow-sm border border-base-200 w-full">
+
+        <%# Acquirente %>
+        <li class="list-row items-center gap-4 py-4">
+          <div class="shrink-0">
+            <%= ui_avatar(@sale.member, size: "size-10") %>
+          </div>
+          <div class="grow min-w-0">
+            <div class="text-xs uppercase opacity-50 mb-0.5">Acquirente</div>
+            <div class="font-bold truncate text-base">
+              <%= link_to @sale.member.full_name, member_path(@sale.member), class: "hover:underline", data: { turbo_frame: "_top" } %>
+            </div>
+          </div>
+        </li>
+
+        <%# Operatore %>
+        <li class="list-row items-center gap-4 py-4">
+          <div class="shrink-0">
+            <%= ui_avatar(@sale.user, size: "size-10") %>
+          </div>
+          <div class="grow min-w-0">
+            <div class="text-xs uppercase opacity-50 mb-0.5">Operatore</div>
+            <div class="font-bold truncate text-base">
+              <%= display_value(@sale.user.full_name) %>
+            </div>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
   </div>
 </div>

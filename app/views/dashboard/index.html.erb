@@ -1,3 +1,7 @@
+<%= turbo_stream_from "access_logs" %>
+<%= turbo_stream_from "subscriptions" %>
+<%= turbo_stream_from "sales" %>
+
 <header class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center mb-8">
   <div>
     <h1 class="text-3xl font-extrabold tracking-tight text-base-content">
@@ -8,35 +12,32 @@
     </p>
   </div>
 
-  <%= link_to new_sale_path,
-	      class: "btn btn-primary shadow-sm",
-	      data: { turbo_frame: "modal" } do %>
+  <%= link_to new_sale_path, class: "btn btn-primary", data: { turbo_frame: "modal" } do %>
     <%= icon("add") %> Nuova Vendita
   <% end %>
 </header>
 
-<%# RIGA 1: STATISTICHE %>
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="stats stats-vertical lg:stats-horizontal bg-base-100 border-base-300 shadow-sm w-full mb-8">
 
-  <div class="stat bg-base-100 rounded-box shadow-sm">
+  <div class="stat">
     <div class="stat-figure text-success/50"><%= icon("sunny", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Mattina</div>
     <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.morning_total) %></div>
   </div>
 
-  <div class="stat bg-base-100 rounded-box shadow-sm">
+  <div class="stat">
     <div class="stat-figure text-success/50"><%= icon("moon", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Pomeriggio</div>
     <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.afternoon_total) %></div>
   </div>
 
-  <div class="stat bg-base-100 rounded-box shadow-sm">
+  <div class="stat">
     <div class="stat-figure text-info/50"><%= icon("access", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Ingressi Oggi</div>
     <div class="stat-value text-xl md:text-2xl"><%= @today_accesses_count %></div>
   </div>
 
-  <div class="stat bg-base-100 rounded-box shadow-sm">
+  <div class="stat">
     <div class="stat-figure <%= @expiring_count > 0 ? 'text-warning' : 'text-base-content/30' %>">
       <%= icon("notification_important", classes: "size-8") %>
     </div>
@@ -49,101 +50,53 @@
 <%# RIGA 2: I FEED OPERATIVI %>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-  <%# COLONNA 1: Timeline Ingressi %>
-  <div class="lg:col-span-2 flex flex-col bg-base-100 rounded-box shadow-sm p-5 md:p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-base font-bold flex items-center gap-2">
-        <%= icon("history", classes: "size-5 opacity-50") %> Registro Accessi
-      </h2>
-      <%= link_to "Vedi tutti", access_logs_path, class: "text-xs font-semibold link link-hover text-base-content/60" %>
-    </div>
-
-    <% if @recent_accesses.any? %>
-      <ul class="flex-1 flex flex-col gap-1">
-        <% @recent_accesses.each do |log| %>
-          <li class="group flex items-center justify-between py-3 px-3 -mx-3 rounded-box hover:bg-base-200/50 transition-colors">
-
-            <div class="flex items-center gap-4">
-              <%# Avatar collegato al nostro concern Avatarable %>
-              <div class="avatar placeholder hidden sm:flex">
-                <div class="w-10 rounded-full" style="<%= log.member.avatar_color_style %>">
-                  <span class="text-xs font-medium"><%= log.member.initials %></span>
-                </div>
-              </div>
-
-              <div class="flex flex-col">
-                <span class="text-sm font-semibold group-hover:text-primary transition-colors">
-                  <%= link_to log.member.full_name, log.member, class: "link link-hover" %>
-                </span>
-                <span class="text-xs text-base-content/60 mt-0.5">
-                  <%= log.discipline&.name || 'Sala Pesi / Libero' %>
-                </span>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-4 text-right">
-              <% if log.status == 0 || log.status == 'ok' %>
-                <div class="badge badge-success badge-sm badge-outline gap-1 hidden sm:inline-flex">
-                  <%= icon("check", classes: "size-3") %> OK
-                </div>
-              <% else %>
-                <div class="badge badge-warning badge-sm gap-1">
-                  <%= icon("warning", classes: "size-3") %> Check
-                </div>
-              <% end %>
-              <span class="text-sm font-mono opacity-50 w-12"><%= log.entered_at.strftime("%H:%M") %></span>
-            </div>
-
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <div class="flex-1 flex items-center justify-center py-10 text-base-content/40 text-sm">
-        Nessun ingresso registrato oggi.
+  <%# COLONNA 1: Timeline Ingressi (Card) %>
+  <div class="card bg-base-100 shadow-sm lg:col-span-2">
+    <div class="card-body p-4 md:p-6">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="card-title text-base flex items-center gap-2">
+          <%= icon("history", classes: "size-5 opacity-50") %> Registro Accessi
+        </h2>
+        <%= link_to "Vedi tutti", access_logs_path, class: "text-xs font-semibold link link-hover text-base-content/60" %>
       </div>
-    <% end %>
+
+      <% if @recent_accesses.any? %>
+        <%# Componente LIST nativo di DaisyUI %>
+        <ul class="list bg-base-100/50 rounded-box">
+          <%= render partial: "dashboard/recent_access", collection: @recent_accesses, as: :log, cached: true %>
+        </ul>
+      <% else %>
+        <div class="flex items-center justify-center py-10 text-base-content/40 text-sm">
+          Nessun ingresso registrato oggi.
+        </div>
+      <% end %>
+    </div>
   </div>
 
-  <%# COLONNA 2: Scadenze (Task list) %>
-  <div class="flex flex-col bg-base-100 rounded-box shadow-sm p-5 md:p-6">
-    <h2 class="text-base font-bold flex items-center gap-2 mb-6">
-      <%= icon("event", classes: "size-6 text-warning") %> In Scadenza
-    </h2>
+  <%# COLONNA 2: Scadenze (Card) %>
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body p-4 md:p-6">
+      <h2 class="card-title text-base flex items-center gap-2 mb-2">
+        <%= icon("event", classes: "size-6 text-warning") %> In Scadenza
+      </h2>
 
-    <% if @expiring_subscriptions.any? %>
-      <ul class="flex-1 flex flex-col gap-3">
-        <% @expiring_subscriptions.each do |sub| %>
+      <% if @expiring_subscriptions.any? %>
+        <ul class="list bg-base-100/50 rounded-box">
+          <%= render partial: "dashboard/expiring_subscription", collection: @expiring_subscriptions, as: :sub, cached: true %>
+        </ul>
 
-          <li class="card bg-base-200/30 border border-base-200 shadow-sm hover:shadow-md transition-shadow">
-            <div class="card-body p-4 gap-2">
-              <div class="flex justify-between items-start">
-                <span class="text-sm font-semibold truncate pr-2">
-                  <%= link_to sub.member.full_name, sub.member, class: "link link-hover" %>
-                </span>
-                <span class="badge badge-ghost badge-sm font-mono shrink-0"><%= sub.end_date.strftime("%d/%m") %></span>
-              </div>
-
-              <%= link_to new_sale_path(member_id: sub.member_id, renew_subscription_id: sub.id),
-			  data: { turbo_frame: "modal" },
-			  class: "btn btn-sm btn-outline btn-block mt-2" do %>
-                Rinnova
-              <% end %>
-            </div>
-          </li>
+        <% if @expiring_count > 5 %>
+          <div class="mt-4 text-center">
+            <%= link_to "Mostra altre (#{@expiring_count - 5})", subscriptions_path(filter: 'expiring'), class: "btn btn-ghost btn-sm text-xs font-semibold" %>
+          </div>
         <% end %>
-      </ul>
-
-      <% if @expiring_count > 5 %>
-         <div class="mt-5 text-center">
-           <%= link_to "Mostra altre (#{@expiring_count - 5})", subscriptions_path(filter: 'expiring'), class: "btn btn-ghost btn-sm text-xs font-semibold" %>
-         </div>
+      <% else %>
+        <div class="flex flex-col items-center justify-center py-8 text-sm text-base-content/40 gap-3">
+          <%= icon("success", classes: "size-10 opacity-20") %>
+          <span>Nessuna urgenza.</span>
+        </div>
       <% end %>
-    <% else %>
-      <div class="flex-1 flex flex-col items-center justify-center py-8 text-sm text-base-content/40 gap-3">
-        <%= icon("success", classes: "size-10 opacity-20") %>
-        <span>Nessuna urgenza.</span>
-      </div>
-    <% end %>
+    </div>
   </div>
 
 </div>

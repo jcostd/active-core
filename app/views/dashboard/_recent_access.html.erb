@@ -1,0 +1,25 @@
+<li class="list-row group">
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to log.member, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <%= ui_avatar(log.member, size: "size-10", text_size: "text-md") %>
+    <% end %>
+  </div>
+
+  <div>
+    <div class="font-semibold group-hover:text-primary transition-colors">
+      <%= link_to log.member.full_name, log.member, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" %>
+    </div>
+    <div class="text-xs text-base-content/60 uppercase tracking-wide">
+      <%= log.discipline&.name || 'Sala Pesi / Libero' %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <% if log.status == 0 || log.status == 'ok' %>
+      <div class="badge badge-success badge-sm badge-soft hidden sm:inline-flex">OK</div>
+    <% else %>
+      <div class="badge badge-warning badge-sm badge-soft">Check</div>
+    <% end %>
+    <span class="text-sm font-mono opacity-50"><%= log.entered_at.strftime("%H:%M") %></span>
+  </div>
+</li>

@@ -1,9 +1,11 @@
-class Members::SalesController < ApplicationController
+class Members::SalesController < MembersController
   before_action :require_admin
   before_action :set_member
 
   def index
-    query = @member.sales.kept.includes(:product, :user).order(sold_on: :desc, created_at: :desc)
+    base_scope = @member.sales.includes(:product, :user)
+    query = SalesQuery.new(params, base_scope).results
+
     @pagy, @sales = pagy(query)
   end
 

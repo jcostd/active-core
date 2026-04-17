@@ -10,7 +10,7 @@ class MembersController < ApplicationController
     @pagy, @members = pagy(
       MembersQuery.new(filter_params)
         .results
-        .includes(subscriptions: :product))
+        .includes(subscriptions: [ :product, :sales ]))
   end
 
   def show

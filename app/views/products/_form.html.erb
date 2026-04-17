@@ -2,19 +2,18 @@
   <%= render "shared/form_errors", model: product %>
 
   <%# --- SEZIONE 1: DETTAGLI PRODOTTO --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("shopping_tag", size: 14) %> Dettagli Prodotto
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
+      <%= icon("shopping_tag", classes: "size-4") %> Dettagli Prodotto
     </legend>
 
     <%# Nome Prodotto %>
     <div>
       <%= f.label :name, class: "label" %>
-
       <%= f.text_field :name,
-          required: true,
-          class: "input w-full text-lg font-medium",
-          placeholder: "Es. Mensile Open, Carnet 10 Ingressi..." %>
+             required: true,
+             class: "input w-full text-lg font-medium",
+             placeholder: "Es. Mensile Open, Carnet 10 Ingressi..." %>
     </div>
 
     <%# Griglia: Prezzo, Durata, Categoria %>
@@ -22,10 +21,8 @@
       <%# Prezzo %>
       <div>
         <%= f.label :price, class: "label" %>
-
-        <label class="input w-full font-mono">
+        <label class="input w-full font-mono flex items-center gap-2">
           <span class="opacity-50">€</span>
-
           <%= f.text_field :price,
               class: "grow border-none focus:ring-0 p-0",
               placeholder: "0,00",
@@ -36,12 +33,9 @@
       <%# Durata %>
       <div>
         <%= f.label :duration_days, "Durata (Giorni)", class: "label" %>
+        <%= f.number_field :duration_days, class: "input w-full", placeholder: "30" %>
 
-        <%= f.number_field :duration_days,
-            class: "input w-full",
-            placeholder: "30" %>
-
-        <p class="label opacity-50">
+        <p class="label-text-alt opacity-60 mt-1">
           30 = 1 Mese, 365 = 1 Anno
         </p>
       </div>
@@ -49,73 +43,56 @@
       <%# Categoria %>
       <div>
         <%= f.label :accounting_category, class: "label" %>
-
         <%= f.select :accounting_category,
             Product.accounting_categories.keys.map { |k| [k.titleize, k] },
-            {},
-            class: "select w-full" %>
+         {},
+         class: "select w-full" %>
       </div>
     </div>
   </fieldset>
 
   <%# --- SEZIONE 2: ACCESSI E DISCIPLINE --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("fitness_center", size: 14) %> Discipline Incluse
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
+      <%= icon("fitness_center", classes: "size-4") %> Discipline Incluse
     </legend>
 
-    <p class="text-sm text-base-content/70 mb-4 px-1">
+    <p class="text-sm text-base-content/70 mb-4">
       Seleziona a quali discipline e tornelli darà accesso questo abbonamento.
     </p>
 
     <% if Discipline.kept.any? %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <%# STRATAGEMMA UI/UX: Checkbox nascoste con stile a "Pill" interattiva %>
+      <div class="flex flex-wrap gap-2">
         <%= f.collection_check_boxes :discipline_ids, Discipline.kept.order(:name), :id, :name do |b| %>
-          <label
-            class="
-              cursor-pointer label border border-base-200 rounded-lg
-              hover:bg-base-200/50 hover:border-base-300 transition-all p-3
-              justify-start gap-3 group
-            "
-          >
-            <%= b.check_box class: "checkbox checkbox-primary checkbox-sm" %>
+          <label class="cursor-pointer select-none">
+            <%# Nascondiamo la checkbox vera e propria e usiamo 'peer' %>
+            <%= b.check_box class: "peer hidden" %>
 
-            <span
-              class="
-                label-text font-medium group-hover:text-primary
-                transition-colors
-              "
-            >
+            <%# Questo div reagisce allo stato :checked del 'peer' nascosto %>
+            <div class="px-4 py-2 rounded-full border border-base-300 bg-base-100 text-sm font-medium transition-all hover:border-primary/40 peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary shadow-sm">
               <%= b.text %>
-            </span>
+            </div>
           </label>
         <% end %>
       </div>
     <% else %>
       <div class="alert alert-warning text-sm shadow-sm">
-        <%= icon("warning", size: 18) %>
-
+        <%= icon("warning", classes: "size-5") %>
         <div>
           <h3 class="font-bold">Nessuna disciplina trovata</h3>
-
-          <div class="text-xs">
+          <div class="text-xs mt-1">
             Devi creare almeno una disciplina prima di associarla.
-            <%= link_to "Creane una ora", new_discipline_path, class: "underline" %>
-            .
+            <%= link_to "Creane una ora", new_discipline_path, class: "underline font-medium" %>
           </div>
         </div>
       </div>
     <% end %>
   </fieldset>
 
-  <!-- Begin Actions -->
   <div class="modal-action">
     <%= f.submit "Salva",
-     class: "btn btn-primary px-4",
-     data: {
-       turbo_submits_with: 'Salvataggio...'
-     } %>
+             class: "btn btn-primary px-6",
+             data: { turbo_submits_with: 'Salvataggio...' } %>
   </div>
-  <!-- End Actions -->
-
 <% end %>

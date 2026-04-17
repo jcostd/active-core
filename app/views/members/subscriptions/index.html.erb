@@ -1,22 +1,25 @@
 <%= turbo_stream_from @member %>
 <%= render "members/context", member: @member %>
 
-<div class="mb-6 mt-6">
+<%# --- HEADER SEZIONE --- %>
+<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
   <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("card_membership", classes: "size-5 opacity-50") %> Storico Abbonamenti
+    <%= icon("card_membership", classes: "size-6 opacity-50") %> Storico Abbonamenti
   </h2>
 </div>
 
-<ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-  <% if @subscriptions.any? %>
-    <%= render partial: "subscription_row", collection: @subscriptions, as: :subscription %>
+<%# --- LISTA ABBONAMENTI --- %>
+<div id="member_subscriptions_list">
+  <% if @subscriptions.empty? %>
+    <%= render "shared/empty_state",
+               icon_name: "card_membership",
+               title: "Nessun abbonamento",
+               message: "Questo utente non ha ancora abbonamenti attivi o passati." %>
   <% else %>
-    <li class="p-10 text-center opacity-50 text-sm italic">Nessun abbonamento attivo o passato.</li>
-  <% end %>
-</ul>
+    <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription, cached: true %>
+    </ul>
 
-<% if @pagy.pages > 1 %>
-  <div class="mt-6 flex justify-center">
-    <%== pagy_nav(@pagy) %>
-  </div>
-<% end %>
+    <%= render "shared/pagination" %>
+  <% end %>
+</div>

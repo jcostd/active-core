@@ -30,9 +30,13 @@ class Member < ApplicationRecord
   end
 
   def membership_valid?(date = Date.current)
-    if memberships.loaded?
-      expiry = memberships.reject(&:discarded?).filter_map(&:end_date).max
-      expiry.present? && expiry >= date
+    if subscriptions.loaded?
+      subscriptions.any? do |sub|
+        !sub.discarded? &&
+        sub.product&.accounting_category == Product.accounting_categories[:associative] &&
+        sub.end_date.present? &&
+        sub.end_date >= date
+      end
     else
       memberships.kept.where("end_date >= ?", date).exists?
     end

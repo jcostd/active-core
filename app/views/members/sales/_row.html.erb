@@ -1,68 +1,70 @@
-<li class="list-row items-center hover:bg-base-200/50 transition-colors group">
+<%# app/views/members/sales/_row.html.erb %>
+<%# locals: (sale:) %>
 
-  <%# -- Icona Metodo di Pagamento -- %>
-  <div class="opacity-40">
-    <div class="p-2 bg-base-200 rounded-box">
+<li id="<%= dom_id(sale) %>" class="list-row group hover:bg-base-200/50 transition-colors">
+
+  <%# -- Colonna 1: Icona Metodo di Pagamento -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <div class="p-2 bg-base-200 rounded-box opacity-60 group-hover:opacity-100 transition-opacity flex items-center justify-center">
       <%= payment_method_icon(sale.payment_method, classes: "size-5") %>
     </div>
   </div>
 
-  <%# -- Dati Principali -- %>
-  <div class="grow min-w-0 flex flex-col gap-0.5">
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="flex flex-col gap-1 min-w-0 grow">
 
-    <%# NOME PRODOTTO E BADGE %>
-    <div class="flex items-center gap-2">
-      <div class="font-bold text-sm truncate group-hover:text-primary transition-colors">
-        <%= sale.product_name_snapshot %>
-      </div>
+    <%# Riga A: Nome Prodotto (Cliccabile) & Badge %>
+    <div class="font-bold truncate text-base leading-none flex items-center gap-2">
+      <%= link_to display_value(sale.product_name_snapshot), sale,
+      data: { turbo_frame: "_top" },
+      class: "hover:text-primary transition-colors focus:outline-none" %>
 
       <% if sale.subscription.present? %>
         <%= render "subscriptions/badge", subscription: sale.subscription %>
       <% end %>
     </div>
 
-    <%# DATA INCASSO & RICEVUTA %>
-    <div class="flex items-center gap-2 text-[11px] opacity-60 font-mono">
+    <%# Riga B: Dettagli Ricevuta, Data e Operatore %>
+    <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5 mt-0.5">
       <span><%= format_date(sale.sold_on) %></span>
+
       <% if sale.receipt_number.present? %>
-        <span class="text-primary font-bold"><%= sale.receipt_code %></span>
+        <span class="text-primary font-bold">&bull; <%= display_value(sale.receipt_code) %></span>
       <% end %>
+
+      <span class="normal-case opacity-60 ml-1">&mdash; op: <%= sale.user&.full_name || "Sistema" %></span>
     </div>
 
-    <%# CONTESTO ABBONAMENTO (Nessun if inutile, andiamo dritti al punto) %>
-    <% if sale.subscription.present? %>
-      <div class="flex items-center gap-1 text-[10.5px] font-medium text-info/80 mt-0.5">
-        <%= icon("calendar_today", classes: "size-3") %>
-        <span>
-          Valido: <%= format_date(sale.subscription.start_date) %> &rarr; <%= format_date(sale.subscription.end_date) %>
-        </span>
+    <%# Riga C: Date Abbonamento & Note %>
+    <% if sale.subscription.present? || sale.notes.present? %>
+      <div class="flex flex-wrap items-center gap-3 mt-0.5 min-h-[1.25rem]">
+        <% if sale.subscription.present? %>
+          <div class="flex items-center gap-1 text-[11px] font-medium text-info/80">
+            <%= icon("calendar_today", classes: "size-3") %>
+            <span><%= format_date(sale.subscription.start_date) %> &rarr; <%= format_date(sale.subscription.end_date) %></span>
+          </div>
+        <% end %>
+
+        <% if sale.notes.present? %>
+          <div class="text-[10px] opacity-50 truncate italic max-w-[200px]" title="<%= sale.notes %>">
+            <%= sale.notes %>
+          </div>
+        <% end %>
       </div>
     <% end %>
 
-    <%# NOTE %>
-    <% if sale.notes.present? %>
-      <div class="text-[10px] opacity-50 truncate max-w-[200px] mt-0.5"><%= sale.notes %></div>
-    <% end %>
   </div>
 
-  <%# -- Importo & Operatore -- %>
-  <div class="text-right hidden sm:block">
-    <div class="font-mono font-bold text-sm"><%= format_money(sale.amount) %></div>
-    <div class="text-[10px] opacity-50"><%= sale.user&.full_name || "Sistema" %></div>
+  <%# -- Colonna 3: Importo -- %>
+  <div class="font-mono font-bold text-sm shrink-0 self-start sm:self-center">
+    <%= format_money(sale.amount) %>
   </div>
 
-  <%# -- Azioni -- %>
-  <div class="shrink-0 flex items-center gap-1 pl-2">
-    <div class="font-mono font-bold text-sm sm:hidden mr-2"><%= format_money(sale.amount) %></div>
-
-    <%= link_to [sale], class: "btn btn-square btn-xs btn-ghost", title: "Dettaglio" do %>
-      <%= icon("view") %>
-    <% end %>
-
+  <%# -- Colonna 4: Azioni (Solo delete se < 24h) -- %>
+  <div class="flex items-center gap-1 shrink-0 self-start sm:self-center min-w-[2rem] justify-end">
     <% if sale.created_at > 24.hours.ago %>
-      <%= ui_row_delete_button(sale,
-			       confirm: "Annullare VENDITA e abbonamento? Irreversibile.",
-			       title: "Annulla") %>
+      <%= ui_row_delete_button(sale, confirm: "Annullare VENDITA e abbonamento? L'operazione è irreversibile.", title: "Annulla") %>
     <% end %>
   </div>
+
 </li>

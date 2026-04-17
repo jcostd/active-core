@@ -22,11 +22,9 @@ class ApplicationQuery
     end
 
     def filter_by_state(scope)
-      if @params[:state] == "discarded"
-        scope.discarded
-      else
-        scope.kept
-      end
+      return scope.discarded if @params[:state] == "discarded"
+
+      scope.kept
     end
 
     def filter_by_search(scope)

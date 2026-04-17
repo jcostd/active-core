@@ -1,39 +1,25 @@
 <%= turbo_stream_from @member %>
 <%= render "members/context", member: @member %>
 
-<div class="mb-6 mt-6">
+<%# --- HEADER SEZIONE --- %>
+<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
   <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("history", classes: "size-5 opacity-50") %> Storico Accessi
+    <%= icon("history", classes: "size-6 opacity-50") %> Storico Accessi
   </h2>
 </div>
 
-<ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-  <li class="p-4 pb-2 text-[10px] font-bold uppercase tracking-wider opacity-50 border-b border-base-200">
-    Ultimi 100 Ingressi
-  </li>
-
-  <% @access_logs.each do |log| %>
-    <li class="list-row items-center hover:bg-base-200/50">
-      <div>
-        <div class="p-2 bg-success/10 text-success rounded-full">
-          <%= icon("login") %>
-        </div>
-      </div>
-
-      <div class="grow flex flex-col gap-0.5">
-        <div class="font-bold text-sm">Tornello Principale</div>
-        <div class="text-xs font-mono opacity-60">
-          <span class="font-bold"><%= l(log.created_at.to_date, format: :short) %></span> alle <%= l(log.created_at, format: "%H:%M") %>
-        </div>
-      </div>
-
-      <div>
-        <span class="badge badge-success badge-sm badge-outline text-[10px] uppercase font-bold">Consentito</span>
-      </div>
-    </li>
-  <% end %>
-
+<%# --- LISTA ACCESSI --- %>
+<div id="member_access_logs_list">
   <% if @access_logs.empty? %>
-    <li class="p-10 text-center opacity-50 text-sm italic">Nessun accesso registrato finora.</li>
+    <%= render "shared/empty_state",
+               icon_name: "history",
+               title: "Nessun accesso registrato",
+               message: "Questo utente non ha ancora effettuato alcun accesso alla struttura." %>
+  <% else %>
+    <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+      <%= render partial: "members/access_logs/row", collection: @access_logs, as: :log, cached: true %>
+    </ul>
+
+    <%= render "shared/pagination" %>
   <% end %>
-</ul>
+</div>

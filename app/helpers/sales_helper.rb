@@ -7,18 +7,30 @@ module SalesHelper
   }.freeze
 
   def grouped_product_options
-    discipline_groups = Discipline.kept.order(:name).includes(:products).map do |discipline|
-      active_products = discipline.products.kept.order(:name).pluck(:name, :id)
-      [ discipline.name, active_products ]
-    end.reject { |_, products| products.empty? }
+    products = Product.kept.order(:name).includes(:disciplines)
 
-    generic_products = Product.kept.where.missing(:disciplines).order(:name).pluck(:name, :id)
+    groups = Hash.new { |h, k| h[k] = [] }
+    uncategorized = []
 
-    if generic_products.any?
-      discipline_groups.unshift([ "Quote e Varie", generic_products ])
+    products.each do |product|
+      active_disciplines = product.disciplines.reject(&:discarded?)
+
+      if active_disciplines.any?
+        active_disciplines.each do |discipline|
+          groups[discipline.name] << [product.name, product.id]
+        end
+      else
+        uncategorized << [product.name, product.id]
+      end
     end
 
-    discipline_groups
+    result = groups.sort.map { |discipline_name, product_list| [discipline_name, product_list] }
+
+    if uncategorized.any?
+      result.unshift(["Quote e Varie", uncategorized])
+    end
+
+    result
   end
 
   # PER I FORM: f.select :payment_method, payment_method_options
