@@ -22,7 +22,7 @@
     <%# Data, Ora e Info Abbonamento %>
     <div class="text-[11px] font-medium opacity-70 flex flex-wrap items-center gap-1.5 mt-0.5">
       <%= icon("clock", classes: "size-3") %>
-      <span class="font-mono font-bold"><%= format_datetime(log.entered_at, format: "%d/%M/%Y %H:%M") %></span>
+      <span class="font-mono font-bold"><%= format_datetime(log.entered_at, format: "%d/%m/%Y %H:%M") %></span>
 
       <%# Se c'è un abbonamento collegato, lo mostriamo per contesto %>
       <% if log.subscription.present? %>
