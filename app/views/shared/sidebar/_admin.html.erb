@@ -66,8 +66,32 @@
           <% end %>
           <%= yield :sale_actions if content_for?(:sale_actions) %>
         </li>
+	<li>
+          <%= active_link_to reports_path do %>
+            <%= t("sidebar.items.reports", default: "Report Incassi") %>
+          <% end %>
+          <%= yield :report_actions if content_for?(:report_actions) %>
+        </li>
       </ul>
     </details>
   </li>
+
+  <li>
+    <details id="disclosure-accesses" open>
+      <summary>
+        <%= icon("login", classes: "size-5 opacity-75") %>
+        <%= t("sidebar.sections.accesses", default: "Controllo Accessi") %>
+      </summary>
+      <ul>
+        <li>
+          <%= active_link_to access_logs_path do %>
+            <%= t("sidebar.items.access_logs", default: "Registro Entrate") %>
+          <% end %>
+          <%= yield :access_log_actions if content_for?(:access_log_actions) %>
+        </li>
+      </ul>
+    </details>
+  </li>
+
 
 </ul>

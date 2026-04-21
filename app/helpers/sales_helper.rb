@@ -6,6 +6,18 @@ module SalesHelper
     "other"         => { label: "Altro",       icon: "receipt",         color: "badge-ghost" }
   }.freeze
 
+  SUBSCRIPTION_STATUS_STYLES = {
+    expired:         { color: "badge-error",   icon: "error" },
+    pending_payment: { color: "badge-warning", icon: "payments" },
+    expiring_soon:   { color: "badge-warning", icon: "warning" },
+    active:          { color: "badge-ghost",   icon: "check_circle" }
+  }.freeze
+
+  def subscription_badge_color(status_key)
+    data = SUBSCRIPTION_STATUS_STYLES[status_key.to_sym] || SUBSCRIPTION_STATUS_STYLES[:active]
+    data[:color]
+  end
+
   def grouped_product_options
     products = Product.kept.order(:name).includes(:disciplines)
 

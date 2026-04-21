@@ -1,6 +1,7 @@
 class ProductsController < ApplicationController
   include Filterable
 
+  before_action :require_admin
   before_action :set_product, only: [ :show, :edit, :update, :destroy ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]

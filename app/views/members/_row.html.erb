@@ -34,12 +34,14 @@
 
   <%# -- Colonna 3: Azioni -- %>
   <% unless member.discarded? %>
-    <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
-      <%= ui_row_edit_button(edit_member_path(member)) %>
+    <% if current_user.admin? %>
+      <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
+	<%= ui_row_edit_button(edit_member_path(member)) %>
 
-      <% if current_user&.admin? %>
-        <%= ui_row_delete_button(member, confirm: "Sei sicuro di voler archiviare questo socio?") %>
-      <% end %>
-    </div>
+	<% if current_user&.admin? %>
+          <%= ui_row_delete_button(member, confirm: "Sei sicuro di voler archiviare questo socio?") %>
+	<% end %>
+      </div>
+    <% end %>
   <% end %>
 </li>

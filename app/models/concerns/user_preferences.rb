@@ -1,7 +1,7 @@
 module UserPreferences
   extend ActiveSupport::Concern
 
-  THEMES = %w[light dark nord corporate business dim].freeze
+  THEMES = %w[light dark corporate business dim].freeze
 
   included do
     store_accessor :preferences, :theme, :locale

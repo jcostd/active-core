@@ -96,7 +96,7 @@
       <%= filtered_results_counter(@pagy) %>
 
       <ul id="members" class="list bg-base-100 rounded-box shadow-sm">
-	<%= render partial: "members/row", collection: @members, as: :member, cached: true %>
+	<%= render partial: "members/row", collection: @members, as: :member %>
       </ul>
 
       <%= render "shared/pagination" %>

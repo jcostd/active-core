@@ -36,12 +36,11 @@
 
   <%# -- Colonna 3: Azioni -- %>
   <% unless discipline.discarded? %>
-    <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
-      <%= ui_row_edit_button(edit_discipline_path(discipline)) %>
-
-      <% if current_user&.admin? %>
+    <% if current_user&.admin? %>
+      <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
+	<%= ui_row_edit_button(edit_discipline_path(discipline)) %>
         <%= ui_row_delete_button(discipline, confirm: "Sei sicuro di voler archiviare #{discipline.name}?") %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   <% end %>
 </li>

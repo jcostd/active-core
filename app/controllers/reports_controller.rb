@@ -1,26 +1,41 @@
 class ReportsController < ApplicationController
+  include Filterable, SafeDateParsing
+
   def index
-    @date = params[:date] ? Date.parse(params[:date]) : Date.current
+    @date = parse_month_param(params[:month])
     @month_range = @date.beginning_of_month..@date.end_of_month
 
-    # 1. QUERY UNICA: Scarichiamo tutte le vendite cash del mese in un colpo solo.
-    #    Usiamo .includes(:member) se nella vista mostrassimo i nomi, ma qui servono solo i totali.
-    monthly_sales = Sale.kept
-                        .where(sold_on: @month_range, payment_method: :cash)
-                        .order(:created_at)
+    stats_query = Sale.kept
+                    .where(sold_on: @month_range, payment_method: :cash)
+                    .group(:sold_on)
+                    .pluck(
+                      :sold_on,
+                      Arel.sql("SUM(CASE WHEN CAST(strftime('%H', datetime(created_at, 'localtime')) AS INTEGER) < 14 THEN amount_cents ELSE 0 END)"),
+                      Arel.sql("SUM(CASE WHEN CAST(strftime('%H', datetime(created_at, 'localtime')) AS INTEGER) >= 14 THEN amount_cents ELSE 0 END)"),
+                      Arel.sql("SUM(amount_cents)"),
+                      Arel.sql("COUNT(id)")
+                    )
 
-    # 2. RAGGRUPPAMENTO: Creiamo un Hash { Data => [Sale, Sale...], Data2 => [...] }
-    sales_by_date = monthly_sales.group_by(&:sold_on)
-
-    # 3. MAPPING: Creiamo i DailyCash passando i dati già pronti
-    @daily_reports = @month_range.map do |date|
-      # Passiamo l'array di vendite per quel giorno (o array vuoto se nil)
-      DailyCash.for(date, sales: sales_by_date[date] || [])
+    stats_by_date = stats_query.each_with_object({}) do |(date, morning, afternoon, total, count), hash|
+      hash[date] = {
+        morning: morning || 0,
+        afternoon: afternoon || 0,
+        total: total || 0,
+        count: count || 0
+      }
     end
+
+    @daily_reports = @month_range.map do |date|
+      DailyCash.for(date, stats: stats_by_date[date] || { morning: 0, afternoon: 0, total: 0, count: 0 })
+    end.reverse
+
+    @monthly_total = @daily_reports.sum(&:total_cents) / 100.0
+
+    @keys = params.slice(:month).permit!.to_h.reject { |_, v| v.blank? || v == Date.current.strftime("%Y-%m") }
   end
 
   def show
-    @date = Date.parse(params[:date])
+    @date = parse_date_param(params[:date])
 
     case params[:report_type]
     when "daily_cash"

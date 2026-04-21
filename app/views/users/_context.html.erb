@@ -47,16 +47,19 @@
 	<%= icon("edit") %> Modifica Anagrafica
       <% end %>
     </li>
-    <li>
-      <%= link_to user_path(user),
-		  class: "text-error hover:bg-error/10 hover:text-error",
-		  data: {
-		    turbo_method: :delete,
-		    turbo_confirm: "Sei sicuro?"
-		  } do %>
-	<%= icon("delete") %> Archivia Utente
-      <% end %>
-    </li>
+
+    <% if current_user.admin? && user != current_user %>
+      <li>
+	<%= link_to user_path(user),
+		    class: "text-error hover:bg-error/10 hover:text-error",
+		    data: {
+		      turbo_method: :delete,
+		      turbo_confirm: "Sei sicuro?"
+		    } do %>
+	  <%= icon("delete") %> Archivia Utente
+	<% end %>
+      </li>
+    <% end %>
   <% end %>
 <% end %>
 

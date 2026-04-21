@@ -5,7 +5,6 @@ class AccessPolicy
   attr_accessor :member, :discipline
   attr_reader :subscription, :warnings
 
-  validate :check_medical_certificate
   validate :check_membership
   validate :check_subscription
   validate :check_entry_limits
@@ -33,12 +32,6 @@ class AccessPolicy
   end
 
   private
-    def check_medical_certificate
-      if discipline.requires_medical_certificate? && !member.medical_certificate_valid?
-        errors.add(:base, "Certificato Medico scaduto o mancante.")
-      end
-    end
-
     def check_membership
       if discipline.requires_membership? && !member.membership_valid?
         errors.add(:base, "Quota Associativa scaduta o mancante.")
@@ -62,6 +55,10 @@ class AccessPolicy
     end
 
     def evaluate_warnings
+      if discipline.requires_medical_certificate? && !member.medical_certificate_valid?
+        @warnings << "Certificato Medico scaduto o mancante."
+      end
+
       if subscription_expiring_soon?
         days_left = (subscription.end_date - Date.current).to_i
         @warnings << "Abbonamento in scadenza tra #{days_left} giorni."
@@ -79,13 +76,11 @@ class AccessPolicy
     # --- Metodi Helper Interni ---
 
     def entry_limit_applies?
-      # Dal tuo schema DB, l'entry_limit potrebbe essere su Subscription o Product
       subscription.entry_limit.present? && subscription.entry_limit > 0
     end
 
     def subscription_expiring_soon?
       return false unless subscription.end_date
-      # Consideriamo "in scadenza" se mancano meno di 7 giorni
       subscription.end_date <= 7.days.from_now.to_date
     end
 end

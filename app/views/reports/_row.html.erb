@@ -1,0 +1,49 @@
+<%# locals: (report:) %>
+
+<li class="list-row hover:bg-base-200/50 transition-colors <%= 'bg-primary/5' if report.date == Date.current %>">
+
+  <div class="shrink-0">
+    <div class="size-10 bg-base-200/50 rounded-box flex items-center justify-center text-base-content/40">
+      <%= icon("calendar_today") %>
+    </div>
+  </div>
+
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="grid gap-1 min-w-0 grow">
+
+    <div class="flex items-center gap-2 truncate">
+      <div class="font-bold text-base leading-none truncate capitalize">
+	<%= link_to format_date(report.date, format: :long),
+		    report_path("daily_cash", date: report.date),
+		    class: "hover:text-primary transition-colors focus:outline-none",
+		    data: { turbo_frame: "_top" }
+	%>
+      </div>
+
+      <% if report.date == Date.current %>
+        <div class="badge badge-primary badge-xs font-bold uppercase text-[9px] opacity-80">
+          Oggi
+        </div>
+      <% end %>
+    </div>
+
+    <%# Riga B: Dettaglio Turni %>
+    <div class="text-xs font-semibold opacity-60 flex flex-wrap items-center gap-2">
+      <span>Mattina: <span class="font-mono"><%= format_money(report.morning_total) %></span></span>
+      <span class="opacity-40">•</span>
+      <span>Pomeriggio: <span class="font-mono"><%= format_money(report.afternoon_total) %></span></span>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Totale -- %>
+  <div class="flex items-center gap-4 shrink-0">
+
+    <%# Totale Netto (con label visibile solo su desktop per pulizia) %>
+    <div class="flex flex-col items-end">
+      <span class="hidden sm:block text-[10px] font-bold opacity-50 uppercase tracking-wider">Totale Netto</span>
+      <span class="font-bold font-mono text-lg text-primary leading-none sm:mt-0.5">
+        <%= format_money(report.total) %>
+      </span>
+    </div>
+  </div>
+</li>

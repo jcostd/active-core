@@ -38,8 +38,10 @@
           </li>
         </ul>
 
-        <div class="divider my-1"></div>
-        <%= link_to "Modifica Regole", edit_discipline_path(discipline), class: "btn btn-xs btn-outline w-full", data: { turbo_frame: "modal" } %>
+	<% if current_user.admin? %>
+          <%= link_to "Modifica Regole", edit_discipline_path(discipline), class:
+          "mt-2 btn btn-xs btn-outline w-full", data: { turbo_frame: "modal" } %>
+	<% end %>
       </div>
     </div>
   </div>

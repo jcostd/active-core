@@ -1,4 +1,4 @@
-<%= form_with(model: member, class: "space-y-6") do |f| %>
+<%= form_with(model: member, class: "space-y-4") do |f| %>
   <%= render "shared/form_errors", model: member %>
 
   <%# --- SEZIONE 1: DATI ANAGRAFICI --- %>
@@ -84,8 +84,6 @@
         <%= f.telephone_field :phone, class: "input w-full", placeholder: "333 1234567" %>
       </div>
     </div>
-
-    <div class="divider my-2"></div>
 
     <%# Certificato Medico %>
     <fieldset class="fieldset">

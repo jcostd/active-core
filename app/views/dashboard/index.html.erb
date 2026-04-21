@@ -57,7 +57,10 @@
         <h2 class="card-title text-base flex items-center gap-2">
           <%= icon("history", classes: "size-5 opacity-50") %> Registro Accessi
         </h2>
-        <%= link_to "Vedi tutti", access_logs_path, class: "text-xs font-semibold link link-hover text-base-content/60" %>
+
+	<% if current_user.admin? %>
+          <%= link_to "Vedi tutti", access_logs_path, class: "text-xs font-semibold link link-hover text-base-content/60" %>
+	<% end %>
       </div>
 
       <% if @recent_accesses.any? %>

@@ -2,18 +2,19 @@ class DailyCash
   SPLIT_HOUR = 14
   attr_reader :date
 
-  # Aggiungiamo il parametro opzionale 'sales'
-  def initialize(date = Date.current, sales: nil)
+  # Aggiungiamo 'stats' come parametro per i totali pre-calcolati da SQL
+  def initialize(date = Date.current, sales: nil, stats: nil)
     @date = date
-    @preloaded_sales = sales # Può essere nil o un Array di Sale
+    @preloaded_sales = sales
+    @stats = stats # Hash: { morning: 0, afternoon: 0, total: 0 }
   end
 
   def self.current
     new(Date.current)
   end
 
-  def self.for(date, sales: nil)
-    new(date, sales: sales)
+  def self.for(date, sales: nil, stats: nil)
+    new(date, sales: sales, stats: stats)
   end
 
   # --- API ---
@@ -31,14 +32,20 @@ class DailyCash
   end
 
   def count
-    @preloaded_sales ? @preloaded_sales.count : base_scope.count
+    # 1. Se abbiamo le statistiche da SQL, usiamo il numero istantaneamente!
+    return @stats[:count] if @stats
+
+    # 2. Se abbiamo i record in memoria (azione show), contiamo l'array
+    return @preloaded_sales.size if @preloaded_sales
+
+    # 3. Fallback: query singola al DB
+    base_scope.count
   end
 
   def empty?
     count.zero?
   end
 
-  # Utile per la view 'show'
   def morning_sales
     return filter_sales_in_memory { |s| s.created_at < split_time } if @preloaded_sales
     base_scope.where("created_at < ?", split_time).order(:created_at)
@@ -49,37 +56,52 @@ class DailyCash
     base_scope.where("created_at >= ?", split_time).order(:created_at)
   end
 
-  # --- LOGICA DI AGGREGAZIONE ---
+  # --- LOGICA DI AGGREGAZIONE MIGLIORATA ---
 
   def morning_cents
-    @morning_cents ||= base_scope.to_a.select { |s| s.created_at.in_time_zone.hour < SPLIT_HOUR }.sum(&:amount_cents)
+    # 1. Se abbiamo i totali da SQL (azione index) usa quelli istantaneamente
+    return @stats[:morning] if @stats
+
+    # 2. Se abbiamo i record in RAM (azione show) calcola in Ruby
+    if @preloaded_sales
+      return @preloaded_sales.select { |s| s.created_at < split_time }.sum(&:amount_cents)
+    end
+
+    # 3. Fallback: calcolo SQL puro per un singolo giorno isolato
+    @morning_cents ||= base_scope.where("created_at < ?", split_time).sum(:amount_cents)
   end
 
   def afternoon_cents
-    @afternoon_cents ||= base_scope.to_a.select { |s| s.created_at.in_time_zone.hour >= SPLIT_HOUR }.sum(&:amount_cents)
+    return @stats[:afternoon] if @stats
+
+    if @preloaded_sales
+      return @preloaded_sales.select { |s| s.created_at >= split_time }.sum(&:amount_cents)
+    end
+
+    @afternoon_cents ||= base_scope.where("created_at >= ?", split_time).sum(:amount_cents)
   end
 
   def total_cents
+    return @stats[:total] if @stats
     morning_cents + afternoon_cents
   end
 
   private
 
-    def base_scope
-      Sale.kept.where(sold_on: @date, payment_method: :cash)
-    end
+  def base_scope
+    Sale.kept.where(sold_on: @date, payment_method: :cash)
+  end
 
-    def split_time
-      @split_time ||= @date.in_time_zone.change(hour: SPLIT_HOUR, min: 0, sec: 0)
-    end
+  def split_time
+    @split_time ||= @date.in_time_zone.change(hour: SPLIT_HOUR, min: 0, sec: 0)
+  end
 
-    def to_currency(cents)
-      return 0.0 unless cents
-      cents / 100.0
-    end
+  def to_currency(cents)
+    return 0.0 unless cents
+    cents / 100.0
+  end
 
-    # Helper per ordinare i risultati in memoria quando usiamo l'array
-    def filter_sales_in_memory(&block)
-      @preloaded_sales.select(&block).sort_by(&:created_at)
-    end
+  def filter_sales_in_memory(&block)
+    @preloaded_sales.select(&block).sort_by(&:created_at)
+  end
 end

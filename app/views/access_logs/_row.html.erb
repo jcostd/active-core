@@ -1,0 +1,53 @@
+<%# locals: (access_log:) %>
+
+<li id="<%= dom_id(access_log) %>" class="list-row hover:bg-base-200/50 transition-colors">
+
+  <% member = access_log.member %>
+
+  <%# -- Colonna 1: Avatar -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to member, data: { turbo_frame: "_top" }, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+    <% end %>
+  </div>
+
+  <%# Dati Socio e Orario %>
+  <div class="grid gap-1 min-w-0 grow">
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "hover:text-primary transition-colors focus:outline-none" %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 mt-0.5 text-xs opacity-70">
+      <span class="flex items-center gap-1">
+        <%= icon("clock") %> <%= format_datetime(access_log.entered_at, format: :long) %>
+      </span>
+
+      <span class="flex items-center gap-1 before:content-['•'] before:mr-1">
+        <%= icon("fitness_center") %> <%= access_log_activity_name(access_log) %>
+      </span>
+
+      <% user = access_log.checkin_by_user %>
+      <span class="flex items-center gap-1 before:content-['•'] before:mr-1" %>
+        <%= icon("user") %> <%= user.username %>
+      </span>
+    </div>
+  </div>
+
+  <%# Status Badge %>
+  <div class="flex items-center shrink-0 mx-2">
+    <% status_color = access_log_status_color(access_log.status) %>
+
+    <div class="badge badge-<%= status_color %> gap-1 bg-<%= status_color %>/10 text-<%= status_color %> border-none shadow-none font-medium">
+      <%= icon(access_log_status_icon(access_log.status)) %>
+      <%= access_log_status_label(access_log.status) %>
+    </div>
+  </div>
+
+  <%# Azioni %>
+  <div class="flex items-center gap-1 shrink-0">
+    <% if current_user.admin? %>
+      <%= ui_row_delete_button(access_log, confirm: "Sei sicuro di voler annullare questa entrata?") %>
+    <% end %>
+  </div>
+
+</li>

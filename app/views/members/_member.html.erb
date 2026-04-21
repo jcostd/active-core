@@ -134,40 +134,5 @@
       <% end %>
     </div>
 
-    <%# ACQUISTI RECENTI %>
-    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
-      <div class="p-4 bg-base-200/30 border-b border-base-200 flex justify-between items-center">
-        <h3 class="font-bold text-sm uppercase opacity-70 tracking-wider flex items-center gap-2">
-          <%= icon("receipt", classes: "size-4") %> Storico Acquisti
-        </h3>
-        <%= link_to "Vedi Tutti", member_sales_path(member), class: "link link-hover text-xs opacity-60" %>
-      </div>
-
-      <% recent_sales = member.sales.order(created_at: :desc).limit(5) %>
-      <% if recent_sales.any? %>
-        <div class="overflow-x-auto">
-          <table class="table table-sm">
-            <tbody>
-              <% recent_sales.each do |sale| %>
-                <tr class="hover:bg-base-200/50 cursor-pointer group" onclick="window.location='<%= sale_path(sale) %>'">
-                  <td class="pl-4 font-mono text-xs opacity-60"><%= format_date(sale.sold_on) %></td>
-                  <td>
-                    <div class="font-medium group-hover:text-primary transition-colors"><%= display_value(sale.product_name_snapshot) %></div>
-                    <div class="text-[10px] opacity-50 font-mono"><%= display_value(sale.receipt_code) %></div>
-                  </td>
-                  <td class="text-right pr-4 font-bold font-mono">
-                    <%# Supporta sia se hai amount sia se hai solo amount_cents %>
-                    <%= format_money(sale.try(:amount) || (sale.amount_cents / 100.0)) %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% else %>
-        <div class="p-4 text-center text-sm opacity-40 italic">Nessun movimento registrato.</div>
-      <% end %>
-    </div>
-
   </div>
 </div>

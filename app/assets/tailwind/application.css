@@ -3,5 +3,5 @@
 @source not "./daisyui{,*}.mjs";
 
 @plugin "./daisyui.mjs" {
-    themes: corporate --default, business --prefersdark, nord, light, dark, dim;
+    themes: corporate --default, business --prefersdark, light, dark, dim;
 }

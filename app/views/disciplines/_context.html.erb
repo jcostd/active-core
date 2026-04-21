@@ -38,33 +38,33 @@
 <% end %>
 
 <% content_for :record_actions do %>
-  <div class="flex items-center gap-2">
-    <%= render layout: "shared/dropdown_layout", locals: {
-      group_name: "discipline_header_dropdowns",
-      summary_class: "btn-sm btn-square btn-ghost",
-      icon_name: "more",
-      with_no_arrow: true
-    } do %>
-      <li>
-        <%= link_to edit_discipline_path(discipline), data: { turbo_frame: "modal" } do %>
-          <%= icon("edit") %> Modifica
-        <% end %>
-      </li>
+  <% if current_user.admin? %>
+    <div class="flex items-center gap-2">
+      <%= render layout: "shared/dropdown_layout", locals: {
+	group_name: "discipline_header_dropdowns",
+	summary_class: "btn-sm btn-square btn-ghost",
+	icon_name: "more",
+	with_no_arrow: true
+      } do %>
+	<li>
+          <%= link_to edit_discipline_path(discipline), data: { turbo_frame: "modal" } do %>
+            <%= icon("edit") %> Modifica
+          <% end %>
+	</li>
 
-      <div class="divider my-1"></div>
-
-      <li>
-        <%= link_to discipline_path(discipline),
-		    class: "text-error hover:bg-error/10 hover:text-error",
-		    data: {
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro di voler archiviare questa disciplina?"
-		    } do %>
-          <%= icon("delete") %> Archivia Disciplina
-        <% end %>
-      </li>
-    <% end %>
-  </div>
+	<li>
+          <%= link_to discipline_path(discipline),
+		      class: "text-error hover:bg-error/10 hover:text-error",
+		      data: {
+			turbo_method: :delete,
+			turbo_confirm: "Sei sicuro di voler archiviare questa disciplina?"
+		      } do %>
+            <%= icon("delete") %> Archivia Disciplina
+          <% end %>
+	</li>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>
 
 <%= render "shared/header/record" %>
