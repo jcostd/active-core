@@ -2,7 +2,7 @@ class AccessLogsController < ApplicationController
   include Filterable
 
   before_action :require_admin
-  before_action :set_access_log, only: [:destroy]
+  before_action :set_access_log, only: [ :destroy ]
 
   def index
     @total_accesses = AccessLog.count

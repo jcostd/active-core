@@ -29,17 +29,17 @@ module SalesHelper
 
       if active_disciplines.any?
         active_disciplines.each do |discipline|
-          groups[discipline.name] << [product.name, product.id]
+          groups[discipline.name] << [ product.name, product.id ]
         end
       else
-        uncategorized << [product.name, product.id]
+        uncategorized << [ product.name, product.id ]
       end
     end
 
-    result = groups.sort.map { |discipline_name, product_list| [discipline_name, product_list] }
+    result = groups.sort.map { |discipline_name, product_list| [ discipline_name, product_list ] }
 
     if uncategorized.any?
-      result.unshift(["Quote e Varie", uncategorized])
+      result.unshift([ "Quote e Varie", uncategorized ])
     end
 
     result
