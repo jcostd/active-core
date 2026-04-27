@@ -27,7 +27,7 @@ class ProductsController < ApplicationController
     @product = Product.new(product_params)
 
     if @product.save
-      redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
     else
       render :new, status: :unprocessable_entity
     end
@@ -37,7 +37,7 @@ class ProductsController < ApplicationController
 
   def update
     if @product.update(product_params)
-      redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
     else
       render :edit, status: :unprocessable_entity
     end
@@ -45,7 +45,7 @@ class ProductsController < ApplicationController
 
   def destroy
     if @product.discard!
-      redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
     else
       redirect_to products_path, alert: t(".error", default: "Impossibile archiviare.")
     end
@@ -62,6 +62,7 @@ class ProductsController < ApplicationController
         :price,
         :duration_days,
         :accounting_category,
+        :entry_limit,
         discipline_ids: []
       )
     end

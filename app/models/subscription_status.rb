@@ -6,17 +6,17 @@ class SubscriptionStatus
   end
 
   def requires_attention?
-    [ :pending_payment, :expired, :expiring_soon ].include?(key)
+    [ :pending_payment, :expired, :expiring_soon, :out_of_entries ].include?(key)
   end
 
   def key
     if !subscription.fully_paid?
       :pending_payment
-    elsif subscription.end_date.present? && subscription.end_date < Date.current
+    elsif subscription.expired? || subscription.out_of_entries?
       :expired
-    elsif subscription.start_date.present? && subscription.start_date > Date.current
+    elsif subscription.future?
       :future
-    elsif expiring_soon?
+    elsif subscription.expiring_soon?
       :expiring_soon
     else
       :active
@@ -52,11 +52,4 @@ class SubscriptionStatus
     when :active          then "success"
     end
   end
-
-  private
-    def expiring_soon?
-      return false unless subscription.end_date
-
-      subscription.end_date.between?(Date.current, 14.days.from_now.to_date)
-    end
 end

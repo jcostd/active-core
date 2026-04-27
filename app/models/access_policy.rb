@@ -1,4 +1,3 @@
-# app/models/access_policy.rb
 class AccessPolicy
   include ActiveModel::Model
 
@@ -47,10 +46,8 @@ class AccessPolicy
     def check_entry_limits
       return unless subscription && entry_limit_applies?
 
-      # Nota: qui diamo per scontato che tu abbia access_logs_count o un metodo simile in Subscription
-      used_entries = subscription.access_logs.valid_entries.count
-      if used_entries >= subscription.entry_limit
-        errors.add(:base, "Ingressi esauriti (#{used_entries}/#{subscription.entry_limit}).")
+      if subscription.out_of_entries?
+        errors.add(:base, "Ingressi esauriti (#{subscription.entries_used}/#{subscription.entry_limit}).")
       end
     end
 
@@ -64,16 +61,10 @@ class AccessPolicy
         @warnings << "Abbonamento in scadenza tra #{days_left} giorni."
       end
 
-      if entry_limit_applies?
-        used = subscription.access_logs.valid_entries.count
-        remaining = subscription.entry_limit - used
-        if remaining <= 2
-          @warnings << "Rimangono solo #{remaining} ingressi."
-        end
+      if entry_limit_applies? && subscription.entries_remaining <= 2
+        @warnings << "Rimangono solo #{subscription.entries_remaining} ingressi."
       end
     end
-
-    # --- Metodi Helper Interni ---
 
     def entry_limit_applies?
       subscription.entry_limit.present? && subscription.entry_limit > 0

@@ -30,7 +30,7 @@ class ProductsQuery < ApplicationQuery
       when "created_asc"  then scope.order(created_at: :asc)
       when "created_desc" then scope.order(created_at: :desc)
       else
-        @params[:query].present? ? scope : scope.order(name: :asc)
+        @params[:query].present? ? scope : scope.order(created_at: :desc)
       end
     end
 end

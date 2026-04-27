@@ -2,4 +2,4 @@
 
 <%= render "members/context", member: @member %>
 
-<%= render @member %>
+<%= render "member", member: @member, valid_subscriptions: @active_subscriptions %>

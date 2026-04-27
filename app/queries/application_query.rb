@@ -39,7 +39,7 @@ class ApplicationQuery
       when "name_desc"    then scope.order(last_name: :desc, first_name: :desc)
       when "created_desc" then scope.order(created_at: :desc)
       else
-        @params[:query].present? ? scope : scope.order(created_at: :desc)
+        @params[:query].present? ? scope : scope.order(updated_at: :desc)
       end
     end
 end

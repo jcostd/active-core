@@ -49,6 +49,33 @@
          class: "select w-full" %>
       </div>
     </div>
+
+    <%# --- INIZIO GESTIONE CARNET / PT --- %>
+    <div data-controller="carnet-toggle" class="mt-6 p-4 bg-base-200/40 rounded-box border border-base-300">
+      <label class="label cursor-pointer justify-start gap-4 w-fit">
+        <input type="checkbox"
+               class="toggle toggle-secondary"
+               data-action="change->carnet-toggle#toggle"
+               <%= 'checked' if product.entry_limit.present? %>>
+        <span class="font-bold text-sm flex items-center gap-2">
+          <%= icon("confirmation_number", classes: "size-4") %>
+          È un Carnet a ingressi? (Es. Pacchetto 10 PT)
+        </span>
+      </label>
+
+      <div data-carnet-toggle-target="content" class="mt-4 pl-14 <%= 'hidden' unless product.entry_limit.present? %>">
+        <%= f.label :entry_limit, "Numero Totale Ingressi", class: "label text-xs font-bold uppercase opacity-70" %>
+        <%= f.number_field :entry_limit,
+        class: "input input-bordered w-full md:w-1/3",
+          placeholder: "Es. 10",
+              min: 1,
+              data: { carnet_toggle_target: "input" } %>
+        <div class="text-xs opacity-60 mt-2">
+          Se impostato, l'abbonamento scalerà un ingresso ad ogni check-in e si bloccherà a quota zero.
+        </div>
+      </div>
+    </div>
+    <%# --- FINE GESTIONE CARNET / PT --- %>
   </fieldset>
 
   <%# --- SEZIONE 2: ACCESSI E DISCIPLINE --- %>

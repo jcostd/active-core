@@ -25,7 +25,7 @@ class DisciplinesController < ApplicationController
     @discipline = Discipline.new(discipline_params)
 
     if @discipline.save
-      redirect_to disciplines_path, notice: "Disciplina creata con successo."
+      turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina creata con successo."
     else
       render :new, status: :unprocessable_entity
     end
@@ -35,7 +35,7 @@ class DisciplinesController < ApplicationController
 
   def update
     if @discipline.update(discipline_params)
-      redirect_to disciplines_path, notice: "Disciplina aggiornata."
+      turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina aggiornata."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -43,9 +43,9 @@ class DisciplinesController < ApplicationController
 
   def destroy
     if @discipline.discard!
-      redirect_to disciplines_path, notice: "Disciplina archiviata."
+      turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina archiviata."
     else
-      redirect_to disciplines_path, alert: "Impossibile archiviare."
+      turbo_refresh_or_redirect_to disciplines_path, alert: "Impossibile archiviare."
     end
   end
 

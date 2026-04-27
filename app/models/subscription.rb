@@ -33,6 +33,27 @@ class Subscription < ApplicationRecord
     entry_limit.nil? || entry_limit.zero?
   end
 
+  def entries_used
+    return 0 if unlimited_entries?
+    access_logs.valid_entries.count
+  end
+
+  def entries_remaining
+    return nil if unlimited_entries?
+    [ entry_limit - entries_used, 0 ].max
+  end
+
+  def out_of_entries?
+    !unlimited_entries? && entries_remaining.zero?
+  end
+
+  def expiring_soon?
+    return false unless end_date
+    return false if out_of_entries?
+
+    days_left.between?(0, 7)
+  end
+
   private
     def set_default_agreed_price
       if (agreed_price_cents.nil? || agreed_price_cents.zero?) && product.present?

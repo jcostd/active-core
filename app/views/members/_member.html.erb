@@ -1,10 +1,7 @@
-<%# locals: (member:) %>
+<%# locals: (member:, valid_subscriptions: []) %>
 
 <div id="<%= dom_id(member) %>" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
-  <%# ========================================== %>
-  <%# COLONNA SINISTRA: DATI & STATO %>
-  <%# ========================================== %>
   <div class="space-y-6">
 
     <%# Certificato Medico %>
@@ -63,9 +60,6 @@
     </div>
   </div>
 
-  <%# ========================================== %>
-  <%# COLONNA DESTRA: OPERATIVITÀ %>
-  <%# ========================================== %>
   <div class="lg:col-span-2 space-y-6">
 
     <%# Abbonamenti %>
@@ -77,26 +71,26 @@
         <%= link_to "Vedi Tutti", member_subscriptions_path(member), class: "link link-hover text-xs opacity-60" %>
       </div>
 
-      <% valid_subs = member.subscriptions.select { |s| s.kept? && s.end_date >= Date.current }.sort_by(&:start_date) %>
-
-      <% if valid_subs.any? %>
+      <% if valid_subscriptions.any? %>
         <ul class="list bg-base-100 rounded-none w-full">
-          <% valid_subs.each do |sub| %>
-            <%
-              is_future = sub.start_date > Date.current
-              days_left = (sub.end_date - Date.current).to_i
-              is_expiring_soon = !is_future && days_left.between?(0, 7)
-            %>
-            <li class="list-row items-center <%= 'bg-warning/5' if is_expiring_soon %>">
+          <% valid_subscriptions.each do |sub| %>
+            <li class="list-row items-center <%= 'bg-warning/5' if sub.expiring_soon? %>">
               <div>
-                <div class="p-2 rounded-box <%= is_future ? 'bg-info/10 text-info' : 'bg-primary/10 text-primary' %>">
-                  <%= icon(is_future ? "clock" : "success") %>
+                <div class="p-2 rounded-box <%= sub.future? ? 'bg-info/10 text-info' : 'bg-primary/10 text-primary' %>">
+                  <%= icon(sub.future? ? "clock" : "success") %>
                 </div>
               </div>
               <div class="grow min-w-0">
                 <div class="font-bold truncate"><%= display_value(sub.product&.name) %></div>
-                <div class="text-xs opacity-70 flex flex-col gap-0.5">
-                  <% if is_future %>
+
+		<% unless sub.unlimited_entries? %>
+		  <div class="badge badge-sm badge-secondary mt-1 font-mono">
+		    <%= sub.entries_used %> / <%= sub.entry_limit %> Ingressi
+		  </div>
+		<% end %>
+
+		<div class="text-xs opacity-70 flex flex-col gap-0.5">
+                  <% if sub.future? %>
                     <span class="text-info font-medium">Inizia il <%= format_date(sub.start_date) %></span>
                   <% else %>
                     <span>Scade il <strong><%= format_date(sub.end_date) %></strong></span>
@@ -104,15 +98,15 @@
                 </div>
               </div>
               <div class="shrink-0 flex items-center gap-4">
-                <% if is_future %>
+                <% if sub.future? %>
                   <%= ui_badge("Futuro", style: "info") %>
                 <% else %>
                   <div class="text-right hidden sm:block">
-                    <div class="text-2xl font-black font-mono leading-none tracking-tight <%= is_expiring_soon ? 'text-warning' : 'opacity-20' %>"><%= days_left %></div>
+                    <div class="text-2xl font-black font-mono leading-none tracking-tight <%= sub.expiring_soon? ? 'text-warning' : 'opacity-20' %>"><%= sub.days_left %></div>
                     <div class="text-[9px] uppercase font-bold opacity-40">giorni</div>
                   </div>
                   <%= link_to new_sale_path(member_id: member.id, renew_subscription_id: sub.id),
-                      class: "btn btn-sm btn-square #{is_expiring_soon ? 'btn-primary' : 'btn-ghost'}",
+                      class: "btn btn-sm btn-square #{sub.expiring_soon? ? 'btn-primary' : 'btn-ghost'}",
                       data: { turbo_frame: "modal" }, title: "Rinnova" do %>
                     <%= icon("reset") %>
                   <% end %>

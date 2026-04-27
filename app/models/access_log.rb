@@ -17,7 +17,7 @@ class AccessLog < ApplicationRecord
   validate :subscription_belongs_to_member
   validate :subscription_must_be_active, on: :create, if: -> { status == "ok" }
 
-  scope :valid_entries, -> { where(status: :ok) }
+  scope :valid_entries, -> { where(status: [ :ok, :warning ]) }
 
   private
     def set_defaults

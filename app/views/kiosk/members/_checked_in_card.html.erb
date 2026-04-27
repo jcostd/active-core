@@ -1,4 +1,3 @@
-<%# app/views/kiosk/members/_checked_in_card.html.erb %>
 <%# locals: (log:) %>
 
 <% cache log do %>
@@ -20,7 +19,7 @@
           <div class="flex flex-col gap-0.5 mt-1">
             <span class="text-[10px] uppercase font-bold opacity-60 text-base-content flex items-center gap-1">
               <%= icon("clock", classes: "size-3") %>
-              <%= log.entered_at.strftime("%H:%M") %>
+              <%= format_datetime(log.entered_at, format: :short) %>
             </span>
 
             <% if is_warning %>
@@ -28,6 +27,14 @@
                 <%= icon("warning", classes: "size-3") %> Forzato
               </span>
             <% end %>
+
+	    <% sub = member.valid_subscription_for(log.discipline) %>
+	    <% if sub && !sub.unlimited_entries? %>
+	      <span class="text-[10px] uppercase font-bold text-secondary flex items-center gap-1 mt-0.5">
+		<%= icon("confirmation_number", classes: "size-3") %> PT: Rimanenti <%= sub.entries_remaining %>
+	      </span>
+	    <% end %>
+
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 class Product < ApplicationRecord
-  include SoftDeletable, Monetizable
+  include SoftDeletable, Monetizable, Refreshable
 
   monetize :price
 

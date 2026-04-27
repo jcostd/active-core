@@ -3,7 +3,7 @@ class MembersController < ApplicationController
 
   before_action :set_member, only: [ :show, :edit, :update, :destroy ]
 
-  layout "modal", only: [ :new, :create, :edit, :update ]
+  layout "modal", only: [ :new, :edit ]
 
   def index
     @total_active_members = Member.kept.count
@@ -15,7 +15,10 @@ class MembersController < ApplicationController
 
   def show
     @member = Member.find(params[:id])
-    @active_subscriptions = @member.active_subscriptions
+    @active_subscriptions = @member.subscriptions.kept
+                              .includes(:product, :access_logs)
+                              .select { |s| (s.end_date.nil? || s.end_date >= Date.current) && !s.out_of_entries? }
+                              .sort_by { |s| s.start_date || Date.current }
     @recent_sales = @member.recent_sales
   end
 
@@ -27,9 +30,9 @@ class MembersController < ApplicationController
     @member = Member.new(member_params)
 
     if @member.save
-      redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
     else
-      render :new, status: :unprocessable_entity
+      render :new, layout: "modal", status: :unprocessable_entity
     end
   end
 
@@ -37,15 +40,15 @@ class MembersController < ApplicationController
 
   def update
     if @member.update(member_params)
-      redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def destroy
     if @member.discard!
-      redirect_to members_path, status: :see_other, notice: t(".discarded", default: "Socio archiviato correttamente.")
+      turbo_refresh_or_redirect_to members_path, status: :see_other, notice: t(".discarded", default: "Socio archiviato correttamente.")
     else
       redirect_to members_path, status: :see_other, alert: t(".discard_error", default: "Impossibile archiviare il socio.")
     end
