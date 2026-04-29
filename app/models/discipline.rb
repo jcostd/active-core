@@ -1,6 +1,7 @@
 class Discipline < ApplicationRecord
   include SoftDeletable
   include Refreshable
+  include Discipline::Filterable
 
   has_many :product_disciplines, dependent: :destroy
   has_many :products, through: :product_disciplines
@@ -15,7 +16,7 @@ class Discipline < ApplicationRecord
   def recent_subscriptions
     subscriptions
       .kept
-      .where("end_date >= ?", 30.days.ago)
+      .where("subscriptions.end_date >= ?", 30.days.ago)
       .includes(:member, :product)
   end
 end

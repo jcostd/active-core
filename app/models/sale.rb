@@ -1,6 +1,8 @@
 class Sale < ApplicationRecord
-  include SubscriptionIssuer, FiscalLockable, Monetizable, Trackable, SoftDeletable
+  include SoftDeletable
   include Refreshable
+  include SubscriptionIssuer, FiscalLockable, Monetizable, Trackable
+  include Sale::Filterable
 
   monetize :amount
 

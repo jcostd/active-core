@@ -37,41 +37,18 @@
            class: "grow",
            data: { action: "input->autosubmit#submit" } %>
         </label>
-
-        <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
-          <%= icon("filter") %>
-          <span class="hidden sm:inline">Filtri</span>
-        </button>
       </div>
 
-      <%# Ordinamento (se applicabile anche a discipline) %>
       <div class="w-full md:w-auto shrink-0">
         <%= render "shared/filter/sort", form: form %>
       </div>
     </div>
-
-    <%# IL CASSETTO DEI FILTRI %>
-    <%= render "shared/filter/drawer", title: "Filtri Discipline" do %>
-      <div class="space-y-6">
-
-        <%# Esempio di filtro: adattalo ai tuoi scope reali delle discipline %>
-        <fieldset>
-          <label class="label font-bold text-sm">Stato</label>
-          <%= form.select :state, state_filters,
-              { include_blank: "Tutti gli stati", selected: params[:state] },
-           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-      </div>
-    <% end %>
   <% end %>
 <% end %>
 
 <%= render "shared/header/page" %>
 
 <%= turbo_frame_tag "disciplines_list" do %>
-  <%= render "shared/filter/active", filter_keys: @keys %>
-
   <div class="mt-6">
     <% if @disciplines.empty? %>
       <%= render "shared/empty_state",

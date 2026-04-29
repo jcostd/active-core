@@ -89,9 +89,9 @@
   <%= render "shared/filter/active", filter_keys: [:product_id, :payment_method, :state] %>
 
   <div class="mt-6">
-    <% if @sales.empty? %>
+    <% if @pagy.count == 0 %>
       <%= render "shared/empty_state",
-                 icon_name: "search_off",
+                 icon_name: "receipt",
                  title: "Nessun acquisto trovato",
                  message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
     <% else %>

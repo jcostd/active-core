@@ -9,8 +9,8 @@ class SalesController < ApplicationController
   def index
     @total_active_sales = Sale.kept.count
     @pagy, @sales = pagy(
-      SalesQuery.new(filter_params)
-        .results
+      Sale
+        .apply_filters(filter_params)
         .includes(:member, :user)
     )
   end

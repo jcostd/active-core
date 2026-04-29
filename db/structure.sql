@@ -116,7 +116,7 @@ CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acd
 CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
-CREATE TABLE IF NOT EXISTS "subscriptions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "end_date" date NOT NULL, "member_id" integer NOT NULL, "product_id" integer NOT NULL, "start_date" date NOT NULL, "suspension_days_count" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "entry_limit" integer, "agreed_price_cents" integer DEFAULT 0 NOT NULL /*application='ActiveCore'*/, CONSTRAINT "fk_rails_52a3b81fce"
+CREATE TABLE IF NOT EXISTS "subscriptions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "end_date" date NOT NULL, "member_id" integer NOT NULL, "product_id" integer NOT NULL, "start_date" date NOT NULL, "suspension_days_count" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "entry_limit" integer, "agreed_price_cents" integer DEFAULT 0 NOT NULL /*application='ActiveCore'*/, "entries_used" integer DEFAULT 0 NOT NULL /*application='ActiveCore'*/, CONSTRAINT "fk_rails_52a3b81fce"
 FOREIGN KEY ("product_id")
   REFERENCES "products" ("id")
 , CONSTRAINT "fk_rails_bfac3ecd2f"
@@ -128,6 +128,7 @@ CREATE INDEX "index_subscriptions_on_member_id_and_end_date" ON "subscriptions" 
 CREATE INDEX "index_subscriptions_on_member_id" ON "subscriptions" ("member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_subscriptions_on_product_id" ON "subscriptions" ("product_id") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260428102113'),
 ('20260410181021'),
 ('20260401155455'),
 ('20260401155446'),

@@ -7,7 +7,10 @@ class DisciplinesController < ApplicationController
 
   def index
     @total_active_disciplines = Discipline.kept.count
-    @pagy, @disciplines = pagy(DisciplinesQuery.new(filter_params).results)
+    @pagy, @disciplines = pagy(
+      Discipline
+        .apply_filters(filter_params)
+    )
   end
 
   def show
@@ -59,6 +62,6 @@ class DisciplinesController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :state)
+      params.permit(:query, :sort)
     end
 end

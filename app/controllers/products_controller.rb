@@ -8,7 +8,11 @@ class ProductsController < ApplicationController
 
   def index
     @total_active_products = Product.kept.count
-    @pagy, @products = pagy(ProductsQuery.new(filter_params).results.includes(:disciplines))
+    @pagy, @products = pagy(
+      Product
+        .apply_filters(filter_params)
+        .includes(:disciplines)
+    )
   end
 
   def show; end
@@ -68,6 +72,6 @@ class ProductsController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :state, :accounting_category)
+      params.permit(:query, :sort)
     end
 end

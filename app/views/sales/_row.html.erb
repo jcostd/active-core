@@ -27,7 +27,7 @@
 
     <%# Riga C: Metadati (Data, Ricevuta, Operatore) %>
     <div class="text-xs font-mono opacity-60 flex flex-wrap items-center gap-2 mt-1">
-      <span class="font-bold text-base-content"><%= format_date(sale.sold_on, format: :short) %></span>
+      <span class="font-bold text-base-content"><%= format_date(sale.sold_on) %></span>
       <span class="opacity-40">•</span>
       <span title="Codice Ricevuta">#<%= display_value(sale.receipt_code) %></span>
       <span class="opacity-40">•</span>

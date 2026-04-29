@@ -6,7 +6,6 @@ class AccessPolicy
 
   validate :check_membership
   validate :check_subscription
-  validate :check_entry_limits
 
   def initialize(attributes = {})
     super
@@ -43,14 +42,6 @@ class AccessPolicy
       end
     end
 
-    def check_entry_limits
-      return unless subscription && entry_limit_applies?
-
-      if subscription.out_of_entries?
-        errors.add(:base, "Ingressi esauriti (#{subscription.entries_used}/#{subscription.entry_limit}).")
-      end
-    end
-
     def evaluate_warnings
       if discipline.requires_medical_certificate? && !member.medical_certificate_valid?
         @warnings << "Certificato Medico scaduto o mancante."
@@ -67,7 +58,7 @@ class AccessPolicy
     end
 
     def entry_limit_applies?
-      subscription.entry_limit.present? && subscription.entry_limit > 0
+      subscription&.entry_limit.present? && subscription.entry_limit > 0
     end
 
     def subscription_expiring_soon?

@@ -7,7 +7,9 @@ class AccessLogsController < ApplicationController
   def index
     @total_accesses = AccessLog.count
     @pagy, @access_logs = pagy(
-      AccessLogsQuery.new(filter_params).results.includes(:member, :discipline, :checkin_by_user)
+      AccessLog
+        .apply_filters(filter_params)
+        .includes(:member, :discipline, :checkin_by_user)
     )
   end
 

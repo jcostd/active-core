@@ -67,13 +67,6 @@
 		   { include_blank: "Tutte le scadenze", selected: params[:med_cert] },
            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
         </fieldset>
-
-        <fieldset>
-          <label class="label font-bold text-sm">Stato in Archivio</label>
-          <%= form.select :state, state_filters,
-		   { include_blank: "Mostra solo Attivi", selected: params[:state] },
-           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
       </div>
     <% end %>
   <% end %>
@@ -82,7 +75,7 @@
 <%= render "shared/header/page" %>
 
 <%= turbo_frame_tag "members_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:membership_status, :med_cert, :state] %>
+  <%= render "shared/filter/active", filter_keys: [:membership_status, :med_cert] %>
 
   <%# --- INIZIO LISTA --- %>
   <div class="mt-6">

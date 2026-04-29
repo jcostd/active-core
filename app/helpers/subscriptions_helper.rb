@@ -76,7 +76,7 @@ module SubscriptionsHelper
   end
 
   def subscription_archive_action(subscription)
-    return unless subscription.end_date >= 7.days.ago.to_date
+    return unless subscription.end_date && subscription.end_date >= 7.days.ago.to_date
 
     ui_row_delete_button([ subscription ], confirm: "Eliminando l'abbonamento annullerai l'incasso. Continuare?", title: "Archivia")
   end

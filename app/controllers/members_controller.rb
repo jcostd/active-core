@@ -8,9 +8,10 @@ class MembersController < ApplicationController
   def index
     @total_active_members = Member.kept.count
     @pagy, @members = pagy(
-      MembersQuery.new(filter_params)
-        .results
-        .includes(subscriptions: [ :product, :sales ]))
+      Member
+        .apply_filters(filter_params)
+        .includes(subscriptions: [:product, :sales])
+    )
   end
 
   def show
@@ -68,6 +69,6 @@ class MembersController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :membership_status, :med_cert, :state)
+      params.permit(:query, :sort, :membership_status, :med_cert)
     end
 end

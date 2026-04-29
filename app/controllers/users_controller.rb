@@ -7,7 +7,10 @@ class UsersController < ApplicationController
 
   def index
     @total_active_users = User.kept.count
-    @pagy, @users = pagy(UsersQuery.new(filter_params).results)
+    @pagy, @users = pagy(
+      User
+        .apply_filters(filter_params)
+    )
   end
 
   def show
@@ -68,6 +71,6 @@ class UsersController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :state, :role)
+      params.permit(:query, :sort, :role)
     end
 end

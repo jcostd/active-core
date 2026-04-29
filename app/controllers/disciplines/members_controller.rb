@@ -6,8 +6,12 @@ class Disciplines::MembersController < ApplicationController
   def index
     @products = @discipline.products.kept
 
-    query = DisciplineSubscriptionsQuery.new(filter_params, @discipline.recent_subscriptions)
-    @pagy, @subscriptions = pagy(query.results)
+    @query = @discipline.recent_subscriptions
+               .apply_filters(filter_params)
+               .includes(:product, member: [:subscriptions])
+               .references(:subscriptions)
+
+    @pagy, @subscriptions = pagy(@query)
   end
 
   private

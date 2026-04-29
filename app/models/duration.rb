@@ -1,109 +1,52 @@
-# frozen_string_literal: true
-
-class Duration
-  attr_reader :product, :preference_date
-
+Duration = Data.define(:start_date, :end_date) do
   CALENDAR_DURATIONS = {
-    30 => 1,   # Mensile
-    90 => 3,   # Trimestrale
-    180 => 6,  # Semestrale
-    365 => 12, # Annuale
-    366 => 12  # Bisestile
+    30  => 1,
+    90  => 3,
+    180 => 6,
+    365 => 12,
+    366 => 12
   }.freeze
 
-  def initialize(product, preference_date = Date.current)
-    @product = product
-    @preference_date = preference_date.to_date
+  def self.for(product, preference_date = Date.current)
+    new(**calculate(product, preference_date.to_date))
   end
 
-  def calculate
-    if product.associative?
-      calculate_associative
+  private_class_method def self.calculate(product, date)
+    product.associative? ? associative(date) : institutional(product, date)
+  end
+
+  private_class_method def self.associative(date)
+    { start_date: date, end_date: SportYear.end_date_for(date) }
+  end
+
+  private_class_method def self.institutional(product, date)
+    case product.duration_days
+    when 365, 366 then rolling_annual(date)
+    when 90       then calendar_aligned(date, 3, enforce_sport_year: false)
     else
-      calculate_institutional
+      months = CALENDAR_DURATIONS[product.duration_days]
+      months ? calendar_aligned(date, months) : days_pure(product, date)
     end
   end
 
-  private
+  private_class_method def self.rolling_annual(date)
+    { start_date: date, end_date: date.advance(years: 1).yesterday }
+  end
 
-    def calculate_associative
-      # Regola ASD: Scade sempre alla fine dell'anno sportivo
-      {
-        start_date: preference_date,
-        end_date: SportYear.end_date_for(preference_date)
-      }
-    end
+  private_class_method def self.calendar_aligned(date, months, enforce_sport_year: true)
+    start_date      = date.beginning_of_month
+    theoretical_end = start_date.advance(months: months - 1).end_of_month
+    end_date        = enforce_sport_year ?
+                        [theoretical_end, SportYear.end_date_for(start_date)].min :
+                        theoretical_end
+    { start_date:, end_date: }
+  end
 
-    def calculate_institutional
-      case product.duration_days
-      when 365, 366
-        # NUOVA REGOLA ANNUALE: Rolling puro (Data scelta -> +1 anno)
-        # Ignora Anno Sportivo.
-        calculate_rolling_annual
-      when 90
-        # NUOVA REGOLA TRIMESTRALE: Snap al 1° del mese -> +3 mesi
-        # Ignora Anno Sportivo.
-        months = CALENDAR_DURATIONS[90]
-        calculate_calendar_aligned(months, enforce_sport_year: false)
-      else
-        # ALTRI (es. Mensile, Semestrale):
-        # Mantengo la logica vecchia (Snap + Limite Anno Sportivo) per sicurezza?
-        # Se vuoi liberare anche loro, metti enforce_sport_year: false
-        months_count = CALENDAR_DURATIONS[product.duration_days]
-        if months_count
-          calculate_calendar_aligned(months_count, enforce_sport_year: true)
-        else
-          calculate_days_pure(enforce_sport_year: true)
-        end
-      end
-    end
-
-    # --- CALCOLATORI SPECIFICI ---
-
-    def calculate_rolling_annual
-      # Iscrizione annuale è dal giorno in cui lo fanno ad 1 anno dopo
-      # Esempio: 2 Gennaio 2025 -> 1 Gennaio 2026
-      effective_start = preference_date
-      theoretical_end = effective_start.advance(years: 1).yesterday
-
-      { start_date: effective_start, end_date: theoretical_end }
-    end
-
-    def calculate_calendar_aligned(months, enforce_sport_year: true)
-      # Trimestrale: dal primo del mese in cui lo fanno a 3 mesi dopo
-      effective_start = preference_date.beginning_of_month
-
-      # Es. 1 Gennaio + (3-1) mesi = Marzo. Fine mese = 31 Marzo.
-      theoretical_end = effective_start.advance(months: months - 1).end_of_month
-
-      if enforce_sport_year
-        apply_sport_year_limit(effective_start, theoretical_end)
-      else
-        { start_date: effective_start, end_date: theoretical_end }
-      end
-    end
-
-    def calculate_days_pure(enforce_sport_year: true)
-      effective_start = preference_date
-      theoretical_end = effective_start.advance(days: product.duration_days).yesterday
-
-      if enforce_sport_year
-        apply_sport_year_limit(effective_start, theoretical_end)
-      else
-        { start_date: effective_start, end_date: theoretical_end }
-      end
-    end
-
-    def apply_sport_year_limit(start_date, end_date)
-      limit_date = SportYear.end_date_for(start_date)
-      # Se la data di inizio è già oltre il limite (es. abbonamento comprato a fine anno per l'anno dopo),
-      # bisogna gestire il caso, ma per ora teniamo la logica base:
-      final_end = [ end_date, limit_date ].min
-
-      # Safety check: se start > final_end (es. compro oggi ma l'anno è finito ieri),
-      # gestire eccezione o ritornare date coerenti?
-      # Per ora ci fidiamo che SportYear.end_date_for ritorni la fine dell'anno CORRENTE alla data.
-
-      { start_date: start_date, end_date: final_end }
-    end
+  private_class_method def self.days_pure(product, date, enforce_sport_year: true)
+    theoretical_end = date.advance(days: product.duration_days).yesterday
+    end_date        = enforce_sport_year ?
+                        [theoretical_end, SportYear.end_date_for(date)].min :
+                        theoretical_end
+    { start_date: date, end_date: }
+  end
 end
