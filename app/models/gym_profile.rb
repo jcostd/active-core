@@ -6,7 +6,7 @@ class GymProfile < ApplicationRecord
   end
 
   def full_address
-    [address_line_1, address_line_2, "#{zip_code} #{city}".squish.presence]
+    [ address_line_1, address_line_2, "#{zip_code} #{city}".squish.presence ]
       .compact_blank
       .join(" - ")
   end

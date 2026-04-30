@@ -24,9 +24,9 @@ module Subscription::Filterable
       return all if status.blank?
 
       case status
-      when "active"  then joins(:member).merge(Member.with_active_membership)
-      when "expired" then joins(:member).merge(Member.without_active_membership)
-      when "missing" then joins(:member).merge(Member.without_any_membership)
+      when "active"  then where(member_id: Member.with_active_membership.select(:id))
+      when "expired" then where(member_id: Member.without_active_membership.select(:id))
+      when "missing" then where(member_id: Member.without_any_membership.select(:id))
       else all
       end
     }
@@ -35,9 +35,9 @@ module Subscription::Filterable
       return all if status.blank?
 
       case status
-      when "valid"   then joins(:member).merge(Member.with_valid_med_cert)
-      when "expired" then joins(:member).merge(Member.with_expired_med_cert)
-      when "missing" then joins(:member).merge(Member.without_med_cert)
+      when "valid"   then where(member_id: Member.with_valid_med_cert.select(:id))
+      when "expired" then where(member_id: Member.with_expired_med_cert.select(:id))
+      when "missing" then where(member_id: Member.without_med_cert.select(:id))
       else all
       end
     }

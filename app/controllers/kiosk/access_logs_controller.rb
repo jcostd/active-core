@@ -1,13 +1,10 @@
 class Kiosk::AccessLogsController < Kiosk::BaseController
-  def create
-    @discipline = Discipline.find(params[:discipline_id])
-    @member = Member.find(params[:member_id])
+  before_action :set_discipline
+  before_action :set_discipline_access_log, only: [ :destroy ]
+  before_action :set_member, only: [ :create ]
 
-    @access_log = AccessLog.new(
-      member: @member,
-      discipline: @discipline,
-      checkin_by_user: current_user
-    )
+  def create
+    @access_log = @discipline.access_logs.build(member: @member, checkin_by_user: current_user)
 
     if @access_log.save
       if @access_log.status == "ok"
@@ -23,11 +20,20 @@ class Kiosk::AccessLogsController < Kiosk::BaseController
   end
 
   def destroy
-    @discipline = Discipline.find(params[:discipline_id])
-    @access_log = @discipline.access_logs.find(params[:id])
-
     @access_log.destroy
-
     redirect_to kiosk_discipline_path(@discipline), notice: "Check-in annullato per #{@access_log.member.first_name}"
   end
+
+  private
+    def set_discipline
+      @discipline = Discipline.find(params[:discipline_id])
+    end
+
+    def set_discipline_access_log
+      @access_log = @discipline.access_logs.find(params[:id])
+    end
+
+    def set_member
+      @member = Member.find(params[:member_id])
+    end
 end

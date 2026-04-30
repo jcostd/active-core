@@ -51,7 +51,7 @@ class PosDraftBuilder
       sale.product_id ||= sub.product_id
 
       if sale.amount.blank? || sale.amount.zero?
-        sale.amount_cents = [sub.agreed_price_cents - sub.amount_paid, 0].max
+        sale.amount_cents = [ sub.agreed_price_cents - sub.amount_paid, 0 ].max
       end
     end
 

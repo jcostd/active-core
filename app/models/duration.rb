@@ -37,7 +37,7 @@ Duration = Data.define(:start_date, :end_date) do
     start_date      = date.beginning_of_month
     theoretical_end = start_date.advance(months: months - 1).end_of_month
     end_date        = enforce_sport_year ?
-                        [theoretical_end, SportYear.end_date_for(start_date)].min :
+                        [ theoretical_end, SportYear.end_date_for(start_date) ].min :
                         theoretical_end
     { start_date:, end_date: }
   end
@@ -45,7 +45,7 @@ Duration = Data.define(:start_date, :end_date) do
   private_class_method def self.days_pure(product, date, enforce_sport_year: true)
     theoretical_end = date.advance(days: product.duration_days).yesterday
     end_date        = enforce_sport_year ?
-                        [theoretical_end, SportYear.end_date_for(date)].min :
+                        [ theoretical_end, SportYear.end_date_for(date) ].min :
                         theoretical_end
     { start_date: date, end_date: }
   end

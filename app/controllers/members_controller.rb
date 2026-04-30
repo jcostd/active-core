@@ -10,7 +10,7 @@ class MembersController < ApplicationController
     @pagy, @members = pagy(
       Member
         .apply_filters(filter_params)
-        .includes(subscriptions: [:product, :sales])
+        .includes(subscriptions: [ :product, :sales ])
     )
   end
 

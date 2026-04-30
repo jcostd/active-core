@@ -8,8 +8,7 @@ class Disciplines::MembersController < ApplicationController
 
     @query = @discipline.recent_subscriptions
                .apply_filters(filter_params)
-               .includes(:product, member: [:subscriptions])
-               .references(:subscriptions)
+               .includes(:product, member: [ :subscriptions ])
 
     @pagy, @subscriptions = pagy(@query)
   end

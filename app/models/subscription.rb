@@ -17,7 +17,7 @@ class Subscription < ApplicationRecord
 
   validate :prevent_overlapping_subscriptions, on: :create
 
-  scope :active,   -> { where(subscriptions: { end_date: Date.current.. }) }
+  scope :active,   -> { where(subscriptions: { start_date: ..Date.current, end_date: Date.current.. }) }
   scope :expired,  -> { where(subscriptions: { end_date: ...Date.current }) }
   scope :upcoming, -> { where(subscriptions: { start_date: (Date.current + 1.day).. }) }
 
@@ -64,7 +64,7 @@ class Subscription < ApplicationRecord
 
   def entries_remaining
     return nil if unlimited_entries?
-    [entry_limit - entries_used, 0].max
+    [ entry_limit - entries_used, 0 ].max
   end
 
   def out_of_entries?
@@ -102,13 +102,16 @@ class Subscription < ApplicationRecord
       self.entry_limit ||= product.entry_limit
       return if end_date.present?
 
+      was_start_provided = start_date.present?
+
       if start_date.blank?
         reference_date  = sales.first&.sold_on || Date.current
         self.start_date = member.suggested_start_date_for(product, reference_date)
       end
 
-      duration        = Duration.for(product, start_date)
-      self.start_date = duration.start_date
+      duration = Duration.for(product, start_date)
+
+      self.start_date = duration.start_date unless was_start_provided
       self.end_date   = duration.end_date
     end
 

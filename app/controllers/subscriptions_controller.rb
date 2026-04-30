@@ -41,6 +41,6 @@ class SubscriptionsController < ApplicationController
     end
 
     def subscription_params
-      params.require(:subscription).permit([ :start_date, :end_date ])
+      params.require(:subscription).permit([ :start_date, :end_date, :entry_limit ])
     end
 end

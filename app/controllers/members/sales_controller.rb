@@ -5,7 +5,7 @@ class Members::SalesController < MembersController
   def index
     @query = @member.sales
                .apply_filters(filter_params)
-               .includes(:product, :user, subscription: [:product, :sales])
+               .includes(:product, :user, subscription: [ :product, :sales ])
 
     @pagy, @sales = pagy(@query)
     @total_amount_cents = @query.sum(:amount_cents)

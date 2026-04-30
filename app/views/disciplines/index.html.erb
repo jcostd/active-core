@@ -50,7 +50,7 @@
 
 <%= turbo_frame_tag "disciplines_list" do %>
   <div class="mt-6">
-    <% if @disciplines.empty? %>
+    <% if @pagy.count == 0 %>
       <%= render "shared/empty_state",
 		 icon_name: "category",
 		 title: "Nessuna disciplina trovata",

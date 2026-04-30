@@ -33,10 +33,10 @@ module Product::Filterable
       scope = scope.search_text(params[:query]) if params[:query].present?
 
       scope = case params[:accounting_category]
-              when "institutional" then scope.with_accounting_category(:institutional)
-              when "associative"   then scope.with_accounting_category(:associative)
-              else scope
-              end
+      when "institutional" then scope.with_accounting_category(:institutional)
+      when "associative"   then scope.with_accounting_category(:associative)
+      else scope
+      end
 
       scope.sorted_by(params[:sort], params[:query].present?)
     end

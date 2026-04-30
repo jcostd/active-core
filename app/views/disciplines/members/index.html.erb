@@ -71,11 +71,10 @@
          { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
       </fieldset>
 
-      <%# Filtro Stato Tesseramento (Member) %>
       <fieldset>
         <label class="label font-bold text-sm">Tesseramento (Status Socio)</label>
         <%= form.select :membership_status,
-		 options_for_select([["Attivo", "active"], ["Scaduto", "expired"]], params[:membership_status]),
+		 options_for_select([["Attivo", "active"], ["Scaduto", "expired"], ["Mancante", "missing"]], params[:membership_status]),
          { include_blank: "Qualsiasi" },
          { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
       </fieldset>
@@ -84,7 +83,7 @@
       <fieldset>
         <label class="label font-bold text-sm">Certificato Medico</label>
         <%= form.select :med_cert,
-		 options_for_select([["Valido", "valid"], ["In Scadenza", "expiring"], ["Scaduto/Assente", "invalid"]], params[:med_cert]),
+		 options_for_select([["Valido", "valid"], ["Scaduto", "expired"], ["Assente", "missing"]], params[:med_cert]),
          { include_blank: "Qualsiasi" },
          { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
       </fieldset>
@@ -98,7 +97,7 @@
   <%= render "shared/filter/active", filter_keys: [:product_id, :sort, :state, :membership_status, :med_cert] %>
 
   <div class="mt-6">
-    <% if @subscriptions.empty? %>
+    <% if @pagy.count == 0 %>
       <%= render "shared/empty_state",
                  icon_name: "filter_off",
                  title: "Nessun socio trovato",

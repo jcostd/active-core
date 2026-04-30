@@ -94,6 +94,6 @@ class SalesController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :payment_method)
+      params.permit(:query, :sort, :state, :period, :payment_method, :accounting_category, :operator_id)
     end
 end

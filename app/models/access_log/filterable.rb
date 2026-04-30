@@ -5,7 +5,7 @@ module AccessLog::Filterable
     scope :search_text, ->(query) {
       return all if query.blank?
 
-      matching_members = Member.search_text(query).select(:id)
+      matching_members = Member.search_text(query).select("members.id")
       where(access_logs: { member_id: matching_members })
     }
 

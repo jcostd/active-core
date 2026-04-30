@@ -35,10 +35,10 @@ module User::Filterable
       scope = scope.search_text(params[:query]) if params[:query].present?
 
       scope = case params[:role]
-              when "admin" then scope.with_role(:admin)
-              when "staff" then scope.with_role(:staff)
-              else scope
-              end
+      when "admin" then scope.with_role(:admin)
+      when "staff" then scope.with_role(:staff)
+      else scope
+      end
 
       scope.sorted_by(params[:sort])
     end

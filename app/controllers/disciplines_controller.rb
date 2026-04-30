@@ -10,6 +10,7 @@ class DisciplinesController < ApplicationController
     @pagy, @disciplines = pagy(
       Discipline
         .apply_filters(filter_params)
+        .includes(:products)
     )
   end
 

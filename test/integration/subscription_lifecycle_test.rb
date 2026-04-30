@@ -26,7 +26,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     Subscription.create!(
       member: @member,
       product: @monthly_course,
-      sale: Sale.create!(member: @member, user: @user, product: @monthly_course, sold_on: last_month_start),
+      sales: [ Sale.create!(member: @member, user: @user, product: @monthly_course, sold_on: last_month_start) ],
       start_date: last_month_start,
       end_date: last_month_end
     )

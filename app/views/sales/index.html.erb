@@ -53,10 +53,56 @@
 
     <%# IL CASSETTO DEI FILTRI %>
     <%= render "shared/filter/drawer", title: "Filtri Vendite" do %>
-      <div class="space-y-6">
-        <div class="text-sm opacity-50 italic">
-          Nessun filtro avanzato ancora configurato per le vendite.
-        </div>
+      <div class="space-y-4">
+
+        <fieldset>
+          <label class="label font-bold text-sm">Stato Ricevuta</label>
+          <%= form.select :state,
+            options_for_select([["Valide", "active"], ["Annullate", "discarded"]], params[:state]),
+            { include_blank: "Tutte" },
+            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        </fieldset>
+
+        <fieldset>
+          <label class="label font-bold text-sm">Periodo</label>
+          <%= form.select :period,
+            options_for_select([
+              ["Oggi", "today"],
+              ["Questo Mese", "this_month"],
+              ["Mese Scorso", "last_month"],
+              ["Quest'Anno", "this_year"]
+            ], params[:period]),
+            { include_blank: "Sempre" },
+            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        </fieldset>
+
+        <fieldset>
+          <label class="label font-bold text-sm">Metodo di Pagamento</label>
+          <%= form.select :payment_method,
+            Sale.payment_methods.keys.map { |pm| [pm.humanize, pm] },
+            { selected: params[:payment_method], include_blank: "Qualsiasi" },
+            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        </fieldset>
+
+        <fieldset>
+          <label class="label font-bold text-sm">Categoria Contabile</label>
+          <%= form.select :accounting_category,
+            options_for_select([
+              ["Istituzionale", "institutional"],
+              ["Associativo", "associative"]
+            ], params[:accounting_category]),
+            { include_blank: "Qualsiasi" },
+            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        </fieldset>
+
+        <fieldset>
+          <label class="label font-bold text-sm">Operatore (Desk)</label>
+          <%= form.select :operator_id,
+           options_from_collection_for_select(User.where(discarded_at: nil), :id, :username, params[:operator_id]),
+           { include_blank: "Tutti gli operatori" },
+           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
+        </fieldset>
+
       </div>
     <% end %>
   <% end %>
@@ -65,7 +111,7 @@
 <%= render "shared/header/page" %>
 
 <%= turbo_frame_tag "sales_list" do %>
-  <%= render "shared/filter/active", filter_keys: @keys || [] %>
+  <%= render "shared/filter/active", filter_keys: [:sort, :state, :period, :payment_method, :accounting_category, :operator_id] %>
 
   <div class="mt-6">
     <% if @pagy.count == 0 %>

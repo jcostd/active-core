@@ -16,7 +16,7 @@ class Member < ApplicationRecord
            class_name: "Subscription"
 
   has_many :recent_sales,
-           -> { order(created_at: :desc).limit(5) },
+           -> { order(sales: { created_at: :desc }).limit(5) },
            class_name: "Sale"
 
   validates :birth_date, presence: true
@@ -25,7 +25,7 @@ class Member < ApplicationRecord
             uniqueness: { conditions: -> { kept } },
             format: { with: /\A[A-Z0-9]{16}\z/ }
   validates :phone,
-            phone: { possible: true, allow_blank: true, types: [:mobile, :fixed_line] }
+            phone: { possible: true, allow_blank: true, types: [ :mobile, :fixed_line ] }
 
   def suggested_start_date_for(product, reference_date = Date.current, last_sub: nil)
     reference_date = reference_date.to_date

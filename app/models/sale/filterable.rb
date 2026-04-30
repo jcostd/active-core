@@ -23,6 +23,25 @@ module Sale::Filterable
       where(sales: { product_id: product_id }) if product_id.present?
     }
 
+    # NUOVO: Filtro temporale rapido per le chiusure di cassa e bilanci
+    scope :by_period, ->(period) {
+      case period
+      when "today"      then where(sales: { sold_on: Date.current })
+      when "this_month" then where(sales: { sold_on: Date.current.all_month })
+      when "last_month" then where(sales: { sold_on: 1.month.ago.all_month })
+      when "this_year"  then where(sales: { sold_on: Date.current.all_year })
+      else all
+      end
+    }
+
+    scope :by_accounting_category, ->(category) {
+      joins(:product).where(products: { accounting_category: category }) if category.present?
+    }
+
+    scope :by_operator, ->(user_id) {
+      where(sales: { user_id: user_id }) if user_id.present?
+    }
+
     scope :sorted_by, ->(param, has_query: false) {
       case param
       when "name_asc"     then joins(:product).order(products: { name: :asc })
@@ -48,6 +67,9 @@ module Sale::Filterable
 
       scope = scope.by_payment_method(params[:payment_method])
                    .by_product(params[:product_id])
+                   .by_period(params[:period])
+                   .by_accounting_category(params[:accounting_category])
+                   .by_operator(params[:operator_id])
 
       scope.sorted_by(params[:sort], has_query: has_query)
     end

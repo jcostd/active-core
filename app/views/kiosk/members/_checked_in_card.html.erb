@@ -31,7 +31,7 @@
 	    <% sub = member.valid_subscription_for(log.discipline) %>
 	    <% if sub && !sub.unlimited_entries? %>
 	      <span class="text-[10px] uppercase font-bold text-secondary flex items-center gap-1 mt-0.5">
-		<%= icon("confirmation_number", classes: "size-3") %> PT: Rimanenti <%= sub.entries_remaining %>
+		<%= icon("access", classes: "size-3") %> Entrate Rimanenti: <%= sub.entries_remaining %>
 	      </span>
 	    <% end %>
 

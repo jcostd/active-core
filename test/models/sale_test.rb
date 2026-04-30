@@ -1,17 +1,22 @@
 require "test_helper"
 
 class SaleTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::TimeHelpers
+
   setup do
     Sale.delete_all
     ReceiptCounter.delete_all
+    Subscription.delete_all
 
     @member = members(:bob)
     @user = users(:staff)
+
     @prod_inst = products(:yoga_monthly)
     @prod_inst.update_columns(
       name: "Yoga Course",
       price_cents: 5000,
-      accounting_category: "institutional"
+      accounting_category: "institutional",
+      duration_days: 30
     )
 
     @prod_assoc = products(:annual_membership)
@@ -77,7 +82,6 @@ class SaleTest < ActiveSupport::TestCase
   end
 
   test "sequences are independent even with mixed payments" do
-    # Leggiamo l'ultimo numero emesso (potrebbe essere > 0 a causa dell'helper grant_membership_to)
     initial_assoc_max = Sale.where(receipt_sequence: "associative").maximum(:receipt_number).to_i
 
     s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.today)
@@ -85,7 +89,6 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal "institutional", s1.receipt_sequence
 
     s2 = Sale.create!(member: @member, product: @prod_assoc, user: @user, payment_method: :cash, sold_on: Date.today)
-    # Assicuriamoci che faccia +1 rispetto a quello che c'era prima
     assert_equal initial_assoc_max + 1, s2.receipt_number
     assert_equal "associative", s2.receipt_sequence
 
@@ -148,5 +151,155 @@ class SaleTest < ActiveSupport::TestCase
     sale.prepare_draft(manual_start_date: forced_date.to_s)
 
     assert_equal forced_date, sale.subscription.start_date
+  end
+
+  # --- TEST SMART RENEWAL (Ex SubscriptionIssuerTest) ---
+
+  test "creates sale and subscription together (Nested Attributes)" do
+    sale_params = {
+      member: @member,
+      user: @user,
+      product: @prod_inst,
+      sold_on: Date.current,
+      payment_method: :cash,
+      subscription_attributes: {
+        member: @member,
+        product: @prod_inst,
+        start_date: Date.current,
+        end_date: Date.current + 1.year
+      }
+    }
+
+    assert_difference [ "Sale.count", "Subscription.count" ], 1 do
+      sale = Sale.create!(sale_params)
+      assert sale.subscription.present?
+      # Verifichiamo la corretta impostazione della relazione "has_many :sales"
+      assert_includes sale.subscription.sales, sale
+    end
+  end
+
+  test "smart renewal: continuity for anticipated renewal snaps to month start" do
+    today = Date.new(2025, 1, 20)
+    current_expiry = Date.new(2025, 1, 31)
+
+    travel_to today do
+      create_past_subscription(end_date: current_expiry)
+      sale = create_sale_with_smart_subscription
+
+      expected_start = Date.new(2025, 2, 1)
+      expected_end   = Date.new(2025, 2, 28)
+
+      assert_equal expected_start, sale.subscription.start_date
+      assert_equal expected_end, sale.subscription.end_date
+    end
+  end
+
+  test "smart renewal: continuity (punishment) for small gap snaps to gap month start" do
+    today = Date.new(2025, 1, 20)
+    past_expiry = Date.new(2025, 1, 5)
+
+    travel_to today do
+      create_past_subscription(end_date: past_expiry)
+      sale = create_sale_with_smart_subscription
+
+      expected_start = Date.new(2025, 1, 1)
+      expected_end   = Date.new(2025, 1, 31)
+
+      assert_equal expected_start, sale.subscription.start_date
+      assert_equal expected_end, sale.subscription.end_date
+    end
+  end
+
+  test "smart renewal: reset to today for huge gap snaps to current month start" do
+    today = Date.new(2025, 1, 20)
+    past_expiry = Date.new(2024, 10, 31)
+
+    travel_to today do
+      create_past_subscription(end_date: past_expiry)
+      sale = create_sale_with_smart_subscription
+
+      expected_start = Date.new(2025, 1, 1)
+      expected_end   = Date.new(2025, 1, 31)
+
+      assert_equal expected_start, sale.subscription.start_date
+      assert_equal expected_end, sale.subscription.end_date
+    end
+  end
+
+  test "smart renewal: staff manual start date snaps to month start for calendar products" do
+    manual_date = Date.new(2025, 1, 15)
+    sale_params = default_sale_params
+    sale_params[:subscription_attributes][:start_date] = manual_date
+
+    sale = Sale.create!(sale_params)
+
+    expected_start = Date.new(2025, 1, 1)
+    expected_end = Date.new(2025, 1, 31)
+
+    assert_equal expected_start, sale.subscription.start_date
+    assert_equal expected_end, sale.subscription.end_date
+  end
+
+  test "admin override: explicitly providing both dates completely bypasses calculation" do
+    start_override = Date.new(2025, 1, 15)
+    end_override = Date.new(2025, 3, 10)
+
+    sale_params = default_sale_params
+    sale_params[:subscription_attributes][:start_date] = start_override
+    sale_params[:subscription_attributes][:end_date] = end_override
+
+    sale = Sale.create!(sale_params)
+
+    assert_equal start_override, sale.subscription.start_date
+    assert_equal end_override, sale.subscription.end_date
+  end
+
+  # --- TEST SOFT DELETE ---
+
+  test "discarding sale cascades to subscription" do
+    sale = create_sale_with_smart_subscription
+    subscription = sale.subscription
+
+    sale.discard!
+    assert subscription.reload.discarded?
+  end
+
+  test "undiscarding sale cascades to subscription" do
+    sale = create_sale_with_smart_subscription
+    sale.discard!
+    sale.undiscard!
+    assert_not sale.subscription.reload.discarded?
+  end
+
+  private
+
+  def default_sale_params
+    {
+      member: @member,
+      user: @user,
+      product: @prod_inst,
+      sold_on: Date.current,
+      payment_method: :cash,
+      subscription_attributes: {
+        member: @member,
+        product: @prod_inst
+      }
+    }
+  end
+
+  def create_sale_with_smart_subscription
+    Sale.create!(default_sale_params)
+  end
+
+  def create_past_subscription(end_date:)
+    start_date = end_date.beginning_of_month
+
+    Subscription.create!(
+      member: @member,
+      product: @prod_inst,
+      start_date: start_date,
+      end_date: end_date,
+      sales: [ Sale.create!(member: @member, user: @user, product: @prod_inst, sold_on: start_date) ]
+    )
   end
 end

@@ -2,6 +2,9 @@ class AccessLog < ApplicationRecord
   include Refreshable
   include AccessLog::Filterable
 
+  DOUBLE_TAP_TIMEOUT = 10.minutes
+  KIOSK_COOLDOWN     = 60.minutes
+
   belongs_to :member,           touch: true
   belongs_to :subscription,     optional: true, touch: true
   belongs_to :checkin_by_user,  class_name: "User"
@@ -22,10 +25,11 @@ class AccessLog < ApplicationRecord
   validate :prevent_double_tap,            on: :create
   validate :subscription_belongs_to_member
 
-  scope :valid_entries, -> { where(status: [ :ok, :warning ]) }
+  scope :valid_entries,    -> { where(access_logs: { status: [ :ok, :warning ] }) }
+  scope :today,            -> { where(access_logs: { entered_at: Time.current.all_day }) }
+  scope :recent_for_kiosk, -> { where("access_logs.entered_at >= ?", KIOSK_COOLDOWN.ago) }
 
   private
-
     def set_defaults
       self.entered_at ||= Time.current
     end
@@ -42,9 +46,9 @@ class AccessLog < ApplicationRecord
       return unless member_id && discipline_id
 
       if AccessLog.where(member_id: member_id, discipline_id: discipline_id)
-                  .where("entered_at >= ?", 10.minutes.ago)
-                  .exists?
-        errors.add(:base, "Check-in già effettuato negli ultimi 10 minuti.")
+           .where("entered_at >= ?", DOUBLE_TAP_TIMEOUT.ago)
+           .exists?
+        errors.add(:base, "Check-in già effettuato negli ultimi #{DOUBLE_TAP_TIMEOUT.in_minutes.to_i} minuti.")
       end
     end
 

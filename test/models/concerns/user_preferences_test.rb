@@ -2,7 +2,6 @@ require "test_helper"
 
 class UserPreferencesTest < ActiveSupport::TestCase
   def setup
-    # Creiamo un utente "pulito" per ogni test
     @user = User.new(
       username: "pref_tester",
       password: "password",
@@ -13,57 +12,44 @@ class UserPreferencesTest < ActiveSupport::TestCase
   end
 
   test "initializes with empty preferences hash" do
-    # Verifica il callback after_initialize
     assert_not_nil @user.preferences
     assert_equal({}, @user.preferences)
   end
 
   test "can write and read theme via accessor" do
-    # Verifica che store_accessor funzioni
-    @user.theme = "dracula"
-    assert_equal "dracula", @user.theme
-
-    # Verifica che sia salvato davvero nell'hash JSON
-    assert_equal "dracula", @user.preferences["theme"]
+    @user.theme = "dim"
+    assert_equal "dim", @user.theme
+    assert_equal "dim", @user.preferences["theme"]
   end
 
   test "validates allowed themes" do
-    # Caso Felice
-    @user.theme = "cyberpunk"
+    @user.theme = "business"
     assert @user.valid?
 
-    # Caso Errore (Tema non in lista)
     @user.theme = "windows_95_ugly_theme"
     assert_not @user.valid?
     assert_includes @user.errors[:theme], "is not included in the list"
 
-    # Caso Nil (Consentito da allow_nil: true)
     @user.theme = nil
     assert @user.valid?
   end
 
   test "returns correct theme fallback" do
-    # Se nil -> Default ("light")
+    # Il getter "theme" restituisce "corporate" come default se nil/blank
     @user.theme = nil
-    assert_equal "light", @user.theme_or_default
+    assert_equal "corporate", @user.theme
 
-    # Se vuoto -> Default ("light")
     @user.theme = ""
-    assert_equal "light", @user.theme_or_default
+    assert_equal "corporate", @user.theme
 
-    # Se settato -> Valore settato
     @user.theme = "dim"
-    assert_equal "dim", @user.theme_or_default
+    assert_equal "dim", @user.theme
   end
 
   test "validates available locales" do
-    # Assumiamo che :it e :en siano disponibili in config/application.rb
-
-    # Caso Felice
     @user.locale = I18n.default_locale.to_s
     assert @user.valid?
 
-    # Caso Errore
     @user.locale = "klingon"
     assert_not @user.valid?
     assert_includes @user.errors[:locale], "is not included in the list"
@@ -72,20 +58,21 @@ class UserPreferencesTest < ActiveSupport::TestCase
   test "returns correct locale fallback" do
     default = I18n.default_locale.to_s
 
+    # Il getter "locale" fa da fallback automatico
     @user.locale = nil
-    assert_equal default, @user.locale_or_default
+    assert_equal default, @user.locale
 
-    @user.locale = "it"
-    assert_equal "it", @user.locale_or_default
+    @user.locale = "it" # Assumendo che :it sia tra gli available_locales
+    assert_equal "it", @user.locale
   end
 
   test "persists preferences to database" do
-    @user.theme = "coffee"
+    # Usiamo un tema valido
+    @user.theme = "business"
     @user.save!
 
-    # Ricarichiamo dal DB per essere sicuri che sia stato salvato nel JSON
     loaded_user = User.find(@user.id)
-    assert_equal "coffee", loaded_user.preferences["theme"]
-    assert_equal "coffee", loaded_user.theme
+    assert_equal "business", loaded_user.preferences["theme"]
+    assert_equal "business", loaded_user.theme
   end
 end
