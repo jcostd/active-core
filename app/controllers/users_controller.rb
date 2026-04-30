@@ -71,6 +71,6 @@ class UsersController < ApplicationController
     end
 
     def filter_params
-      params.permit(:query, :sort, :role)
+      params.permit(:query, :sort).merge(role: params[:role])
     end
 end

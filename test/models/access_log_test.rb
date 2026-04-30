@@ -26,7 +26,7 @@ class AccessLogTest < ActiveSupport::TestCase
     assert_not_nil log.entered_at # Verifica che il callback abbia funzionato
   end
 
-  test "prevents access with expired subscription" do
+  test "registers access with expired subscription (non-blocking)" do
     # Mandiamo l'abbonamento nel passato
     # Start: 60 giorni fa, End: 30 giorni fa
     @subscription.update_columns(start_date: 60.days.ago, end_date: 30.days.ago)
@@ -37,7 +37,9 @@ class AccessLogTest < ActiveSupport::TestCase
       checkin_by_user: @staff
     )
 
-    assert_not log.valid?
+    # L'ingresso NON deve essere bloccato a livello di database.
+    # Il sistema lo salva, poi sarà la AccessPolicy a gestirne lo 'status' (ok, warning, error)
+    assert log.valid?, "AccessLog dovrebbe essere valido e salvabile anche con abbonamento scaduto"
   end
 
   test "prevents access with subscription of another member" do

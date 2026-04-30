@@ -36,6 +36,7 @@ class Sale < ApplicationRecord
       return unless subscription.present? && subscription.new_record? && member.present? && product.present?
       subscription.member ||= self.member
       subscription.product ||= self.product
+      subscription.reference_date ||= self.sold_on
     end
 
     def snapshot_product_details
@@ -71,10 +72,12 @@ class Sale < ApplicationRecord
       return if product.nil? || product.associative?
       return unless subscription&.start_date
 
-      unless member.membership_valid?(subscription.start_date)
+      check_date = sold_on || subscription.start_date
+
+      unless member.membership_valid?(check_date)
         errors.add(:base, "Impossibile vendere #{product.name}: " \
                           "Il socio non avrà una Quota Associativa attiva " \
-                          "il #{I18n.l(subscription.start_date)}.")
+                          "il #{I18n.l(check_date)}.")
       end
     end
 end

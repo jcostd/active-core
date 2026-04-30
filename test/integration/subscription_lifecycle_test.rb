@@ -61,30 +61,15 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
   end
 
   test "The August 31st Wall (Institutional Snap)" do
-    # Simuliamo una vendita fatta il 15 Agosto per un mensile.
-    # NUOVA LOGICA: Poiché è istituzionale, anche se arrivi il 15,
-    # l'abbonamento viene "snappato" al 1° Agosto per coprire la mensilità contabile.
-
-    # Usiamo un anno sicuro (es. 2025)
-    august_15 = Date.new(2025, 8, 15)
-    august_01 = Date.new(2025, 8, 1)   # Start atteso (Snap)
-    august_31 = Date.new(2025, 8, 31)  # End atteso (Wall)
-
-    sale = Sale.create!(
-      member: @member,
-      user: @user,
-      product: @monthly_course,
-      sold_on: august_15,
-      subscription_attributes: { member: @member, product: @monthly_course }
-    )
-
-    # Verifica Inizio (FIXED: Ora ci aspettiamo il 1° del mese)
-    assert_equal august_01, sale.subscription.start_date,
-      "Institutional Snap failed: Start date should be snapped to Aug 1st"
-
-    # Verifica Fine (Muro SportYear)
-    assert_equal august_31, sale.subscription.end_date,
-      "SportYear wall failed: Should end on Aug 31st"
+    travel_to Date.new(2025, 8, 15) do
+      sale = Sale.create!(
+        member: @member, user: @user, product: @monthly_course,
+        sold_on: Date.current,
+        subscription_attributes: { member: @member, product: @monthly_course }
+      )
+      assert_equal Date.new(2025, 8, 1),  sale.subscription.start_date
+      assert_equal Date.new(2025, 8, 31), sale.subscription.end_date
+    end
   end
 
   test "Membership Guard: Cannot buy course without active membership" do

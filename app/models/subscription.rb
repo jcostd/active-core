@@ -2,6 +2,8 @@ class Subscription < ApplicationRecord
   include SoftDeletable, Monetizable
   include Subscription::Filterable
 
+  attr_accessor :reference_date
+
   monetize :agreed_price
 
   belongs_to :member,  touch: true
@@ -102,16 +104,13 @@ class Subscription < ApplicationRecord
       self.entry_limit ||= product.entry_limit
       return if end_date.present?
 
-      was_start_provided = start_date.present?
-
       if start_date.blank?
-        reference_date  = sales.first&.sold_on || Date.current
-        self.start_date = member.suggested_start_date_for(product, reference_date)
+        ref_date = self.reference_date || Array(sales).map(&:sold_on).compact.first || Date.current
+        self.start_date = member.suggested_start_date_for(product, ref_date)
       end
 
-      duration = Duration.for(product, start_date)
-
-      self.start_date = duration.start_date unless was_start_provided
+      duration        = Duration.for(product, start_date)
+      self.start_date = duration.start_date
       self.end_date   = duration.end_date
     end
 
@@ -126,9 +125,10 @@ class Subscription < ApplicationRecord
       return unless start_date && end_date
 
       if member.subscriptions.kept
-               .where(product_id: product.id)
-               .where(subscriptions: { start_date: ..end_date, end_date: start_date.. })
-               .exists?
+           .where(product_id: product.id)
+           .where.not(id: id)
+           .where(subscriptions: { start_date: ..end_date, end_date: start_date.. })
+           .exists?
         errors.add(:base, "Già un abbonamento per '#{product.name}' in queste date.")
       end
     end

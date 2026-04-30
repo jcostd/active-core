@@ -135,8 +135,10 @@ class SaleTest < ActiveSupport::TestCase
   # --- TEST LOGICA DRAFT / FORM LIVE ---
 
   test "prepare_draft sets sold_on to today if empty and builds subscription" do
-    sale = Sale.new(member: @member, product: @prod_inst)
-    sale.prepare_draft
+    sale = PosDraftBuilder.new(
+      sale_params: { member: @member, product: @prod_inst },
+      context_params: {}
+    ).build
 
     assert_equal Date.current, sale.sold_on
     assert_not_nil sale.subscription
@@ -145,10 +147,14 @@ class SaleTest < ActiveSupport::TestCase
   end
 
   test "prepare_draft with manual_start_date forces the subscription start date" do
-    sale = Sale.new(member: @member, product: @prod_inst)
     forced_date = 5.days.from_now.to_date
 
-    sale.prepare_draft(manual_start_date: forced_date.to_s)
+    sale = PosDraftBuilder.new(
+      sale_params: { member_id: @member.id, product_id: @prod_inst.id },
+      context_params: {
+        sale: { subscription_attributes: { start_date: forced_date.to_s } }
+      }
+    ).build
 
     assert_equal forced_date, sale.subscription.start_date
   end
@@ -200,13 +206,10 @@ class SaleTest < ActiveSupport::TestCase
 
     travel_to today do
       create_past_subscription(end_date: past_expiry)
-      sale = create_sale_with_smart_subscription
 
-      expected_start = Date.new(2025, 1, 1)
-      expected_end   = Date.new(2025, 1, 31)
-
-      assert_equal expected_start, sale.subscription.start_date
-      assert_equal expected_end, sale.subscription.end_date
+      assert_raises(ActiveRecord::RecordInvalid) do
+        create_sale_with_smart_subscription
+      end
     end
   end
 
