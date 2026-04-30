@@ -1,95 +1,73 @@
-<%= form_with(model: user, class: "space-y-6") do |f| %>
+<%= form_with(model: user, class: "flex flex-col gap-8 py-2") do |f| %>
   <%= render "shared/form_errors", model: user %>
 
   <%# --- SEZIONE 1: IDENTITÀ --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("badge", size: 14) %> Identità
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+      <%= icon("badge", classes: "size-6 opacity-40") %> Identità
     </legend>
 
-    <%# RIGA 1: Nome e Cognome %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
-        <%= f.label :first_name, "Nome", class: "label" %>
-        <%= f.text_field :first_name, required: true, class: "input w-full", placeholder: "Mario" %>
+        <%= f.label :first_name, "Nome", class: "label text-xs font-semibold uppercase opacity-70" %>
+        <%= f.text_field :first_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Mario" %>
       </div>
 
       <div>
-        <%= f.label :last_name, "Cognome", class: "label" %>
-        <%= f.text_field :last_name, required: true, class: "input w-full", placeholder: "Rossi" %>
+        <%= f.label :last_name, "Cognome", class: "label text-xs font-semibold uppercase opacity-70" %>
+        <%= f.text_field :last_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Rossi" %>
       </div>
     </div>
 
-    <%# RIGA 2: Username %>
     <div class="mt-2">
-      <%= f.label :username, "Username", class: "label" %>
-      <%= f.text_field :username, required: true, class: "input w-full", placeholder: "mario.rossi" %>
-
-      <p class="label">
-        <span class="label-text-alt text-base-content/60">Usato per il login. Solo lettere minuscole e numeri.</span>
-      </p>
+      <%= f.label :username, "Username", class: "label text-xs font-semibold uppercase opacity-70" %>
+      <%= f.text_field :username, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario.rossi" %>
+      <div class="fieldset-label text-base-content/50 mt-1">Usato per il login. Solo lettere minuscole e numeri.</div>
     </div>
   </fieldset>
 
   <%# --- SEZIONE 2: ACCESSO & SICUREZZA --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("lock", size: 14) %> Accesso & Sicurezza
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+      <%= icon("fingerprint", classes: "size-6 opacity-40") %> Accesso & Sicurezza
     </legend>
 
-    <%# RIGA 1: Email e Ruolo %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
-        <%= f.label :email_address, "Email", class: "label" %>
-        <%= f.email_field :email_address, required: true, class: "input w-full", placeholder: "mario@palestra.it" %>
+        <%= f.label :email_address, "Email", class: "label text-xs font-semibold uppercase opacity-70" %>
+        <%= f.email_field :email_address, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario@palestra.it" %>
       </div>
 
       <div>
-        <%= f.label :role, "Ruolo", class: "label" %>
-
-        <%# LOGICA ADMIN: Disabilita se non è admin %>
+        <%= f.label :role, "Ruolo", class: "label text-xs font-semibold uppercase opacity-70" %>
         <%= f.select :role,
             User.roles.keys.map { |r| [r.humanize, r] },
             {},
-            class: "select w-full",
+            class: "select select-bordered bg-base-100 w-full",
             disabled: !current_user.admin? %>
       </div>
     </div>
 
-    <div class="divider my-2"></div>
-
-    <%# RIGA 2: Password %>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4">
       <div>
-        <%= f.label :password, "Nuova Password", class: "label" %>
-        <%= f.password_field :password, class: "input w-full", autocomplete: "new-password" %>
+        <%= f.label :password, "Nuova Password", class: "label text-xs font-semibold uppercase opacity-70" %>
+        <%= f.password_field :password, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
       </div>
 
       <div>
-        <%= f.label :password_confirmation, "Conferma Password", class: "label" %>
-        <%= f.password_field :password_confirmation, class: "input w-full", autocomplete: "new-password" %>
+        <%= f.label :password_confirmation, "Conferma Password", class: "label text-xs font-semibold uppercase opacity-70" %>
+        <%= f.password_field :password_confirmation, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
       </div>
     </div>
 
-    <%# Hint Password (solo se edit) %>
     <% if user.persisted? %>
-      <p class="label">
-        <span class="label-text-alt text-base-content/60">
-          <%= icon("info", size: 12, class: "inline mr-1") %>
-          Lascia i campi password vuoti per mantenere quella attuale.
-        </span>
-      </p>
+      <div class="fieldset-label text-base-content/50 mt-2 flex items-center gap-1">
+        <%= icon("info", classes: "size-4") %> Lascia vuoto per mantenere la password attuale.
+      </div>
     <% end %>
   </fieldset>
 
-  <!-- Begin Actions -->
-  <div class="modal-action">
-    <%= f.submit "Salva",
-     class: "btn btn-primary px-4",
-     data: {
-       turbo_submits_with: 'Salvataggio...'
-     } %>
+  <div class="modal-action mt-6">
+    <%= f.submit "Salva Utente", class: "btn btn-primary px-8", data: { turbo_submits_with: 'Salvataggio...' } %>
   </div>
-  <!-- End Actions -->
-
 <% end %>

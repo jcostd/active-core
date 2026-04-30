@@ -1,3 +1,5 @@
-<%= render layout: "shared/modal", locals: { title: "Modificando #{@subscription.product.name}" } do %>
-  <%= render "form", subscription: @subscription %>
+<% content_for :title do %>
+  Modifica <%= @subscription.product.name %>
 <% end %>
+
+<%= render "form", subscription: @subscription %>

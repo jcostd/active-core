@@ -1,4 +1,25 @@
-<div>
-  <h1 class="font-bold text-4xl">Members::AccessLogs#index</h1>
-  <p>Find me in app/views/members/access_logs/index.html.erb</p>
+<%= turbo_stream_from @member %>
+<%= render "members/context", member: @member %>
+
+<%# --- HEADER SEZIONE --- %>
+<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
+  <h2 class="text-xl font-bold flex items-center gap-2">
+    <%= icon("history", classes: "size-6 opacity-50") %> Storico Accessi
+  </h2>
+</div>
+
+<%# --- LISTA ACCESSI --- %>
+<div id="member_access_logs_list">
+  <% if @access_logs.empty? %>
+    <%= render "shared/empty_state",
+               icon_name: "history",
+               title: "Nessun accesso registrato",
+               message: "Questo utente non ha ancora effettuato alcun accesso alla struttura." %>
+  <% else %>
+    <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+      <%= render partial: "members/access_logs/row", collection: @access_logs, as: :log, cached: true %>
+    </ul>
+
+    <%= render "shared/pagination" %>
+  <% end %>
 </div>

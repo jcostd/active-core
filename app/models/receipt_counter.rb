@@ -3,10 +3,11 @@ class ReceiptCounter < ApplicationRecord
 
   def self.next_number(year, category)
     transaction do
-      counter = lock.find_or_create_by!(year: year, sequence_category: category)
-      counter.increment!(:last_number)
+      counter = create_or_find_by!(year: year, sequence_category: category)
 
-      counter.last_number
+      ReceiptCounter.update_counters(counter.id, last_number: 1)
+
+      counter.reload.last_number
     end
   end
 end

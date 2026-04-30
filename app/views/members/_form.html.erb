@@ -1,25 +1,22 @@
-<%= form_with(model: member, class: "space-y-6") do |f| %>
+<%= form_with(model: member, class: "space-y-4") do |f| %>
   <%= render "shared/form_errors", model: member %>
 
   <%# --- SEZIONE 1: DATI ANAGRAFICI --- %>
   <fieldset
-    class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm"
+    class="fieldset"
     data-controller="fiscal-code"
   >
-    <legend class="fieldset-legend">
-      <%= icon("badge", size: 14) %>
-      <%= t("members.form.sections.personal", default: "Dati Anagrafici") %>
-    </legend>
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2"><%= icon("badge", classes: "size-4") %>Dati Anagrafici</legend>
 
     <%# RIGA 1: Nome e Cognome %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
-        <%= f.label :first_name, "Nome", class: "label" %>
+        <%= f.label :first_name, "Nome*", class: "label" %>
         <%= f.text_field :first_name, required: true, class: "input w-full", placeholder: "Mario" %>
       </div>
 
       <div>
-        <%= f.label :last_name, "Cognome", class: "label" %>
+        <%= f.label :last_name, "Cognome*", class: "label" %>
         <%= f.text_field :last_name, required: true, class: "input w-full", placeholder: "Rossi" %>
       </div>
     </div>
@@ -27,8 +24,7 @@
     <%# RIGA 2: Codice Fiscale e Data Nascita %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-2">
       <div>
-        <%= f.label :fiscal_code, "Codice Fiscale", class: "label" %>
-
+        <%= f.label :fiscal_code, "Codice Fiscale*", class: "label" %>
         <%= f.text_field :fiscal_code,
 	 required: true,
 	 class: "input w-full uppercase font-mono tracking-wide",
@@ -40,24 +36,18 @@
       </div>
 
       <div>
-        <%= f.label :birth_date, "Data di Nascita", class: "label" %>
-
+        <%= f.label :birth_date, "Data di Nascita*", class: "label" %>
         <%= f.date_field :birth_date,
-	     required: true,
-	     class: "input w-full transition-colors duration-300",
-	     data: {
-	       fiscal_code_target: "birthDate"
-	     } %>
+	 required: true,
+	 class: "input w-full transition-colors duration-300",
+	 data: { fiscal_code_target: "birthDate" } %>
       </div>
     </div>
   </fieldset>
 
-  <%# --- SEZIONE 2: RESIDENZA (Novità Schema) --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("home", size: 14) %>
-      <%= t("members.form.sections.address", default: "Residenza") %>
-    </legend>
+  <%# --- SEZIONE 2: RESIDENZA --- %>
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2"><%= icon("home", classes: "size-4") %>Residenza</legend>
 
     <%# Indirizzo Completo %>
     <div>
@@ -80,11 +70,8 @@
   </fieldset>
 
   <%# --- SEZIONE 3: CONTATTI E INFO MEDICHE --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("contact_mail", size: 14) %>
-      <%= t("members.form.sections.details", default: "Contatti & Salute") %>
-    </legend>
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2"><%= icon("contact_mail", classes: "size-4") %>Contatti & Salute</legend>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
@@ -98,26 +85,22 @@
       </div>
     </div>
 
-    <div class="divider my-2"></div>
-
     <%# Certificato Medico %>
-    <div>
+    <fieldset class="fieldset">
       <%= f.label :medical_certificate_expiry, "Data Scadenza Certificato Medico", class: "label" %>
       <%= f.date_field :medical_certificate_expiry, class: "input w-full" %>
 
       <p class="label">
         <span class="label-text-alt text-base-content/60">Lasciare vuoto se non presente.</span>
       </p>
-    </div>
+    </fieldset>
   </fieldset>
 
   <!-- Begin Actions -->
   <div class="modal-action">
     <%= f.submit "Salva",
      class: "btn btn-primary px-4",
-     data: {
-       turbo_submits_with: 'Salvataggio...'
-     } %>
+     data: { turbo_submits_with: 'Salvataggio...' } %>
   </div>
   <!-- End Actions -->
 

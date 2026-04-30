@@ -1,37 +1,80 @@
 class AccessLog < ApplicationRecord
-  belongs_to :member
-  belongs_to :subscription
-  belongs_to :checkin_by_user, class_name: "User"
+  include Refreshable
+  include AccessLog::Filterable
+
+  DOUBLE_TAP_TIMEOUT = 10.minutes
+  KIOSK_COOLDOWN     = 60.minutes
+
+  belongs_to :member,           touch: true
+  belongs_to :subscription,     optional: true, touch: true
+  belongs_to :checkin_by_user,  class_name: "User"
+  belongs_to :discipline,       optional: true
+
+  enum :status, { ok: 0, warning: 1, error: 2 }, default: :ok, validate: true
 
   before_validation :set_defaults
+  before_validation :evaluate_access_policy, on: :create
 
-  validates :member, :subscription, :checkin_by_user, presence: true
-  validates :entered_at, presence: true
+  before_destroy :cache_valid_entry_state
 
+  after_create_commit  :increment_entries_used
+  after_destroy_commit :decrement_entries_used
+
+  validates :member, :checkin_by_user, :entered_at, presence: true
+
+  validate :prevent_double_tap,            on: :create
   validate :subscription_belongs_to_member
-  validate :subscription_must_be_active, on: :create
+
+  scope :valid_entries,    -> { where(access_logs: { status: [ :ok, :warning ] }) }
+  scope :today,            -> { where(access_logs: { entered_at: Time.current.all_day }) }
+  scope :recent_for_kiosk, -> { where("access_logs.entered_at >= ?", KIOSK_COOLDOWN.ago) }
 
   private
-
     def set_defaults
       self.entered_at ||= Time.current
     end
 
-    def subscription_belongs_to_member
-      return unless subscription && member
+    def evaluate_access_policy
+      return unless member && discipline
 
-      if subscription.member_id != member_id
-        errors.add(:subscription, "does not belong to this member")
+      policy = AccessPolicy.new(member: member, discipline: discipline).evaluate!
+      self.status       = policy.status
+      self.subscription = policy.subscription
+    end
+
+    def prevent_double_tap
+      return unless member_id && discipline_id
+
+      if AccessLog.where(member_id: member_id, discipline_id: discipline_id)
+           .where("entered_at >= ?", DOUBLE_TAP_TIMEOUT.ago)
+           .exists?
+        errors.add(:base, "Check-in già effettuato negli ultimi #{DOUBLE_TAP_TIMEOUT.in_minutes.to_i} minuti.")
       end
     end
 
-    def subscription_must_be_active
-      return unless subscription
-
-      check_date = entered_at&.to_date || Date.current
-
-      unless subscription.active?(check_date)
-        errors.add(:subscription, "is not active for date #{check_date}")
+    def subscription_belongs_to_member
+      return unless subscription_id
+      if subscription&.member_id != member_id
+        errors.add(:subscription, "non appartiene a questo socio")
       end
+    end
+
+    def cache_valid_entry_state
+      @was_valid_entry = ok? || warning?
+    end
+
+    def increment_entries_used
+      return unless subscription_id && (ok? || warning?)
+
+      Subscription.where(id: subscription_id)
+                  .update_all("entries_used = entries_used + 1")
+    end
+
+    def decrement_entries_used
+      return unless subscription_id && @was_valid_entry
+
+      Subscription.where(id: subscription_id)
+                  .where("entries_used > 0")
+                  .update_all("entries_used = entries_used - 1")
     end
 end

@@ -1,0 +1,65 @@
+<%
+status = subscription.status
+active_sales = subscription.sales.reject(&:discarded?).sort_by(&:sold_on)
+amount_due = subscription.agreed_price_cents - subscription.amount_paid
+%>
+
+<%= subscription_row_wrapper(subscription, status) do %>
+
+  <%# -- Colonna 1: Icona -- %>
+  <div class="text-<%= status.color %> bg-<%= status.color %>/10 p-2 rounded-box mt-1 sm:mt-0 self-start sm:self-center">
+    <%= icon(subscription_status_icon(status.key), classes: "size-5") %>
+  </div>
+
+  <%# -- Colonna 2: Contenuto -- %>
+  <div class="list-col-grow gap-1">
+
+    <%# Titolo e Badges %>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="font-bold text-base"><%= subscription.product.name %></span>
+
+      <span class="badge badge-sm badge-soft badge-<%= status.color %>">
+        <%= subscription_status_label(status.key) %>
+      </span>
+
+      <%= subscription_payment_badge(subscription, amount_due) %>
+    </div>
+
+    <%# Date e Info %>
+    <div class="text-xs opacity-70 flex items-center gap-1 font-medium">
+      <%= icon("calendar_today", classes: "size-3") %>
+      <%= format_date(subscription.start_date) %> &rarr; <%= format_date(subscription.end_date) %>
+      <%= subscription_days_left_indicator(subscription, status) %>
+    </div>
+
+    <%# Storico Rate & Azione Pagamento %>
+    <% if active_sales.any? || amount_due > 0 %>
+      <div class="mt-1.5 flex flex-col gap-1 border-l-2 border-base-300 pl-3">
+
+        <% active_sales.each do |sale| %>
+          <div class="flex items-center justify-between text-xs opacity-80 hover:opacity-100 w-full max-w-sm">
+            <div class="flex items-center gap-1.5">
+              <%= payment_method_icon(sale.payment_method, classes: "size-3") %>
+              <span><%= format_date(sale.sold_on) %></span>
+              <%= subscription_sale_receipt_link(sale) %>
+            </div>
+            <div class="font-mono font-medium"><%= format_money(sale.amount) %></div>
+          </div>
+        <% end %>
+
+        <%= subscription_installment_action(subscription, amount_due) %>
+
+      </div>
+    <% end %>
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <div class="flex items-center gap-1 self-start sm:self-center">
+    <%= subscription_renew_action(subscription, status) %>
+    <% if current_user.admin? %>
+      <%= ui_row_edit_button([:edit, subscription]) %>
+    <% end %>
+    <%= subscription_archive_action(subscription) %>
+  </div>
+
+<% end %>

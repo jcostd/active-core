@@ -1,0 +1,66 @@
+<% content_for :sale_actions do %>
+  <ul class="menu w-full">
+    <li class="menu-title px-4 py-2 opacity-50 text-xs font-bold uppercase tracking-wider">
+      Vendita #<%= sale.id %>
+    </li>
+
+    <li>
+      <%= active_link_to sale_path(sale), active: :exclusive do %>
+        <%= icon("receipt") %> Dettagli Vendita
+      <% end %>
+    </li>
+  </ul>
+<% end %>
+
+<% content_for :record_avatar do %>
+  <%= icon("receipt", classes: "size-14 opacity-50") %>
+<% end %>
+
+<% content_for :record_title do %>
+  Vendita del <%= format_date(sale.sold_on) %>
+<% end %>
+
+<% content_for :record_subtitle do %>
+  <div class="flex items-center gap-3 mt-1">
+    <span class="font-mono text-sm opacity-70">
+      Rif: <%= sale.receipt_code.presence || "Bozza / N/A" %>
+    </span>
+    <% if sale.discarded? %>
+      <%= ui_badge("Annullata", style: "error") %>
+    <% else %>
+      <%= ui_badge("Confermata", style: "success") %>
+    <% end %>
+  </div>
+<% end %>
+
+<% content_for :record_actions do %>
+  <% unless sale.discarded? %>
+    <div class="flex items-center gap-2">
+      <%= link_to sale_path(sale , format: :pdf), class: "btn btn-primary btn-sm gap-2" do %>
+	<%= icon("print") %> <span class="hidden sm:inline">Stampa</span>
+      <% end %>
+
+      <% if current_user.admin? && sale.created_at > 24.hours.ago %>
+	<%= render layout: "shared/dropdown_layout", locals: {
+	  group_name: "sale_header_dropdowns",
+	  summary_class: "btn-sm btn-square btn-ghost",
+	  icon_name: "more",
+	  with_no_arrow: true
+	} do %>
+          <li>
+	    <%= link_to sale_path(sale),
+			class: "text-error hover:bg-error/10 hover:text-error",
+			data: {
+			  turbo_method: :delete,
+			  turbo_confirm: "Sei sicuro di voler annullare questa transazione?"
+			} do %>
+	      <%= icon("delete") %> Annulla Transazione
+	    <% end %>
+          </li>
+        <% end %>
+    </div>
+      <% end %>
+  <% end %>
+<% end %>
+
+<%= render "shared/header/record" %>

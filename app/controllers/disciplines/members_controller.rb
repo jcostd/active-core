@@ -1,20 +1,24 @@
 class Disciplines::MembersController < ApplicationController
+  include Filterable
+
   before_action :set_discipline
 
   def index
-    product_ids = @discipline.product_ids
+    @products = @discipline.products.kept
 
-    all_subs = Subscription.kept
-                 .where(product_id: product_ids)
-                 .where("end_date >= ?", 30.days.ago)
-                 .includes(:member, :product)
-    @subscriptions = all_subs.group_by(&:member_id)
-                       .map { |_, subs| subs.max_by(&:end_date) }
-                       .sort_by(&:end_date)
+    @query = @discipline.recent_subscriptions
+               .apply_filters(filter_params)
+               .includes(:product, member: [ :subscriptions ])
+
+    @pagy, @subscriptions = pagy(@query)
   end
 
   private
     def set_discipline
       @discipline = Discipline.find(params[:discipline_id])
+    end
+
+    def filter_params
+      params.permit(:query, :sort, :state, :product_id, :membership_status, :med_cert)
     end
 end

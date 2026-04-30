@@ -1,0 +1,47 @@
+<%# locals: (member:) %>
+
+<li id="<%= dom_id(member) %>" class="<%= class_names("list-row hover:bg-base-200/50 transition-colors", "opacity-60 grayscale": member.discarded?) %>">
+
+  <%# -- Colonna 1: Avatar -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to member, data: { turbo_frame: "_top" }, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+    <% end %>
+  </div>
+
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="flex flex-col gap-1 min-w-0 grow">
+
+    <%# Riga A: Nome %>
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "hover:text-primary transition-colors focus:outline-none" %>
+      <%= ui_badge("Archiviato") if member.discarded? %>
+    </div>
+
+    <%# Riga B: Dettagli Fiscali e Status %>
+    <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5">
+      <span><%= display_value(member.fiscal_code) %></span>
+
+      <%= member_status_badges(member) %>
+    </div>
+
+    <%# Riga C: Abbonamenti & Quick Actions %>
+    <div class="flex flex-wrap items-center gap-2 mt-0.5 min-h-[1.5rem]">
+      <%= render(partial: "subscriptions/compact", collection: member.relevant_subscriptions, as: :subscription) || member_empty_subscriptions_badge %>
+    </div>
+
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <% unless member.discarded? %>
+    <% if current_user.admin? %>
+      <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
+	<%= ui_row_edit_button(edit_member_path(member)) %>
+
+	<% if current_user&.admin? %>
+          <%= ui_row_delete_button(member, confirm: "Sei sicuro di voler archiviare questo socio?") %>
+	<% end %>
+      </div>
+    <% end %>
+  <% end %>
+</li>

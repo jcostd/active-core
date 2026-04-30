@@ -1,12 +1,18 @@
 class SalesController < ApplicationController
+  include Filterable
+
   before_action :require_admin, only: [ :index ]
   before_action :set_sale, only: [ :show, :destroy ]
 
+  layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
+
   def index
-    scope = Sale.kept
-                 .includes(:member, :user)
-                 .order(sold_on: :desc, created_at: :desc)
-    @pagy, @sales = pagy(scope)
+    @total_active_sales = Sale.kept.count
+    @pagy, @sales = pagy(
+      Sale
+        .apply_filters(filter_params)
+        .includes(:member, :user)
+    )
   end
 
   def show
@@ -17,20 +23,13 @@ class SalesController < ApplicationController
         send_data pdf.render,
                   filename: "ricevuta_#{@sale.id}_#{@sale.member.last_name}.pdf",
                   type: "application/pdf",
-                  disposition: "inline"
+                  disposition: "_blank"
       end
     end
   end
 
   def new
-    @sale = Sale.new(sold_on: Date.current, user: current_user)
-    @sale.build_subscription(start_date: Date.current)
-
-    if params[:member_id]
-      @sale.member = Member.find(params[:member_id])
-    end
-
-    setup_renewal_data if params[:renew_subscription_id]
+    @sale = build_draft(sale_params_for_build)
   end
 
   def create
@@ -40,8 +39,18 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
     else
-      @sale.build_subscription(start_date: Date.current) if @sale.subscription.nil?
-      render :new, status: :unprocessable_entity
+      @sale = build_draft(sale_params, existing_sale: @sale)
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+                   "pos_form_frame",
+                   template: "sales/new",
+                   layout: false
+                 ), status: :unprocessable_entity
+        end
+        format.html { render :new, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -58,29 +67,42 @@ class SalesController < ApplicationController
       @sale = Sale.find(params[:id])
     end
 
-    def setup_renewal_data
-      return unless @sale.member && params[:renew_subscription_id]
+  def build_draft(sale_params, existing_sale: nil)
+    context = params.to_unsafe_h.deep_symbolize_keys
 
-      old_sub = @sale.member.subscriptions.find(params[:renew_subscription_id])
+    if context[:manual_start_date].present?
+      context[:sale] ||= {}
+      context[:sale][:subscription_attributes] ||= {}
+      context[:sale][:subscription_attributes][:start_date] = context[:manual_start_date]
+    end
 
-      @sale.product = old_sub.product
-      @sale.amount  = old_sub.product.price || 0
+    PosDraftBuilder.new(
+      sale_params:    sale_params,
+      context_params: context,
+      existing_sale:  existing_sale
+    ).build
+  end
 
-      dates = RenewalCalculator.new(@sale.member, @sale.product, Date.current).call
-
-      @sale.subscription.start_date = dates[:start_date]
-      @sale.subscription.end_date   = dates[:end_date]
+    def sale_params_for_build
+      params.has_key?(:sale) ? sale_params : {}
     end
 
     def sale_params
+      permitted_sub_attrs = [ :start_date ]
+
+      if current_user.admin?
+        permitted_sub_attrs << :end_date
+        permitted_sub_attrs << :agreed_price
+      end
+
       params.require(:sale).permit(
-        :member_id,
-        :product_id,
-        :amount,
-        :payment_method,
-        :sold_on,
-        :notes,
-        subscription_attributes: [ :start_date ]
+        :member_id, :product_id, :amount, :payment_method,
+        :sold_on, :notes, :subscription_id,
+        subscription_attributes: permitted_sub_attrs
       )
+    end
+
+    def filter_params
+      params.permit(:query, :sort, :state, :period, :payment_method, :accounting_category, :operator_id)
     end
 end

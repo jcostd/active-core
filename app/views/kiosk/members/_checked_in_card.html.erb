@@ -1,0 +1,52 @@
+<%# locals: (log:) %>
+
+<% cache log do %>
+  <%
+    member = log.member
+    is_warning = log.status != "ok"
+    bg_class = is_warning ? "bg-warning/10 border-warning/50 text-warning-content" : "bg-success/10 border-success/50 text-success-content"
+  %>
+
+  <div id="<%= dom_id(log) %>" class="card <%= bg_class %> shadow-sm border transition-all">
+    <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
+
+      <div class="flex items-center gap-4">
+        <%= ui_avatar(member, size: "size-12", text_size: "text-md") %>
+
+        <div>
+          <h4 class="font-bold text-lg leading-tight truncate max-w-[180px] text-base-content"><%= member.full_name %></h4>
+
+          <div class="flex flex-col gap-0.5 mt-1">
+            <span class="text-[10px] uppercase font-bold opacity-60 text-base-content flex items-center gap-1">
+              <%= icon("clock", classes: "size-3") %>
+              <%= format_datetime(log.entered_at, format: :short) %>
+            </span>
+
+            <% if is_warning %>
+              <span class="text-[10px] uppercase font-bold text-warning flex items-center gap-1">
+                <%= icon("warning", classes: "size-3") %> Forzato
+              </span>
+            <% end %>
+
+	    <% sub = member.valid_subscription_for(log.discipline) %>
+	    <% if sub && !sub.unlimited_entries? %>
+	      <span class="text-[10px] uppercase font-bold text-secondary flex items-center gap-1 mt-0.5">
+		<%= icon("access", classes: "size-3") %> Entrate Rimanenti: <%= sub.entries_remaining %>
+	      </span>
+	    <% end %>
+
+          </div>
+        </div>
+      </div>
+
+      <%= button_to kiosk_discipline_access_log_path(log.discipline_id, log),
+                    method: :delete,
+                    class: "btn btn-circle btn-ghost hover:bg-error/20 hover:text-error transition-colors",
+                    title: "Annulla ingresso",
+                    data: { turbo: true } do %>
+        <%= icon("close", classes: "size-8") %>
+      <% end %>
+
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,46 @@
+<li
+  id="<%= dom_id(user) %>"
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if user.discarded? %>">
+
+  <%# -- Colonna 1: Avatar -- %>
+  <div class="shrink-0">
+    <%= ui_avatar(user, size: "size-10", text_size: "text-md") %>
+  </div>
+
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="grid gap-1 min-w-0 grow">
+
+    <%# Riga A: Nome e Badge Ruolo/Stato %>
+    <div class="flex items-center gap-2 truncate">
+      <div class="font-bold text-base leading-none truncate">
+        <%= link_to user.full_name, user, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
+      </div>
+
+      <% if user.discarded? %>
+        <%= ui_badge("Archiviato") %>
+      <% else %>
+        <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-xs font-bold uppercase text-[9px] opacity-80">
+          <%= user.role %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Riga B: Dati Utente (Username, Email) %>
+    <div class="text-xs font-semibold opacity-60 flex flex-wrap items-center gap-2">
+      <span class="font-mono">@<%= user.username %></span>
+      <span class="opacity-40">•</span>
+      <span><%= user.email_address %></span>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <% unless user.discarded? %>
+    <div class="flex items-center gap-1 shrink-0">
+      <%= ui_row_edit_button(edit_user_path(user)) %>
+
+      <% if current_user.admin? && user != current_user %>
+        <%= ui_row_delete_button(user, confirm: "Sei sicuro di voler archiviare questo utente?") %>
+      <% end %>
+    </div>
+  <% end %>
+</li>

@@ -1,28 +1,16 @@
-<%#
-  Componente standardizzato per header delle pagine INDEX
-
-  Slots disponibili:
-  - :page_title          (obbligatorio) - Titolo della pagina
-  - :page_counter        (opzionale)    - Count risultati/records
-  - :page_actions        (opzionale)    - Azioni primarie + dropdown secondarie
-  - :page_search_and_filters (opzionale) - Form ricerca/filtri
-%>
-
 <header class="space-y-4 pb-4">
+
   <%# ====== RIGA 1: Titolo + Counter + Azioni ====== %>
   <div class="flex items-start justify-between gap-3">
-    <%# Blocco Titolo + Counter %>
     <div class="flex flex-col gap-1 min-w-0 flex-1">
       <h1 class="text-2xl sm:text-3xl font-bold leading-tight">
         <%= yield :page_title %>
       </h1>
-
       <% if content_for?(:page_counter) %>
         <span class="text-sm text-base-content/60 font-mono tabular-nums"><%= yield :page_counter %></span>
       <% end %>
     </div>
 
-    <%# Blocco Azioni (Primary + Secondary) %>
     <% if content_for?(:page_actions) %>
       <div class="flex items-center gap-2 flex-shrink-0">
         <%= yield :page_actions %>
@@ -32,17 +20,8 @@
 
   <%# ====== RIGA 2: Search + Filters ====== %>
   <% if content_for?(:page_search_and_filters) %>
-    <div id="page_search_bar_<%= controller_name %>" data-turbo-permanent>
-      <div class="flex flex-wrap items-center gap-2">
-        <div class="flex-1 min-w-[200px] max-w-3xl">
-          <%= yield :page_search_and_filters %>
-        </div>
-
-        <%# Bottone filtri — allineato a destra ma resta vicino alla search %>
-        <% if content_for?(:page_filters_button) %>
-          <div class="flex-shrink-0"><%= yield :page_filters_button %></div>
-        <% end %>
-      </div>
+    <div id="page_search_bar_<%= controller_name %>" class="w-full">
+      <%= yield :page_search_and_filters %>
     </div>
   <% end %>
 </header>

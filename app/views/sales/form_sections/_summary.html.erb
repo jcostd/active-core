@@ -1,0 +1,54 @@
+<div class="w-full md:w-80 lg:w-96 shrink-0">
+  <div class="bg-base-200/50 rounded-box p-6 sm:p-8 sticky top-4 flex flex-col h-full border border-base-200">
+    <h3 class="font-bold text-sm flex items-center gap-2 mb-6 uppercase tracking-widest opacity-60">
+      <%= icon("receipt") %> Riepilogo Scontrino
+    </h3>
+
+    <div class="flex flex-col gap-4 flex-1">
+      <div class="flex justify-between items-start border-b border-base-300 pb-3">
+        <span class="text-sm opacity-60 font-medium">Socio</span>
+        <span class="font-bold text-right max-w-[160px] truncate"><%= sale.member&.full_name || "---" %></span>
+      </div>
+
+      <div class="flex justify-between items-start border-b border-base-300 pb-3">
+        <span class="text-sm opacity-60 font-medium">Prodotto</span>
+        <span class="font-bold text-right max-w-[160px] leading-tight"><%= sale.product&.name || "---" %></span>
+      </div>
+
+      <% if is_installment %>
+        <div class="bg-base-100 border border-base-300 rounded-box p-3 text-xs mt-2 space-y-2">
+          <div class="flex justify-between font-medium opacity-60">
+            <span>Costo Totale:</span>
+            <span><%= format_money(sale.subscription.agreed_price) %></span>
+          </div>
+          <div class="flex justify-between font-medium text-success">
+            <span>Già versato:</span>
+            <span><%= format_cents(sale.subscription.amount_paid) %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="mt-auto flex flex-col">
+        <%= f.label :amount, "Importo da Incassare", class: "label text-sm font-bold uppercase tracking-wider opacity-50" %>
+
+	<label class="input input-lg w-full">
+	  <span class="label"><%= icon("euro_symbol", classes: "size-5 text-content/50") %></span>
+          <%= f.text_field :amount,
+	   autocomplete: "off",
+	   class: "grow text-right text-3xl font-mono",
+	   data: { action: "change->autosubmit#submit" } %>
+	</label>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <%= f.button formmethod: "post",
+       formaction: sales_path,
+       data: { turbo_frame: "_top" },
+       disabled: sale.product.nil? || sale.member.nil?,
+       class: "btn btn-primary btn-block btn-lg shadow-sm" do %>
+        <%= icon("sale", classes: "size-6") %> <%= is_installment ? "Incassa Rata" : "Conferma e Incassa" %>
+      <% end %>
+    </div>
+  </div>
+</div>

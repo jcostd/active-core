@@ -1,5 +1,5 @@
 class Feedback < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, touch: true
 
   enum :status, {
     pending: 0,

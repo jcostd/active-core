@@ -47,7 +47,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     )
 
     sub = Subscription.create!(
-      member: @member, product: @prod_inst, sale: sale,
+      member: @member, product: @prod_inst, sales: [ sale ],
       start_date: future_start
     )
 
@@ -64,19 +64,19 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     # 1. Scaduto
     expired = Subscription.create!(
-      member: @member, product: @prod_inst, sale: sale,
+      member: @member, product: @prod_inst, sales: [ sale ],
       start_date: today - 2.months, end_date: today - 1.month
     )
 
     # 2. Attivo
     active = Subscription.create!(
-      member: @member, product: @prod_inst, sale: sale,
+      member: @member, product: @prod_inst, sales: [ sale ],
       start_date: today.beginning_of_month, end_date: today.end_of_month
     )
 
     # 3. Futuro
     upcoming = Subscription.create!(
-      member: @member, product: @prod_inst, sale: sale,
+      member: @member, product: @prod_inst, sales: [ sale ],
       start_date: today + 1.month, end_date: today + 2.months
     )
 
@@ -88,16 +88,21 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_includes Subscription.upcoming, upcoming
   end
 
-  test "validates end date after start date" do
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.today)
+  test "admin override: prevents Duration calculator from modifying explicitly provided end_dates" do
+    invalid_end_date = Date.current + 50.days
 
-    sub = Subscription.new(
-      member: @member, product: @prod_inst, sale: sale,
-      start_date: Date.today,
-      end_date: Date.yesterday # Errore manuale
+    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current)
+
+    subscription = Subscription.new(
+      member: @member,
+      product: @prod_inst,
+      sales: [ sale ],
+      start_date: Date.current,
+      end_date: invalid_end_date
     )
 
-    assert_not sub.valid?
-    assert_includes sub.errors[:end_date], "must be after or equal to start date"
+    subscription.valid?
+
+    assert_equal invalid_end_date, subscription.end_date
   end
 end

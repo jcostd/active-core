@@ -1,8 +1,11 @@
 class User < ApplicationRecord
   include SoftDeletable, Personable, UserPreferences, Avatarable
+  include Refreshable
+  include User::Filterable
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  after_discard :terminate_all_sessions
 
   has_many :sales, dependent: :restrict_with_error
   has_many :feedbacks, dependent: :restrict_with_error
@@ -19,4 +22,9 @@ class User < ApplicationRecord
                        format: { with: /\A[a-z0-9_]+\z/, message: "only allows lowercase letters, numbers and underscores" }
 
   validates :password, length: { minimum: 4 }, allow_nil: true
+
+  private
+    def terminate_all_sessions
+      sessions.delete_all
+    end
 end

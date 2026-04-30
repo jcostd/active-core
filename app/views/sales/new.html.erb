@@ -1,3 +1,4 @@
-<%= render layout: "shared/modal", locals: { title: t(".title", default: "Nuova Vendita"), size: :large } do %>
-  <%= render "form", sale: @sale %>
-<% end %>
+<% content_for :title, "Terminale POS" %>
+<% content_for :modal_class, "max-w-5xl w-11/12" %>
+
+<%= render "form", sale: @sale %>

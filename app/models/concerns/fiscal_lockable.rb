@@ -6,7 +6,6 @@ module FiscalLockable
   end
 
   private
-
     def prevent_fiscal_tampering
       fiscal_attributes = [ :receipt_number, :receipt_year, :receipt_sequence ]
 

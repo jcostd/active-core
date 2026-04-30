@@ -1,0 +1,56 @@
+<div class="fieldset">
+  <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
+    <%= icon("calendar_today", classes: "size-6 opacity-40") %> Validità Iscrizione
+  </div>
+
+  <% if is_installment %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <fieldset class="fieldset">
+        <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza</label>
+        <%= date_field_tag nil, sale.subscription.start_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="label text-xs font-semibold uppercase opacity-70">Scadenza
+        </label>
+        <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
+      </fieldset>
+    </div>
+    <div class="text-xs text-info font-medium">Le date non sono modificabili durante il saldo di una rata.</div>
+  <% else %>
+    <%= f.fields_for :subscription do |sub_f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <%# COLONNA SINISTRA %>
+        <fieldset class="fieldset">
+          <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza (Modificabile)
+          </label>
+          <%= sub_f.date_field :start_date, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+        </fieldset>
+
+        <%# COLONNA DESTRA %>
+        <fieldset class="fieldset">
+          <% if current_user.try(:admin?) %>
+            <% override_active = params[:override_end_date] == "1" %>
+
+            <label class="label text-xs font-semibold uppercase opacity-70 cursor-pointer transition-colors <%= 'text-warning' if override_active %>" for="override_end_date">
+              <%= check_box_tag :override_end_date, "1", override_active, id: "override_end_date", class: "checkbox checkbox-xs checkbox-warning", data: { action: "change->autosubmit#submit" } %>
+                Forza Scadenza (Admin)
+            </label>
+
+            <% if override_active %>
+              <%= sub_f.date_field :end_date, class: "input w-full border-warning text-warning focus:ring-warning", data: { action: "change->autosubmit#submit" } %>
+            <% else %>
+              <%= sub_f.date_field :end_date, class: "input w-full bg-base-200 text-base-content/50 cursor-not-allowed focus:outline-none", readonly: true %>
+            <% end %>
+
+          <% else %>
+            <label class="label text-xs font-semibold uppercase opacity-70">Scadenza (Calcolata)</label>
+            <%= sub_f.date_field :end_date, class: "input w-full bg-transparent border-dashed text-base-content/50 focus:outline-none", readonly: true %>
+          <% end %>
+        </fieldset>
+
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,50 +1,29 @@
-<div class="dropdown dropdown-end" data-controller="language">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-sm btn-ghost gap-1 px-1.5"
-    title="Cambia Lingua"
-  >
-    <%= icon("language", size: 16, class: "text-base-content/70") %>
-    <%= icon("arrow_drop_down", size: 16, class: "hidden opacity-60 sm:inline-block") %>
-  </div>
+<%= render layout: "shared/dropdown_layout", locals: {
+  group_name: "navbar_dropdowns",
+  title: "Cambia Lingua",
+  icon_name: "language",
+  menu_class: "menu flex flex-col flex-nowrap dropdown-content bg-base-100 rounded-box shadow-lg mt-4 w-56 p-2"
+} do %>
 
-  <div
-    tabindex="0"
-    class="
-      dropdown-content bg-base-200 text-base-content rounded-box top-px mt-10
-      max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto
-      border border-white/5 shadow-2xl outline outline-1 outline-black/5
-    "
-  >
-    <ul class="menu menu-sm w-full">
-      <% I18n.available_locales.each do |locale| %>
-        <% is_active = current_user.try(:locale_or_default).to_s == locale.to_s
-           language_name = I18n.t("language_name", locale: locale, default: locale.to_s.upcase) %>
+  <% I18n.available_locales.each do |locale| %>
+    <% is_active = current_user.try(:locale_or_default).to_s == locale.to_s %>
 
-        <li>
-          <button
-            class="<%= 'active' if is_active %>"
-            data-action="click->language#change"
-            data-set-language="<%= locale %>"
-          >
-            <span
-              class="
-                font-mono text-[0.65rem] font-bold tracking-wide opacity-50
-                w-6
-              "
-            >
-              <%= locale.to_s.upcase %>
-            </span>
+    <li class="w-full">
+      <%= link_to preferences_language_path(language: locale), data: { turbo_method: :patch }, class: "flex w-full justify-between #{'active' if is_active}" do %>
 
-            <span class="font-sans font-medium"><%= language_name %></span>
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[0.65rem] font-bold opacity-50 w-6 text-center">
+            <%= locale.to_s.upcase %>
+          </span>
+          <span><%= I18n.t("language_name", locale: locale, default: locale.to_s.upcase) %></span>
+        </div>
 
-            <% if is_active %>
-              <%= icon("check", size: 14, class: "ml-auto") %>
-            <% end %>
-          </button>
-        </li>
+        <% if is_active %>
+          <%= icon("check") %>
+        <% end %>
+
       <% end %>
-    </ul>
-  </div>
-</div>
+    </li>
+  <% end %>
+
+<% end %>

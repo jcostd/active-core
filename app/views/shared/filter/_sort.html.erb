@@ -1,0 +1,16 @@
+<%
+sort_options ||= [
+  ["Più recenti", "created_desc"],
+  ["Meno recenti", "created_asc"],
+  ["Nome (A-Z)", "name_asc"],
+  ["Nome (Z-A)", "name_desc"]
+]
+default_sort ||= "created_desc"
+%>
+
+<%= form.select :sort,
+ sort_options,
+ { prompt: "Ordina per...", selected: params[:sort] || default_sort },
+ { class: "select select-bordered w-full sm:w-auto",
+   data: { action: "change->autosubmit#submit" },
+   aria: { label: "Ordina per" } } %>

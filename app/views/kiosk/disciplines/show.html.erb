@@ -1,0 +1,61 @@
+<%= turbo_stream_from "access_logs" %>
+
+<div class="flex items-center gap-4">
+  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost" do %>
+    <%= icon("arrow_left", classes: "size-6") %>
+  <% end %>
+  <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
+</div>
+
+<%# RICERCA A TUTTA LARGHEZZA MINIMAL %>
+<div class="relative" data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside">
+  <label class="input input-xl w-full focus-within:outline-primary shadow-sm bg-base-100 border-base-200">
+    <%= icon("search", classes: "size-6 opacity-50") %>
+    <input type="text"
+	   name="members_search"
+           class="grow font-bold placeholder:font-normal placeholder:opacity-50"
+           placeholder="Cerca nome, cognome o CF..."
+           autocomplete="off"
+           data-autocomplete-target="input"
+           data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
+           data-url="<%= kiosk_discipline_member_searches_path(@discipline) %>" />
+  </label>
+
+  <turbo-frame id="<%= dom_id(@discipline, :member_search_results) %>" data-autocomplete-target="frame"></turbo-frame>
+</div>
+
+<%# SPLIT A DUE COLONNE %>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
+
+  <div class="flex flex-col gap-3">
+    <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
+      Da Smarcare (<%= @pending_members.size %>)
+    </div>
+
+    <% if @pending_members.empty? %>
+      <%= render "shared/empty_state",
+                 icon_name: "check",
+                 title: "Tutti presenti!",
+                 message: "Hai smarcato tutti i soci previsti per questo corso." %>
+    <% else %>
+      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { discipline: @discipline } %>
+    <% end %>
+  </div>
+
+  <%# COLONNA DESTRA: PRESENTI IN SALA %>
+  <div class="flex flex-col gap-3">
+    <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
+      Oggi in Sala (<%= @today_accesses.size %>)
+    </div>
+
+    <% if @today_accesses.empty? %>
+      <%= render "shared/empty_state",
+      icon_name: "clock",
+      title: "Nessuno in sala.",
+      message: "In attesa dei primi check-in..." %>
+    <% else %>
+      <%= render partial: "kiosk/members/checked_in_card", collection: @today_accesses, as: :log %>
+    <% end %>
+  </div>
+
+</div>

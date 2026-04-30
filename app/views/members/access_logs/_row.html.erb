@@ -1,0 +1,46 @@
+<%# locals: (log:) %>
+
+<% color = access_log_status_color(log.status) %>
+
+<li id="<%= dom_id(log) %>" class="list-row group hover:bg-base-200/50 transition-colors">
+
+  <%# -- Colonna 1: Icona Entrata Dinamica -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <div class="p-2 bg-<%= color %>/10 text-<%= color %> rounded-box opacity-80 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <%= icon(access_log_status_icon(log.status), classes: "size-5") %>
+    </div>
+  </div>
+
+  <%# -- Colonna 2: Dettagli Accesso -- %>
+  <div class="flex flex-col gap-1 min-w-0 grow">
+
+    <%# Nome Attività / Disciplina %>
+    <div class="font-bold truncate text-base leading-none">
+      <%= access_log_activity_name(log) %>
+    </div>
+
+    <%# Data, Ora e Info Abbonamento %>
+    <div class="text-[11px] font-medium opacity-70 flex flex-wrap items-center gap-1.5 mt-0.5">
+      <%= icon("clock", classes: "size-3") %>
+      <span class="font-mono font-bold"><%= format_datetime(log.entered_at, format: "%d/%m/%Y %H:%M") %></span>
+
+      <%# Se c'è un abbonamento collegato, lo mostriamo per contesto %>
+      <% if log.subscription.present? %>
+        <span class="opacity-50 mx-1">&bull;</span>
+        <%= icon("card_membership", classes: "size-3 opacity-70") %>
+        <span class="truncate max-w-[200px]" title="<%= log.subscription.product.name %>">
+          <%= log.subscription.product.name %>
+        </span>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# -- Colonna 3: Stato Dinamico -- %>
+  <div class="shrink-0 self-start sm:self-center">
+    <span class="badge badge-sm badge-soft badge-<%= color %>">
+      <%= access_log_status_label(log.status) %>
+    </span>
+  </div>
+
+</li>

@@ -1,20 +1,22 @@
 class Discipline < ApplicationRecord
   include SoftDeletable
+  include Refreshable
+  include Discipline::Filterable
 
   has_many :product_disciplines, dependent: :destroy
   has_many :products, through: :product_disciplines
 
-  normalizes :name, with: ->(n) { n.squish.titleize }
+  has_many :subscriptions, through: :products
 
+  has_many :access_logs, dependent: :nullify
+
+  normalizes :name, with: ->(n) { n.squish.titleize }
   validates :name, presence: true, uniqueness: { conditions: -> { kept } }
 
-  broadcasts_refreshes
-
   def recent_subscriptions
-    Subscription.kept
-      .where(product_id: product_ids)
-      .where("end_date >= ?", 30.days.ago)
+    subscriptions
+      .kept
+      .where("subscriptions.end_date >= ?", 30.days.ago)
       .includes(:member, :product)
-      .order(end_date: :asc)
   end
 end

@@ -1,148 +1,64 @@
-<%= form_with(model: subscription, class: "space-y-6",
-      data: { 
-        controller: "subscription-edit",
-        subscription_edit_member_id_value: subscription.member_id,
-        subscription_edit_product_id_value: subscription.product_id
-      }) do |f| %>
+<%= form_with(model: subscription, class: "space-y-6") do |f| %>
   <%= render "shared/form_errors", model: subscription %>
 
-  <%# Controlliamo prima se esiste la ricevuta per decidere il layout %>
-  <% has_receipt = subscription.sale.receipt_code.present? %>
+  <%# --- SEZIONE 1: RIEPILOGO ABBONAMENTO (Sola Lettura) --- %>
+  <div class="bg-base-200/30 rounded-box border border-base-300 overflow-hidden mb-4">
+    <div class="grid grid-cols-2 divide-x divide-base-300">
 
-  <div class="bg-base-200/50 rounded-lg border border-base-300 overflow-hidden mb-4">
-    <%# CAMBIO DINAMICO: Se c'è la ricevuta usa 3 colonne, altrimenti 2 %>
-    <div class="grid <%= has_receipt ? 'grid-cols-3' : 'grid-cols-2' %> divide-x divide-base-300">
-      <%# 1. SOCIO (Sempre presente) %>
-      <div class="flex flex-col justify-center items-center p-2 text-center min-w-0">
-        <div class="text-primary mb-0.5"><%= icon("badge", size: 18) %></div>
-
-        <div
-          class="
-            text-[10px] uppercase font-bold text-base-content/50
-            leading-none mb-0.5
-          "
-        >
-          Socio
-        </div>
-
-        <div
-          class="text-sm font-bold w-full truncate px-1"
-          title="<%= subscription.member.full_name %>"
-        >
+      <%# 1. SOCIO %>
+      <div class="flex flex-col justify-center items-center p-3 text-center min-w-0">
+        <div class="text-primary mb-1"><%= icon("badge", classes: "size-5") %></div>
+        <div class="text-[10px] uppercase font-bold text-base-content/50 leading-none mb-0.5">Socio</div>
+        <div class="text-sm font-bold w-full truncate px-1" title="<%= subscription.member.full_name %>">
           <%= subscription.member.full_name %>
         </div>
       </div>
 
-      <%# 2. PRODOTTO (Sempre presente) %>
-      <div class="flex flex-col justify-center items-center p-2 text-center min-w-0">
-        <div class="text-secondary mb-0.5"><%= icon("product", size: 18) %></div>
-
-        <div
-          class="
-            text-[10px] uppercase font-bold text-base-content/50
-            leading-none mb-0.5
-          "
-        >
-          Prodotto
-        </div>
-
-        <div
-          class="text-sm font-bold w-full truncate px-1"
-          title="<%= subscription.product.name %>"
-        >
+      <%# 2. PRODOTTO %>
+      <div class="flex flex-col justify-center items-center p-3 text-center min-w-0">
+        <div class="text-secondary mb-1"><%= icon("shopping_cart", classes: "size-5") %></div>
+        <div class="text-[10px] uppercase font-bold text-base-content/50 leading-none mb-0.5">Prodotto</div>
+        <div class="text-sm font-bold w-full truncate px-1" title="<%= subscription.product.name %>">
           <%= subscription.product.name %>
         </div>
       </div>
-
-      <%# 3. RICEVUTA (Solo se esiste) %>
-      <% if has_receipt %>
-        <div class="flex flex-col justify-center items-center p-2 text-center min-w-0">
-          <div class="text-accent mb-0.5">
-            <%= icon("receipt", size: 18) %>
-          </div>
-
-          <div
-            class="
-              text-[10px] uppercase font-bold text-base-content/50
-              leading-none mb-0.5
-            "
-          >
-            Ricevuta
-          </div>
-
-          <div class="text-sm font-mono font-bold w-full truncate px-1">
-            <%= subscription.sale.receipt_code %>
-          </div>
-        </div>
-      <% end %>
     </div>
   </div>
 
-  <%# --- SEZIONE 2: DURATA E DATE --- %>
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-6 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("calendar_today", size: 18) %> Periodo di Validità
+  <%# --- SEZIONE 2: PERIODO DI VALIDITÀ --- %>
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
+      <%= icon("calendar_today", classes: "size-4") %> Periodo di Validità
     </legend>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
-        <%= f.label :start_date, "Data Inizio", class: "label" %>
-        <%= f.date_field :start_date, 
-              required: true, 
-              class: "input w-full",
-              data: { 
-                subscription_edit_target: "startDate",
-                action: "change->subscription-edit#refreshEndDate" 
-              } %>
-
-        <div>
-          <p class="label text-base-content/60">
-            Modifica per ricalcolare la fine.
-          </p>
-          <p data-subscription-edit-target="status"></p>
-        </div>
+        <%= f.label :start_date, "Data Inizio*", class: "label" %>
+        <%= f.date_field :start_date, class: "input w-full", required: true %>
       </div>
 
-      <%# DATA FINE %>
       <div>
-        <%= f.label :end_date, "Data Scadenza", class: "label" %>
-        <% is_admin = current_user.respond_to?(:admin?) && current_user.admin? %>
-        <%= f.date_field :end_date,
-              class: "input w-full #{'input-disabled bg-base-200 text-base-content/50' unless is_admin} transition-colors duration-300",
-              disabled: !is_admin,
-              readonly: !is_admin,
-              data: { subscription_edit_target: "endDate" } %>
+        <%= f.label :end_date, "Data Scadenza*", class: "label" %>
+        <%= f.date_field :end_date, class: "input w-full" %>
+      </div>
+    </div>
 
-        <div>
-          <% if is_admin %>
-            <p class="label text-warning flex items-center gap-1 font-semibold">
-              Override Admin attivo
-            </p>
-          <% else %>
-            <p class="label text-base-content/60 flex items-center gap-1">
-              Calcolata automaticamente.
-            </p>
-          <% end %>
-        </div>
+    <div class="mt-4 pt-4 border-t border-base-300">
+      <%= f.label :entry_limit, "Ingressi Totali Consentiti", class: "label font-bold" %>
+      <%= f.number_field :entry_limit,
+      class: "input w-full md:w-1/3",
+        placeholder: "Lascia vuoto per ingressi illimitati" %>
+      <div class="text-xs opacity-60 mt-1">
+        Questo valore viene copiato in automatico dal Prodotto. Modificalo solo se vuoi fare un'eccezione per questo socio.
       </div>
     </div>
   </fieldset>
 
-  <%# --- AZIONI --- %>
-  <div class="modal-action mt-8 flex items-center justify-between gap-2">
-    <%= link_to subscription_path(subscription), 
-          class: "btn btn-outline btn-error btn-sm",
-          data: { turbo_method: :delete, turbo_confirm: "Sei sicuro? L'abbonamento verrà annullato." } do %>
-      <%= icon("delete", size: 16) %>
-      Annulla Abbonamento
-    <% end %>
-
-    <div class="flex gap-3">
-      <%= link_to "Indietro", [subscription.member, :subscriptions], class: "btn btn-ghost" %>
-
-      <%= button_tag "Aggiorna Date", type: "submit",
-		     class: "btn btn-primary",
-		     data: { turbo_submits_with: '<span class="loading loading-dots loading-sm"></span> Salvataggio...' } %>
-    </div>
+  <!-- Begin Actions -->
+  <div class="modal-action">
+    <%= f.submit "Salva",
+     class: "btn btn-primary px-4",
+     data: { turbo_submits_with: 'Salvataggio...' } %>
   </div>
+  <!-- End Actions -->
 <% end %>

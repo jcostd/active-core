@@ -1,8 +1,18 @@
 class ProductsController < ApplicationController
+  include Filterable
+
+  before_action :require_admin
   before_action :set_product, only: [ :show, :edit, :update, :destroy ]
 
+  layout "modal", only: [ :new, :create, :edit, :update ]
+
   def index
-    @pagy, @products = pagy(Product.kept.includes(:disciplines).order(:name))
+    @total_active_products = Product.kept.count
+    @pagy, @products = pagy(
+      Product
+        .apply_filters(filter_params)
+        .includes(:disciplines)
+    )
   end
 
   def show; end
@@ -15,42 +25,37 @@ class ProductsController < ApplicationController
       accounting_category: :institutional,
       duration_days: 30
     )
-
-    render layout: "modal"
   end
 
   def create
     @product = Product.new(product_params)
 
     if @product.save
-      redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
     else
-      render :new, layout: "modal", status: :unprocessable_entity
+      render :new, status: :unprocessable_entity
     end
   end
 
-  def edit
-    render layout: "modal"
-  end
+  def edit; end
 
   def update
     if @product.update(product_params)
-      redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
     else
-      render :edit, layout: "modal", status: :unprocessable_entity
+      render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
     if @product.discard!
-      redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
+      turbo_refresh_or_redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
     else
       redirect_to products_path, alert: t(".error", default: "Impossibile archiviare.")
     end
   end
 
   private
-
     def set_product
       @product = Product.find(params[:id])
     end
@@ -61,7 +66,12 @@ class ProductsController < ApplicationController
         :price,
         :duration_days,
         :accounting_category,
+        :entry_limit,
         discipline_ids: []
       )
+    end
+
+    def filter_params
+      params.permit(:query, :sort)
     end
 end

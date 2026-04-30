@@ -1,0 +1,46 @@
+<%# locals: (discipline:) %>
+
+<li id="<%= dom_id(discipline) %>" class="<%= class_names("list-row hover:bg-base-200/50 transition-colors", "opacity-60 grayscale": discipline.discarded?) %>">
+
+  <%# -- Colonna 1: Icona -- %>
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to discipline, data: { turbo_frame: "_top" }, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <div class="size-10 bg-base-200 rounded-box flex items-center justify-center text-base-content/50">
+        <%= icon("category") %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# -- Colonna 2: Contenuto centrale -- %>
+  <div class="flex flex-col gap-1 min-w-0 grow">
+    <%# Riga A: Nome %>
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to discipline.name, discipline, data: { turbo_frame: "_top" }, class: "hover:text-primary transition-colors focus:outline-none" %>
+      <%= ui_badge("Archiviato") if discipline.discarded? %>
+    </div>
+
+    <%# Riga B: Dati numerici %>
+    <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5">
+      <span><%= display_value(discipline.products.size) %> Prodotti collegati</span>
+    </div>
+
+    <%# Riga C: Requirements %>
+    <div class="flex flex-wrap items-center gap-2 mt-0.5 min-h-[1.5rem]">
+      <%= ui_requirement_badge(discipline.requires_medical_certificate?,
+                               text: "Cert. Medico", icon_name: "med", active_class: "badge-error badge-soft") %>
+
+      <%= ui_requirement_badge(discipline.requires_membership?,
+                               text: "Iscrizione", icon_name: "card_membership", active_class: "badge-info badge-soft") %>
+    </div>
+  </div>
+
+  <%# -- Colonna 3: Azioni -- %>
+  <% unless discipline.discarded? %>
+    <% if current_user&.admin? %>
+      <div class="flex items-center gap-1 shrink-0 self-start sm:self-center">
+	<%= ui_row_edit_button(edit_discipline_path(discipline)) %>
+        <%= ui_row_delete_button(discipline, confirm: "Sei sicuro di voler archiviare #{discipline.name}?") %>
+      </div>
+    <% end %>
+  <% end %>
+</li>

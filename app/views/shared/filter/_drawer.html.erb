@@ -1,34 +1,25 @@
-<%#
-  Componente: Drawer laterale per filtri avanzati
+<dialog
+  data-drawer-target="dialog"
+  data-action="click->drawer#clickOutside"
+  class="backdrop:bg-neutral/50 p-0 m-0 fixed right-0 left-auto h-full max-h-screen w-80 sm:w-96 shadow-2xl transition-transform duration-300 open:translate-x-0 translate-x-full bg-base-100"
+>
+  <div class="flex flex-col h-full w-full">
 
-  Slot:
-  - :drawer_filters - Contenuto filtri (checkbox, radio, etc)
-%>
-
-<div class="drawer drawer-end">
-  <input id="filter-drawer" type="checkbox" class="drawer-toggle">
-
-  <div class="drawer-content"></div>
-
-  <div class="drawer-side z-51">
-    <label for="filter-drawer" class="drawer-overlay"></label>
-
-    <div class="bg-base-100 min-h-full w-96 flex flex-col">
-      <%# Header fisso %>
-      <div class="flex items-center justify-between p-6">
-        <div class="flex items-center gap-3">
-          <%= icon("filter", size: 24) %>
-
-          <h2 class="text-xl font-bold">Filtri</h2>
-        </div>
-
-        <label for="filter-drawer" class="btn btn-ghost btn-sm btn-square">
-          <%= icon("close", size: 20) %>
-        </label>
-      </div>
-
-      <%# Contenuto scrollabile %>
-      <div class="flex-1 overflow-y-auto p-6"><%= yield %></div>
+    <%# Header del cassetto %>
+    <div class="flex items-center justify-between border-b border-base-200 p-4">
+      <h3 class="font-bold text-xl flex items-center gap-2">
+        <%= icon("filter", size: 20, class: "opacity-70") %>
+        <%= title %>
+      </h3>
+      <button type="button" class="btn btn-sm btn-square btn-ghost" data-action="drawer#close">
+        <%= icon("close", classes: "size-4") %>
+      </button>
     </div>
+
+    <%# Corpo dei filtri %>
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      <%= yield %>
+    </div>
+
   </div>
-</div>
+</dialog>

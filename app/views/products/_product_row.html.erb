@@ -1,71 +1,57 @@
-<tr id="<%= dom_id(product) %>_row">
-  <%# NOME %>
-  <td class="pl-6 font-bold text-lg">
-    <%= link_to product.name, product, class: "font-bold text-base-content hover:text-primary transition-colors truncate" %>
-  </td>
+<li
+  id="<%= dom_id(product) %>"
+  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if product.discarded? %>">
 
-  <%# DISCIPLINE %>
-  <td>
-    <div class="flex flex-wrap gap-1">
+  <div class="shrink-0">
+    <div class="size-10 bg-base-200/50 rounded-box flex items-center justify-center text-base-content/40">
+      <%= icon("product") %>
+    </div>
+  </div>
+
+  <div class="grid gap-1 min-w-0 grow">
+    <div class="font-bold truncate text-base leading-none">
+      <%= link_to product.name, product,
+		  data: { turbo_frame: "_top" },
+		  class: "hover:underline hover:text-primary transition-colors" %>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-1 mt-0.5">
       <% if product.disciplines.any? %>
         <% product.disciplines.each do |d| %>
-          <span class="badge badge-sm badge-ghost"><%= d.name %></span>
+          <span class="badge badge-sm badge-ghost opacity-70"><%= d.name %></span>
         <% end %>
       <% else %>
-        <span class="text-xs opacity-40 italic">Nessuna</span>
+        <span class="text-[10px] uppercase font-bold tracking-wider opacity-30 flex items-center gap-1">
+          <span class="size-1.5 rounded-full bg-current"></span> Nessuna disciplina
+        </span>
       <% end %>
     </div>
-  </td>
+  </div>
 
-  <%# DURATA %>
-  <td class="text-center font-mono text-sm">
-    <%= display_value(product.duration_days) %> gg
-  </td>
+  <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-6 shrink-0 mr-2">
 
-  <%# CATEGORIA CONTABILE %>
-  <td class="text-center">
-    <% if product.associative? %>
-      <span class="badge badge-info badge-outline text-xs">
-        Q. Associativa
-      </span>
-    <% else %>
-      <span class="badge badge-warning badge-outline text-xs">
-        Q. Istituzionale
-      </span>
+    <%# Categoria %>
+    <div class="text-xs font-medium">
+      <%= product_category_badge(product) %>
+    </div>
+
+    <%# Durata %>
+    <div class="font-mono text-sm opacity-60 tabular-nums">
+      <%= display_value(product.duration_days) %> gg
+    </div>
+
+    <%# Prezzo %>
+    <div class="font-mono font-bold text-lg tabular-nums text-right min-w-[4rem]">
+      <%= format_money(product.price) %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1 shrink-0">
+    <%= ui_row_edit_button(edit_product_path(product)) %>
+
+    <% if current_user.admin? %>
+      <%= ui_row_delete_button(product, confirm: "Sei sicuro di voler archiviare #{product.name}?") %>
     <% end %>
-  </td>
+  </div>
 
-  <%# PREZZO %>
-  <td class="text-right pr-6 font-mono font-bold text-lg">
-    <%= format_money(product.price) %>
-  </td>
-
-  <%# AZIONI %>
-  <td class="text-right w-1 pr-4 align-middle">
-    <div class="join">
-      <%= link_to [product],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Dettagli" } do %>
-        <%= icon("view", size: 16) %>
-      <% end %>
-
-      <%= link_to [:edit, product],
-		  class: "join-item btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		  data: { tip: "Modifica", turbo_frame: "modal" } do %>
-        <%= icon("edit", size: 16) %>
-      <% end %>
-
-      <% if current_user.admin? %>
-        <%= link_to [product],
-		    class: "join-item text-error btn btn-square btn-xs btn-ghost tooltip tooltip-left",
-		    data: {
-		      tip: "Archivia",
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro di voler archiviare #{product.name}?"
-		    } do %>
-          <%= icon("delete", size: 16) %>
-        <% end %>
-      <% end %>
-    </div>
-  </td>
-</tr>
+</li>

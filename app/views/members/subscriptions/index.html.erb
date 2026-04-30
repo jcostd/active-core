@@ -1,32 +1,25 @@
 <%= turbo_stream_from @member %>
+<%= render "members/context", member: @member %>
 
-<%= render layout: "members/shell", locals: { member: @member } do %>
-  <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Storico Abbonamenti</h1>
-  </div>
+<%# --- HEADER SEZIONE --- %>
+<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
+  <h2 class="text-xl font-bold flex items-center gap-2">
+    <%= icon("card_membership", classes: "size-6 opacity-50") %> Storico Abbonamenti
+  </h2>
+</div>
 
-  <%= render "shared/table", pagy: @pagy do %>
-    <thead>
-      <tr>
-        <th class="w-32">Stato</th>
-        <th>Abbonamento</th>
-        <th>Periodo di Validità</th>
-        <th class="text-center">Giorni</th>
-        <th>Riferimento Acquisto</th>
-        <th></th>
-      </tr>
-    </thead>
+<%# --- LISTA ABBONAMENTI --- %>
+<div id="member_subscriptions_list">
+  <% if @subscriptions.empty? %>
+    <%= render "shared/empty_state",
+               icon_name: "card_membership",
+               title: "Nessun abbonamento",
+               message: "Questo utente non ha ancora abbonamenti attivi o passati." %>
+  <% else %>
+    <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription, cached: true %>
+    </ul>
 
-    <tbody>
-      <%= render partial: "subscription_row", collection: @subscriptions, as: :subscription %>
-
-      <% if @subscriptions.empty? %>
-        <tr>
-          <td colspan="5" class="text-center py-10 opacity-50 italic">
-            Nessun abbonamento attivo o passato.
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
+    <%= render "shared/pagination" %>
   <% end %>
-<% end %>
+</div>

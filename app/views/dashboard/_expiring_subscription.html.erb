@@ -1,0 +1,16 @@
+<li class="list-row items-center">
+  <div class="grow">
+    <div class="font-semibold truncate">
+      <%= link_to sub.member.full_name, sub.member, class: "link link-hover" %>
+    </div>
+    <div class="text-xs font-mono opacity-60">
+      Scade il <%= sub.end_date.strftime("%d/%m") %>
+    </div>
+  </div>
+
+  <%= link_to new_sale_path(member_id: sub.member_id, renew_subscription_id: sub.id),
+	      data: { turbo_frame: "modal" },
+	      class: "btn btn-sm btn-outline" do %>
+    Rinnova
+  <% end %>
+</li>

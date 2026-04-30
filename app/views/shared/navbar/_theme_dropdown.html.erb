@@ -1,42 +1,27 @@
-<div class="dropdown dropdown-end" data-controller="theme">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-sm btn-ghost gap-1 px-1.5"
-    title="Cambia Tema"
-  >
-    <%= icon("theme", size: 16, class: "text-base-content/70") %>
-    <%= icon("arrow_drop_down", size: 16, class: "hidden opacity-60 sm:inline-block") %>
-  </div>
+<%= render layout: "shared/dropdown_layout", locals: {
+  group_name: "navbar_dropdowns",
+  title: "Cambia Tema",
+  icon_name: "theme",
+  menu_class: "menu flex flex-col flex-nowrap dropdown-content bg-base-100 rounded-box shadow-lg mt-4 w-52 max-h-[60vh] overflow-y-auto p-2"
+} do %>
 
-  <div
-    class="
-      dropdown-content bg-base-200 text-base-content rounded-box top-px mt-10
-      h-[20rem] overflow-y-auto border border-white/5 shadow-2xl outline outline-1 outline-black/5
-    "
-  >
-    <ul tabindex="0" class="menu w-48 p-2">
-      <li class="menu-title text-xs uppercase tracking-wider opacity-50 px-2 py-1">
-        Temi
-      </li>
+  <li class="menu-title">Temi</li>
 
-      <% UserPreferences::ALLOWED_THEMES.each do |theme| %>
-        <% is_active = current_user&.preferences&.dig("theme") == theme %>
+  <% UserPreferences::THEMES.each do |theme| %>
+    <% is_active = current_user&.preferences&.dig("theme") == theme %>
 
-        <li>
-          <button
-            class="justify-between <%= 'active' if is_active %>"
-            data-action="click->theme#change"
-            data-set-theme="<%= theme %>"
-          >
-            <span class="capitalize"><%= theme %></span>
+    <li class="w-full">
+      <%= link_to preferences_theme_path(theme: theme),
+		  data: { turbo_method: :patch },
+		  class: "capitalize flex w-full justify-between #{'active' if is_active}" do %>
 
-            <% if is_active %>
-              <%= icon("check", size: 14) %>
-            <% end %>
-          </button>
-        </li>
+        <%= theme %>
+
+        <% if is_active %>
+          <%= icon("check") %>
+        <% end %>
       <% end %>
-    </ul>
-  </div>
-</div>
+    </li>
+  <% end %>
+
+<% end %>
