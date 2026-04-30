@@ -15,6 +15,7 @@ class Sale < ApplicationRecord
 
   after_discard   :discard_subscription_if_empty
   after_undiscard :undiscard_subscription
+
   validate :require_active_membership_for_courses, on: :create
 
   enum :payment_method, {
@@ -29,16 +30,6 @@ class Sale < ApplicationRecord
   before_validation :snapshot_product_details
   before_validation :sync_subscription_data
   before_validation :assign_receipt_number, on: :create
-
-  def prepare_draft(context_params = {})
-    if context_params[:manual_start_date].present?
-      context_params[:sale] ||= {}
-      context_params[:sale][:subscription_attributes] ||= {}
-      context_params[:sale][:subscription_attributes][:start_date] = context_params[:manual_start_date]
-    end
-
-    PosDraftBuilder.new(sale_params: {}, context_params: context_params, existing_sale: self).build
-  end
 
   private
     def sync_subscription_data

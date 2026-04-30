@@ -29,10 +29,7 @@ class SalesController < ApplicationController
   end
 
   def new
-    @sale = PosDraftBuilder.new(
-      sale_params: sale_params_for_build,
-      context_params: params
-    ).build
+    @sale = build_draft(sale_params_for_build)
   end
 
   def create
@@ -42,11 +39,7 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
     else
-      @sale = PosDraftBuilder.new(
-        sale_params: sale_params,
-        context_params: params,
-        existing_sale: @sale
-      ).build
+      @sale = build_draft(sale_params, existing_sale: @sale)
 
       respond_to do |format|
         format.turbo_stream do
@@ -74,6 +67,22 @@ class SalesController < ApplicationController
       @sale = Sale.find(params[:id])
     end
 
+  def build_draft(sale_params, existing_sale: nil)
+    context = params.to_unsafe_h.deep_symbolize_keys
+
+    if context[:manual_start_date].present?
+      context[:sale] ||= {}
+      context[:sale][:subscription_attributes] ||= {}
+      context[:sale][:subscription_attributes][:start_date] = context[:manual_start_date]
+    end
+
+    PosDraftBuilder.new(
+      sale_params:    sale_params,
+      context_params: context,
+      existing_sale:  existing_sale
+    ).build
+  end
+
     def sale_params_for_build
       params.has_key?(:sale) ? sale_params : {}
     end
@@ -81,7 +90,7 @@ class SalesController < ApplicationController
     def sale_params
       permitted_sub_attrs = [ :start_date ]
 
-      if current_user.respond_to?(:admin?) && current_user.admin?
+      if current_user.admin?
         permitted_sub_attrs << :end_date
         permitted_sub_attrs << :agreed_price
       end
