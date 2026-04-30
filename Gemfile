@@ -38,6 +38,8 @@ gem "pagy", "~> 43.2"
 gem "prawn", "~> 2.4"
 gem "prawn-table", "~> 0.2.2"
 
+gem "litestream", "~> 0.14.0"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
