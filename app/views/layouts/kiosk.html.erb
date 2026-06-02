@@ -34,9 +34,12 @@
       </div>
 
       <div class="navbar-end">
-        <%= link_to root_path, class: "btn btn-ghost btn-circle", title: "Esci dal Kiosk" do %>
-          <%= icon("logout", classes: "size-7") %>
-        <% end %>
+	<%= link_to session_path,
+		    title: "Esci dal Kiosk",
+		    class: "btn btn-ghost btn-circle",
+		    data: { turbo_method: :delete } do %>
+	    <%= icon("logout") %>
+	  <% end %>
       </div>
     </div>
 
