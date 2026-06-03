@@ -23,7 +23,7 @@ class SalesController < ApplicationController
         send_data pdf.render,
                   filename: "ricevuta_#{@sale.id}_#{@sale.member.last_name}.pdf",
                   type: "application/pdf",
-                  disposition: "_blank"
+                  disposition: "inline"
       end
     end
   end
