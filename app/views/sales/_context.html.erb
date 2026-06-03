@@ -36,7 +36,10 @@
 <% content_for :record_actions do %>
   <% unless sale.discarded? %>
     <div class="flex items-center gap-2">
-      <%= link_to sale_path(sale , format: :pdf), class: "btn btn-primary btn-sm gap-2" do %>
+      <%= link_to sale_path(sale, format: :pdf),
+		  class: "btn btn-primary btn-sm gap-2",
+		  target: "_blank",
+		  data: { turbo: false } do %>
 	<%= icon("print") %> <span class="hidden sm:inline">Stampa</span>
       <% end %>
 
