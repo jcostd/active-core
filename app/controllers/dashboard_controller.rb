@@ -15,5 +15,10 @@ class DashboardController < ApplicationController
     @recent_accesses = AccessLog.includes(:member, :discipline)
                          .order(entered_at: :desc)
                          .limit(5)
+
+    @recent_sales = Sale.kept
+                      .includes(:member, subscription: :product)
+                      .order(created_at: :desc)
+                      .limit(5)
   end
 end

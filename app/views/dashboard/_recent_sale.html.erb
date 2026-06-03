@@ -1,0 +1,28 @@
+<%# locals: (sale:) %>
+
+<li class="list-row group">
+  <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
+    <%= link_to sale.member, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" do %>
+      <%= ui_avatar(sale.member, size: "size-10", text_size: "text-md") %>
+    <% end %>
+  </div>
+
+  <div class="flex-1 min-w-0">
+    <div class="font-semibold group-hover:text-primary transition-colors truncate">
+      <%= link_to sale.member.full_name, sale.member, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" %>
+    </div>
+    <div class="text-[10px] text-base-content/60 uppercase tracking-wide truncate">
+      <%# Mostriamo il nome del prodotto se è un abbonamento, altrimenti una dicitura generica %>
+      <%= sale.subscription&.product&.name || 'Vendita / Quota' %>
+    </div>
+  </div>
+
+  <div class="flex flex-col items-end shrink-0 gap-0.5">
+    <div class="badge badge-success badge-sm badge-soft font-mono font-bold text-sm">
+      <%= format_money(sale.amount) %>
+    </div>
+    <span class="text-[10px] font-mono opacity-50 hidden sm:inline-block">
+      <%= sale.created_at.strftime("%H:%M") %>
+    </span>
+  </div>
+</li>

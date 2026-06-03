@@ -1,7 +1,7 @@
 <%# locals: (subscription:) %>
 <% status = subscription.status %>
 
-<div class="badge border-none gap-1.5 font-semibold text-xs tracking-wide <%= subscription_badge_color(status.key) %>">
+<div class="badge border-none badge-soft gap-1.5 font-semibold text-xs tracking-wide <%= subscription_badge_color(status.key) %>">
 
   <span class="truncate max-w-[120px]" title="<%= subscription.product.name %>">
     <%= subscription.product.name %>
@@ -10,10 +10,8 @@
   <span class="flex items-center gap-1 opacity-90">
     <% if status.key == :pending_payment %>
       -<%= format_cents(subscription.agreed_price_cents - subscription.amount_paid) %>
-    <% elsif status.key == :expired %>
-      SCADUTO
     <% elsif subscription.respond_to?(:days_left) && subscription.days_left.present? %>
-      -<%= subscription.days_left %>gg
+      <%= subscription.days_left %>gg
     <% else %>
       <%= format_date(subscription.end_date, format: :short) %>
     <% end %>

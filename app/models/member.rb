@@ -86,16 +86,16 @@ class Member < ApplicationRecord
   end
 
   def relevant_subscriptions(date = Date.current)
-    if subscriptions.loaded?
-      subscriptions
-        .select { |s| s.kept? && s.end_date && s.end_date >= (date - 30.days) }
-        .sort_by { |s| s.end_date || Date.new(1970) }
-        .reverse
-    else
-      subscriptions.kept
-        .where(subscriptions: { end_date: (date - 30.days).. })
-        .order(subscriptions: { end_date: :desc })
-    end
+    subs = subscriptions.loaded? ? subscriptions.select(&:kept?) : subscriptions.kept.to_a
+
+    subs
+      .select { |s| s.end_date && s.end_date >= (date - 30.days) }
+      .group_by(&:product_id)
+      .map { |_, product_subs|
+      product_subs.max_by(&:end_date)
+    }
+      .sort_by(&:end_date)
+      .reverse
   end
 
   def relevant_subscriptions_from_loaded(date = Date.current)
