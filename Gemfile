@@ -4,6 +4,10 @@ source "https://rubygems.org"
 gem "rails", "~> 8.1.2"
 gem "rails-i18n", "~> 8.1"
 
+# Pin below 3.0: json 3.x made JSON.parse keyword-only, which breaks
+# ActiveSupport::JSON.decode's positional call on activesupport 8.1.3.1.
+gem "json", "< 3"
+
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use sqlite3 as the database for Active Record
