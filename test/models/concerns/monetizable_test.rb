@@ -72,4 +72,35 @@ class MonetizableTest < ActiveSupport::TestCase
     assert_not sale.save
     assert_includes sale.errors.full_messages, "Importo non è un importo valido"
   end
+
+  test "italian and english grouping both work" do
+    {
+      "1.200,50" => 120050, "1,200.50" => 120050, "1.234.567,89" => 123456789,
+      "1.200" => 120000, "12.50" => 1250, "12,5" => 1250, "0,05" => 5, "-3" => -300, "45 €" => 4500
+    }.each do |input, cents|
+      assert_equal cents, Monetizable.cents(input), input
+    end
+  end
+
+  test "numbers are converted without float errors" do
+    assert_equal 1999, Monetizable.cents(19.99)
+    assert_equal 1005, Monetizable.cents(10.05)
+    assert_equal 1234, Monetizable.cents(BigDecimal("12.34"))
+  end
+
+  test "malformed text is not an amount" do
+    [ "12.345,6,7", "1,2,3", "12.5.0", "123456,789", "€", "-", "dieci" ].each do |input|
+      assert_nil Monetizable.cents(input), input
+    end
+  end
+
+  test "two decimals after a single separator are always cents" do
+    assert_equal 120, Monetizable.cents("1.20")
+    assert_equal 120, Monetizable.cents("1,20")
+  end
+
+  test "reader returns euros" do
+    assert_equal 12.5, Product.new(price_cents: 1250).price
+    assert_nil Product.new(price_cents: nil).price
+  end
 end

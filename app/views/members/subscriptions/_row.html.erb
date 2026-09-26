@@ -7,9 +7,7 @@ amount_due = subscription.amount_due
 <%= subscription_row_wrapper(subscription, status) do %>
 
   <%# -- Colonna 1: Icona -- %>
-  <div class="text-<%= status.color %> bg-<%= status.color %>/10 p-2 rounded-box mt-1 sm:mt-0 self-start sm:self-center">
-    <%= icon(subscription_status_icon(status.key), classes: "size-5") %>
-  </div>
+  <div class="self-start sm:self-center"><%= subscription_status_icon(status) %></div>
 
   <%# -- Colonna 2: Contenuto -- %>
   <div class="list-col-grow gap-1">
@@ -18,9 +16,7 @@ amount_due = subscription.amount_due
     <div class="flex flex-wrap items-center gap-2">
       <span class="font-bold text-base"><%= subscription.product.name %></span>
 
-      <span class="badge badge-sm badge-soft badge-<%= status.color %>">
-        <%= subscription_status_label(status.key) %>
-      </span>
+      <%= subscription_status_badge(status) %>
 
       <%= subscription_payment_badge(subscription, amount_due) %>
     </div>

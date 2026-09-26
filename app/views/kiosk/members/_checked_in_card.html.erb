@@ -1,19 +1,7 @@
 <%# locals: (log:) %>
-<%
-  member = log.member
+<% member = log.member %>
 
-  if log.error?
-    bg_css, text_css = "bg-error/80 border-error", "text-warning"
-    icon_name, status_msg = "error", "Abbonam. Scaduto"
-  elsif log.warning?
-    bg_css, text_css = "bg-success/50 border-info/50", "text-neutral"
-    icon_name, status_msg = "warning", (!member.medical_certificate_valid? ? "Cert. Scaduto" : "In Scadenza")
-  else
-    bg_css, text_css = "bg-success/50 border-success/20", ""
-  end
-%>
-
-  <div id="<%= dom_id(log) %>" class="card <%= bg_css %> shadow-sm border transition-all text-base-content">
+  <div id="<%= dom_id(log) %>" class="card shadow-sm border <%= kiosk_checked_in_style(log) %>">
     <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
 
       <div class="flex items-center gap-4">
@@ -28,10 +16,8 @@
               <%= format_datetime(log.entered_at, format: :short) %>
             </span>
 
-            <% if !log.ok? %>
-              <span class="text-[10px] uppercase font-bold <%= text_css %> flex items-center gap-1 mt-0.5">
-                <%= icon(icon_name, classes: "size-3") %> <%= status_msg %>
-              </span>
+            <% if (note = kiosk_log_note(log)) %>
+              <span class="text-[10px] uppercase font-bold mt-0.5"><%= note %></span>
             <% end %>
 
           </div>

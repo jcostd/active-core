@@ -37,7 +37,7 @@
 
 <% content_for :record_subtitle do %>
   <% if member.discarded? %>
-    <%= ui_badge("Archiviato", style: "error") %>
+    <%= ui_badge("Archiviato", tone: :error) %>
   <% end %>
 <% end %>
 

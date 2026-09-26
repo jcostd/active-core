@@ -77,4 +77,11 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_select "#{alice_card} .btn-error", count: 0
     assert_select "#{bob_card} .btn-error"
   end
+
+  test "cards explain what is missing" do
+    Subscription.create!(member: members(:bob), product: @course, start_date: Date.current - 5, end_date: Date.current + 30)
+
+    get kiosk_discipline_path(@yoga)
+    assert_select "##{ActionView::RecordIdentifier.dom_id(members(:bob), :pending)}", text: /Quota mancante/
+  end
 end

@@ -29,7 +29,7 @@ class SalesController < ApplicationController
   end
 
   def new
-    @sale = build_draft(sale_params_for_build)
+    @sale = draft(Sale.new(params.key?(:sale) ? sale_params : {}))
   end
 
   def create
@@ -39,7 +39,7 @@ class SalesController < ApplicationController
     if @sale.save
       redirect_to sale_path(@sale), notice: "Vendita registrata con successo."
     else
-      @sale = build_draft(sale_params, existing_sale: @sale)
+      @sale = draft(@sale)
 
       respond_to do |format|
         format.turbo_stream do
@@ -68,16 +68,11 @@ class SalesController < ApplicationController
       @sale = Sale.find(params[:id])
     end
 
-    def build_draft(sale_params, existing_sale: nil)
-      PosDraftBuilder.new(
-        sale_params:    sale_params,
-        context_params: params.to_unsafe_h.deep_symbolize_keys,
-        existing_sale:  existing_sale
-      ).build
-    end
+    def draft(sale)
+      context = params.permit(:member_id, :renew_subscription_id, :installment_for_subscription_id,
+                              :previous_member_id, :previous_product_id).to_h.symbolize_keys
 
-    def sale_params_for_build
-      params.has_key?(:sale) ? sale_params : {}
+      Sale::Draft.new(sale, **context, override_end_date: current_user.admin? && params[:override_end_date] == "1").sale
     end
 
     def sale_params

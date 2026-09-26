@@ -11,10 +11,18 @@ class SubscriptionsHelperTest < ActionView::TestCase
 
   def current_user = @current_user || users(:staff)
 
-  test "labels and icons with fallback" do
-    assert_equal "Da Saldare", subscription_status_label(:pending_payment)
-    assert_equal "Weird", subscription_status_label(:weird)
-    assert_equal "help", subscription_status_icon(:weird)
+  test "every subscription status has a style" do
+    %i[pending_payment expired future expiring_soon active].each do |key|
+      status = Struct.new(:key, :label).new(key, "x")
+      assert subscription_status_badge(status).present?, key
+    end
+  end
+
+  test "status badge shows the italian label with literal classes" do
+    html = subscription_status_badge(@sub.status)
+    assert_match "Da Saldare", html
+    assert_match "badge-error", html
+    assert_match 'class="p-2 rounded-box bg-error/10 text-error"', subscription_status_icon(@sub.status)
   end
 
   test "payment badge" do

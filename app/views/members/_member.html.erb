@@ -93,7 +93,7 @@
               </div>
               <div class="shrink-0 flex items-center gap-4">
                 <% if sub.future? %>
-                  <%= ui_badge("Futuro", style: "info") %>
+                  <%= ui_badge("Futuro", tone: :info) %>
                 <% else %>
                   <div class="text-right hidden sm:block">
                     <div class="text-2xl font-black font-mono leading-none tracking-tight <%= (sub.status.key == :expiring_soon) ? 'text-warning' : 'opacity-20' %>"><%= sub.days_left %></div>

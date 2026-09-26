@@ -15,11 +15,7 @@
   </div>
 
   <div class="flex items-center gap-3">
-    <% if log.status == 0 || log.status == 'ok' %>
-      <div class="badge badge-success badge-sm badge-soft hidden sm:inline-flex">OK</div>
-    <% else %>
-      <div class="badge badge-warning badge-sm badge-soft">Check</div>
-    <% end %>
+    <%= access_log_status_badge(log) %>
     <span class="text-sm font-mono opacity-50"><%= format_datetime(log.entered_at, format: :long) %></span>
   </div>
 </li>

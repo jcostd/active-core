@@ -1,20 +1,8 @@
 <%# locals: (member:, discipline:) %>
-<%
-  policy = AccessPolicy.new(member: member, discipline: discipline).evaluate!
+<% policy = AccessPolicy.new(member:, discipline:).evaluate! %>
+<% style = kiosk_pending_style(policy) %>
 
-  # Definiamo i colori e i testi una volta sola
-  if policy.status == :error
-    bg_css, btn_css, text_css = "bg-error/5 border-error/50 hover:border-error", "btn-error", "text-error"
-    icon_name, status_msg = "error", "Abbonam. Scaduto"
-  elsif policy.status == :warning
-    bg_css, btn_css, text_css = "bg-info/5 border-info/50 hover:border-info", "btn-info", "text-info"
-    icon_name, status_msg = "warning", (!member.medical_certificate_valid? ? "Cert. Scaduto" : "In Scadenza")
-  else
-    bg_css, btn_css, text_css = "bg-base-100 border-base-200 hover:border-primary", "btn-primary", ""
-  end
-%>
-
-  <div id="<%= dom_id(member, :pending) %>" class="card shadow-sm border transition-colors <%= bg_css %>">
+  <div id="<%= dom_id(member, :pending) %>" class="card shadow-sm border transition-colors <%= style[:card] %>">
     <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
 
       <div class="flex items-center gap-4">
@@ -23,10 +11,8 @@
           <h4 class="font-bold text-lg leading-tight truncate max-w-[180px]"><%= member.full_name %></h4>
 
           <div class="flex flex-col gap-0.5 mt-1">
-            <% if policy.status != :ok %>
-              <span class="text-[10px] uppercase font-bold <%= text_css %> flex items-center gap-1">
-                <%= icon(icon_name, classes: "size-3") %> <%= status_msg %>
-              </span>
+            <% if (note = kiosk_policy_note(policy)) %>
+              <span class="text-[10px] uppercase font-bold"><%= note %></span>
             <% end %>
           </div>
         </div>
@@ -34,7 +20,7 @@
 
       <%= button_to kiosk_discipline_access_logs_path(discipline),
                     params: { member_id: member.id },
-                    class: "btn btn-circle btn-lg shadow-md #{btn_css}",
+                    class: "btn btn-circle btn-lg shadow-md #{style[:button]}",
                     data: { turbo: true } do %>
         <%= icon("check", classes: "size-8") %>
       <% end %>

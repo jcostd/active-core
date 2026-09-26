@@ -18,7 +18,7 @@ class ReportsController < ApplicationController
     @daily_reports = days.map { DailyCash.for(it, sales: sales_by_day.fetch(it, [])) }.reverse
     @monthly_total = @daily_reports.sum(&:total_cents) / 100.0
 
-    @keys = params.slice(:month).permit!.to_h.reject { |_, v| v.blank? || v == Date.current.strftime("%Y-%m") }
+    @keys = params.permit(:month).to_h.reject { |_, v| v.blank? || v == Date.current.strftime("%Y-%m") }
   end
 
   def show

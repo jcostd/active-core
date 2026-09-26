@@ -135,10 +135,7 @@ class SaleTest < ActiveSupport::TestCase
   # --- TEST LOGICA DRAFT / FORM LIVE ---
 
   test "prepare_draft sets sold_on to today if empty and builds subscription" do
-    sale = PosDraftBuilder.new(
-      sale_params: { member: @member, product: @prod_inst },
-      context_params: {}
-    ).build
+    sale = Sale::Draft.new(Sale.new(member: @member, product: @prod_inst)).sale
 
     assert_equal Date.current, sale.sold_on
     assert_not_nil sale.subscription
@@ -149,12 +146,8 @@ class SaleTest < ActiveSupport::TestCase
   test "prepare_draft with manual_start_date forces the subscription start date" do
     forced_date = 5.days.from_now.to_date
 
-    sale = PosDraftBuilder.new(
-      sale_params: { member_id: @member.id, product_id: @prod_inst.id },
-      context_params: {
-        sale: { subscription_attributes: { start_date: forced_date.to_s } }
-      }
-    ).build
+    sale = Sale::Draft.new(Sale.new(member_id: @member.id, product_id: @prod_inst.id,
+                                    subscription_attributes: { start_date: forced_date.to_s })).sale
 
     assert_equal forced_date, sale.subscription.start_date
   end

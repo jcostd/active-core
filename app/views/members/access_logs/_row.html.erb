@@ -1,14 +1,10 @@
 <%# locals: (log:) %>
 
-<% color = access_log_status_color(log.status) %>
-
 <li id="<%= dom_id(log) %>" class="list-row group hover:bg-base-200/50 transition-colors">
 
   <%# -- Colonna 1: Icona Entrata Dinamica -- %>
   <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
-    <div class="p-2 bg-<%= color %>/10 text-<%= color %> rounded-box opacity-80 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-      <%= icon(access_log_status_icon(log.status), classes: "size-5") %>
-    </div>
+    <%= access_log_status_icon(log) %>
   </div>
 
   <%# -- Colonna 2: Dettagli Accesso -- %>
@@ -38,9 +34,7 @@
 
   <%# -- Colonna 3: Stato Dinamico -- %>
   <div class="shrink-0 self-start sm:self-center">
-    <span class="badge badge-sm badge-soft badge-<%= color %>">
-      <%= access_log_status_label(log.status) %>
-    </span>
+    <%= access_log_status_badge(log) %>
   </div>
 
 </li>

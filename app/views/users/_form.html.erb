@@ -10,18 +10,18 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
         <%= f.label :first_name, "Nome", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.text_field :first_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Mario" %>
+        <%= f.text_field :first_name, required: true, class: "input w-full", placeholder: "Mario" %>
       </div>
 
       <div>
         <%= f.label :last_name, "Cognome", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.text_field :last_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Rossi" %>
+        <%= f.text_field :last_name, required: true, class: "input w-full", placeholder: "Rossi" %>
       </div>
     </div>
 
     <div class="mt-2">
       <%= f.label :username, "Username", class: "label text-xs font-semibold uppercase opacity-70" %>
-      <%= f.text_field :username, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario.rossi" %>
+      <%= f.text_field :username, required: true, class: "input w-full", placeholder: "mario.rossi" %>
       <div class="fieldset-label text-base-content/50 mt-1">Usato per il login. Solo lettere minuscole e numeri.</div>
     </div>
   </fieldset>
@@ -35,7 +35,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
         <%= f.label :email_address, "Email", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.email_field :email_address, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario@palestra.it" %>
+        <%= f.email_field :email_address, required: true, class: "input w-full", placeholder: "mario@palestra.it" %>
       </div>
 
       <div>
@@ -51,12 +51,12 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4">
       <div>
         <%= f.label :password, "Nuova Password", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.password_field :password, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
+        <%= f.password_field :password, class: "input w-full", autocomplete: "new-password" %>
       </div>
 
       <div>
         <%= f.label :password_confirmation, "Conferma Password", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.password_field :password_confirmation, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
+        <%= f.password_field :password_confirmation, class: "input w-full", autocomplete: "new-password" %>
       </div>
     </div>
 

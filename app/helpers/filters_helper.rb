@@ -34,4 +34,13 @@ module FiltersHelper
 
     content_tag :div, testo, class: "mb-4 text-sm font-medium text-base-content/70"
   end
+
+  # select del cassetto filtri: si invia da sola al cambio
+  def filter_select(form, name, choices, label:, blank:)
+    tag.fieldset class: "fieldset" do
+      tag.legend(label, class: "fieldset-legend") +
+        form.select(name, choices, { include_blank: blank, selected: params[name] },
+                    class: "select w-full", data: { action: "change->autosubmit#submit" })
+    end
+  end
 end

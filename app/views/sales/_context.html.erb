@@ -26,9 +26,9 @@
       Rif: <%= sale.receipt_code.presence || "Bozza / N/A" %>
     </span>
     <% if sale.discarded? %>
-      <%= ui_badge("Annullata", style: "error") %>
+      <%= ui_badge("Annullata", tone: :error) %>
     <% else %>
-      <%= ui_badge("Confermata", style: "success") %>
+      <%= ui_badge("Confermata", tone: :success) %>
     <% end %>
   </div>
 <% end %>

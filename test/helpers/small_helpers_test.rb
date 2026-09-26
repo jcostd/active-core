@@ -8,12 +8,13 @@ class SmallHelpersTest < ActionView::TestCase
     assert_match "Quota Istituzionale", product_category_text(products(:yoga_monthly))
   end
 
-  test "access log status helpers cover every enum value" do
+  test "access log styles cover every enum value" do
     AccessLog.statuses.each_key do |status|
-      assert_not_equal "Sconosciuto", access_log_status_label(status)
-      assert_not_equal "help", access_log_status_icon(status)
+      log = AccessLog.new(status:)
+      assert access_log_status_badge(log).present?, status
+      assert access_log_status_icon(log).present?, status
     end
-    assert_equal "Negato", access_log_status_label("error")
+    assert_match "Negato", access_log_status_badge(AccessLog.new(status: :error))
     assert_equal "Accesso Generico", access_log_activity_name(AccessLog.new)
   end
 

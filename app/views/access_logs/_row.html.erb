@@ -35,12 +35,7 @@
 
   <%# Badge di stato %>
   <div class="flex items-center shrink-0 mx-2">
-    <% status_color = access_log_status_color(access_log.status) %>
-
-    <div class="badge badge-<%= status_color %> gap-1 bg-<%= status_color %>/10 text-<%= status_color %> border-none shadow-none font-medium">
-      <%= icon(access_log_status_icon(access_log.status)) %>
-      <%= access_log_status_label(access_log.status) %>
-    </div>
+    <%= access_log_status_badge(access_log) %>
   </div>
 
   <%# Azioni %>

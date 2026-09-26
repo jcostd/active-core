@@ -9,8 +9,10 @@ module UiHelper
     end
   end
 
-  def ui_badge(text, style: "ghost")
-    content_tag :span, text, class: "badge badge-sm badge-#{style} uppercase text-[10px] font-bold"
+  BADGE_TONES = { ghost: "badge-ghost", info: "badge-info", success: "badge-success", error: "badge-error" }.freeze
+
+  def ui_badge(text, tone: :ghost)
+    tag.span text, class: [ "badge badge-sm uppercase text-[10px] font-bold", BADGE_TONES.fetch(tone) ]
   end
 
   def ui_row_edit_button(path, title: "Modifica")

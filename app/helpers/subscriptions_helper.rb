@@ -1,18 +1,27 @@
 module SubscriptionsHelper
-  STATUS_I18N = {
-    active:          { label: "Attivo",      icon: "success" },
-    expired:         { label: "Scaduto",     icon: "error" },
-    expiring_soon:   { label: "In Scadenza", icon: "warning" },
-    future:          { label: "Futuro",      icon: "clock" },
-    pending_payment: { label: "Da Saldare",  icon: "payments" }
-  }.with_indifferent_access.freeze
+  # unica fonte di icone e colori; classi scritte per intero perché Tailwind le trovi
+  SUBSCRIPTION_STATUS_STYLES = {
+    pending_payment: { icon: "payments",               badge: "badge-error",   tint: "bg-error/10 text-error" },
+    expired:         { icon: "history",                badge: "badge-neutral", tint: "bg-neutral/10 text-neutral" },
+    future:          { icon: "calendar_today",         badge: "badge-info",    tint: "bg-info/10 text-info" },
+    expiring_soon:   { icon: "notification_important", badge: "badge-warning", tint: "bg-warning/10 text-warning" },
+    active:          { icon: "success",                badge: "badge-success", tint: "bg-success/10 text-success" }
+  }.freeze
 
-  def subscription_status_label(status_key)
-    STATUS_I18N.dig(status_key, :label) || status_key.to_s.humanize
+  def subscription_status_style(status)
+    SUBSCRIPTION_STATUS_STYLES.fetch(status.key)
   end
 
-  def subscription_status_icon(status_key)
-    STATUS_I18N.dig(status_key, :icon) || "help"
+  def subscription_status_badge(status)
+    style = subscription_status_style(status)
+    tag.span class: [ "badge badge-sm badge-soft gap-1", style[:badge] ] do
+      safe_join([ icon(style[:icon], classes: "size-3"), status.label ])
+    end
+  end
+
+  def subscription_status_icon(status)
+    style = subscription_status_style(status)
+    tag.div icon(style[:icon]), class: [ "p-2 rounded-box", style[:tint] ]
   end
 
   # Wrapper per gestire le classi CSS condizionali (es. grigio se scaduto)

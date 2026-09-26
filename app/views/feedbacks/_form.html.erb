@@ -4,11 +4,11 @@
   <%= f.hidden_field :page_url %>
 
   <fieldset class="fieldset">
-    <%= f.label :message, "Come possiamo aiutarti?", class: "label label-text font-medium" %>
+    <%= f.label :message, "Come possiamo aiutarti?", class: "label font-medium" %>
 
     <%= f.text_area :message,
         rows: 4,
-        class: "textarea textarea-bordered h-32 w-full focus:outline-indigo-500",
+        class: "textarea h-32 w-full",
         placeholder: "Ho trovato un errore in... / Vorrei che ci fosse...",
         required: true,
         autofocus: true %>

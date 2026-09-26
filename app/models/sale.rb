@@ -14,13 +14,18 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 class Sale < ApplicationRecord
-  include SoftDeletable
+  # l'ordine conta: callback e validazioni girano nell'ordine di inclusione
+  include SoftDeletable     # definisce i callback di archiviazione usati sotto
   include Refreshable
-  include FiscalLockable, Monetizable, Trackable
-  include Sale::Filterable
-
-  ADMIN_REVERSAL_WINDOW = 24.hours
-  STAFF_REVERSAL_WINDOW = 15.minutes
+  include FiscalLockable
+  include Monetizable
+  include Trackable
+  include Receiptable
+  include Installments      # l'abbonamento calcola le sue date prima dei controlli seguenti
+  include MembershipGuard
+  include StaffLimits
+  include Reversible
+  include Filterable
 
   monetize :amount
 
@@ -28,160 +33,20 @@ class Sale < ApplicationRecord
   belongs_to :user
   belongs_to :product
 
-  belongs_to :subscription, optional: true, autosave: true, touch: true
-  accepts_nested_attributes_for :subscription, reject_if: :all_blank
+  enum :payment_method, { cash: 1, credit_card: 2, bank_transfer: 3, other: 4 }, default: :credit_card, validate: true
 
-  after_discard   :discard_subscription_if_empty
-  after_undiscard :undiscard_subscription
-
-  validate :require_active_membership_for_courses, on: :create
-  validate :subscription_matches_sale
-  validate :zero_amount_allowed,  on: :create
-  validate :amount_within_due,    on: :create
-  validate :sellable,             on: :create
-  validate :staff_dates,          on: :create
-
-  enum :payment_method, {
-         cash: 1, credit_card: 2, bank_transfer: 3, other: 4
-       }, default: :credit_card, validate: true
+  before_validation -> { self.sold_on ||= Date.current }, on: :create
 
   validates :sold_on, presence: true
   validates :amount_cents, numericality: { greater_than_or_equal_to: 0 }
-  validates :member, :user, :product, presence: true
-  validates :receipt_sequence, presence: true
-
-  before_validation :snapshot_product_details, on: :create
-  before_validation -> { self.sold_on ||= Date.current }, on: :create
-  before_validation :sync_subscription_data
-  before_validation :assign_receipt_number, on: :create
-
-  # staff: solo i propri pagamenti
-  # corso che finisce oltre la quota: si vende lo stesso, ma lo staff va avvisato
-  def membership_warning
-    return if product.nil? || product.associative? || member.nil?
-    return unless subscription&.new_record? && subscription.start_date && subscription.end_date
-
-    covered = member.membership_covered_until(membership_check_date)
-    return if covered.nil? || covered >= subscription.end_date
-
-    "Il corso termina il #{I18n.l(subscription.end_date)}, ma la Quota Associativa copre fino al " \
-      "#{I18n.l(covered)}: il socio dovrà rinnovarla."
-  end
-
-  def reversible_by?(user)
-    return false if discarded? || !(user.admin? || user_id == user.id)
-
-    created_at > (user.admin? ? ADMIN_REVERSAL_WINDOW : STAFF_REVERSAL_WINDOW).ago
-  end
+  validate :sellable, on: :create
 
   private
-    def sync_subscription_data
-      return unless subscription.present? && subscription.new_record? && member.present? && product.present?
-      subscription.member ||= self.member
-      subscription.product ||= self.product
-      subscription.reference_date ||= self.sold_on
-    end
-
-    def snapshot_product_details
-      return unless product.present?
-
-      self.product_name_snapshot = product.name
-      self.amount_cents ||= default_amount_cents
-      self.receipt_sequence ||= product.accounting_category
-    end
-
-    # rata: residuo dovuto; nuova vendita: prezzo concordato
-    def default_amount_cents
-      if subscription&.persisted?
-        subscription.amount_due
-      else
-        subscription&.agreed_price_cents || product.price_cents
-      end
-    end
-
-    def assign_receipt_number
-      return unless cash?
-      return if receipt_number.present? && receipt_year.present?
-
-      self.receipt_year ||= sold_on&.year || Date.current.year
-      if receipt_year.present? && receipt_sequence.present?
-        self.receipt_number = ReceiptCounter.next_number(receipt_year, receipt_sequence)
-      end
-    end
-
-    def discard_subscription_if_empty
-      return unless subscription.present?
-      return if subscription.discarded?
-      return if subscription.sales.kept.where.not(id: id).exists?
-      subscription.discard!
-    end
-
-    def undiscard_subscription
-      subscription.undiscard! if subscription.present? && subscription.discarded?
-    end
-
-    # la quota deve coprire il giorno in cui il corso parte per il socio:
-    # l'inizio del corso, o la vendita se il corso è allineato a una data passata.
-    # le rate pagano un diritto già venduto: il controllo è stato fatto allora
-    def require_active_membership_for_courses
-      return if product.nil? || product.associative? || member.nil?
-      return unless subscription&.new_record? && subscription.start_date
-      return if member.membership_valid?(membership_check_date)
-
-      errors.add(:base, "Impossibile vendere #{product.name}: " \
-                        "il socio non ha una Quota Associativa valida il #{I18n.l(membership_check_date)}.")
-    end
-
-    def membership_check_date
-      [ subscription.start_date, sold_on || Date.current ].max
-    end
-
-    def subscription_matches_sale
-      return unless subscription
-
-      errors.add(:subscription, "non appartiene a questo socio") if subscription.member_id != member_id
-      errors.add(:subscription, "non corrisponde al prodotto venduto") if subscription.product_id != product_id
-      errors.add(:subscription, "è stato annullato") if new_record? && subscription.discarded?
-    end
-
     # niente nuovi abbonamenti ad archiviati; le rate di quelli esistenti restano incassabili
     def sellable
-      return if subscription&.persisted?
+      return if installment?
 
       errors.add(:member, "è archiviato") if member&.discarded?
       errors.add(:product, "è archiviato") if product&.discarded?
-    end
-
-    # staff: data contabile sempre oggi, inizio abbonamento solo in avanti rispetto alla proposta
-    def staff_dates
-      return if user.nil? || user.admin?
-
-      errors.add(:sold_on, "può essere modificata solo da un amministratore") if sold_on != Date.current
-
-      return unless subscription&.new_record? && subscription.start_date && member && product
-      earliest = Subscription.proposed_start_date(member, product)
-      return if subscription.start_date >= earliest
-
-      errors.add(:subscription, "può iniziare al più presto il #{I18n.l(earliest)}")
-    end
-
-    def zero_amount_allowed
-      return unless amount_cents&.zero?
-
-      if subscription&.persisted?
-        errors.add(:base, "La rata deve essere maggiore di zero.")
-      elsif !user&.admin? && product&.price_cents.to_i.positive?
-        # lo staff non può regalare prodotti a pagamento; quelli gratuiti sì
-        errors.add(:base, "Solo un amministratore può registrare una vendita a zero.")
-      end
-    end
-
-    def amount_within_due
-      return unless subscription && amount_cents
-
-      due = subscription.persisted? ? subscription.amount_due : subscription.agreed_price_cents || product&.price_cents
-      return if due.nil? || amount_cents <= due
-
-      errors.add(:amount, "supera il residuo dovuto (#{format("%.2f", due / 100.0).tr(".", ",")} €)")
     end
 end

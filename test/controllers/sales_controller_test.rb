@@ -266,4 +266,15 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  test "staff cannot force the end date through the draft" do
+    sign_in_as(@staff)
+    alice = members(:alice)
+    grant_membership_to(alice)
+    forced = Date.current + 300
+
+    get new_sale_path(override_end_date: "1", sale: { member_id: alice.id, product_id: @course.id,
+                                                       subscription_attributes: { end_date: forced.iso8601 } })
+    assert_select "input[name='sale[subscription_attributes][end_date]'][value='#{forced.iso8601}']", count: 0
+  end
 end

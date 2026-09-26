@@ -16,7 +16,7 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
 
   test "active" do
     s = status_for(start_date: Date.current - 1, end_date: Date.current + 20)
-    assert_equal [ :active, "Attivo", "success" ], [ s.key, s.label, s.color ]
+    assert_equal [ :active, "Attivo" ], [ s.key, s.label ]
   end
 
   test "pending payment wins over everything" do
@@ -32,12 +32,12 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
 
   test "future" do
     s = status_for(start_date: Date.current + 3, end_date: Date.current + 30)
-    assert_equal [ :future, "info" ], [ s.key, s.color ]
+    assert_equal :future, s.key
   end
 
   test "expiring soon within 7 days" do
     s = status_for(start_date: Date.current - 20, end_date: Date.current + 7)
-    assert_equal [ :expiring_soon, "warning" ], [ s.key, s.color ]
+    assert_equal :expiring_soon, s.key
   end
 
   test "zero-priced subscription counts as paid" do
@@ -46,11 +46,11 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
     assert_equal 0, sub.amount_due
   end
 
-  test "every key has label, color and icon" do
+  test "every key has an italian label" do
     %i[pending_payment expired future expiring_soon active].each do |key|
       s = SubscriptionStatus.new(nil)
       s.define_singleton_method(:key) { key }
-      assert s.label.present? && s.color.present? && s.icon.present?, key
+      assert s.label.present?, key
     end
   end
 end

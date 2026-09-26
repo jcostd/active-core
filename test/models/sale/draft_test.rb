@@ -1,6 +1,6 @@
 require "test_helper"
 
-class PosDraftBuilderTest < ActiveSupport::TestCase
+class Sale::DraftTest < ActiveSupport::TestCase
   setup do
     @member = members(:alice)
     grant_membership_to(@member)
@@ -9,7 +9,7 @@ class PosDraftBuilderTest < ActiveSupport::TestCase
   end
 
   def build(sale: {}, **context)
-    PosDraftBuilder.new(sale_params: sale, context_params: { sale: }.merge(context)).build
+    Sale::Draft.new(Sale.new(sale), **context).sale
   end
 
   test "fresh sale defaults to today, product price and calculated dates" do
@@ -22,7 +22,7 @@ class PosDraftBuilderTest < ActiveSupport::TestCase
   end
 
   test "preset member comes from context" do
-    sale = build(preset_member_id: @member.id)
+    sale = build(member_id: @member.id)
     assert_equal @member.id, sale.member_id
   end
 
@@ -90,7 +90,30 @@ class PosDraftBuilderTest < ActiveSupport::TestCase
   test "admin override keeps a manual end date" do
     finish = Date.current + 100
     sale = build(sale: { member_id: @member.id, product_id: @course.id, subscription_attributes: { end_date: finish.iso8601 } },
-                 override_end_date: "1")
+                 override_end_date: true)
     assert_equal finish, sale.subscription.end_date
+  end
+
+  test "changing product recomputes dates from scratch" do
+    quota = products(:annual_membership)
+    stale_start = Date.current - 200
+
+    sale = build(sale: { member_id: @member.id, product_id: @course.id, subscription_attributes: { start_date: stale_start.iso8601 } },
+                 previous_product_id: quota.id, previous_member_id: @member.id)
+
+    assert_equal Subscription.proposed_start_date(@member, @course), sale.subscription.start_date
+  end
+
+  test "end date is recomputed unless overridden" do
+    finish = Date.current + 100
+    sale = build(sale: { member_id: @member.id, product_id: @course.id, subscription_attributes: { end_date: finish.iso8601 } })
+    assert_not_equal finish, sale.subscription.end_date
+  end
+
+  test "renewal of a far future subscription snaps to month start" do
+    old = Subscription.create!(member: @member, product: @course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
+    sale = build(renew_subscription_id: old.id)
+    assert_equal old.end_date + 1, sale.subscription.start_date
+    assert_equal (old.end_date + 1).end_of_month, sale.subscription.end_date
   end
 end
