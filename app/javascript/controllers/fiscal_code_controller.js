@@ -1,5 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
+// omocodia: le cifre possono essere sostituite da lettere (L=0 ... V=9)
+const OMOCODIA = { L: "0", M: "1", N: "2", P: "3", Q: "4", R: "5", S: "6", T: "7", U: "8", V: "9" }
+const digits = (text) => text.replace(/[LMNPQRSTUV]/g, (letter) => OMOCODIA[letter])
+
 export default class extends Controller {
 	static targets = ["code", "birthDate"]
 
@@ -12,9 +16,11 @@ export default class extends Controller {
 		if (cf.length < 11) return
 
 		// Estraiamo i pezzi
-		const yearPart = cf.substring(6, 8)  // "80"
-		const monthChar = cf.substring(8, 9) // "A"
-		const dayPart = cf.substring(9, 11)  // "01" o "41"
+		const yearPart = digits(cf.substring(6, 8))  // "80"
+		const monthChar = cf.substring(8, 9)         // "A"
+		const dayPart = digits(cf.substring(9, 11))  // "01" o "41"
+
+		if (!/^\d{2}$/.test(yearPart) || !/^\d{2}$/.test(dayPart)) return
 
 		// Decodifica Mese
 		const months = { 'A': '01', 'B': '02', 'C': '03', 'D': '04', 'E': '05', 'H': '06', 'L': '07', 'M': '08', 'P': '09', 'R': '10', 'S': '11', 'T': '12' }
@@ -23,8 +29,9 @@ export default class extends Controller {
 		if (!month) return // Carattere mese non valido
 
 		// Decodifica Giorno (Gestione Sesso)
-		let day = parseInt(dayPart)
+		let day = parseInt(dayPart, 10)
 		if (day > 40) day -= 40 // Se è donna (es. 45), diventa 5
+		if (day < 1 || day > 31) return
 
 		// Formatta giorno a due cifre (es. 5 -> "05")
 		const dayString = day.toString().padStart(2, '0')

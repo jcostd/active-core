@@ -51,7 +51,7 @@
 
   <%# --- INIZIO LISTA --- %>
   <div class="mt-6">
-    <% if @daily_reports.empty? %>
+    <% if @daily_reports.all?(&:empty?) %>
       <%= render "shared/empty_state",
 		 icon_name: "calendar_today",
 		 title: "Nessun report in questo mese",

@@ -85,7 +85,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @monthly_course, # Yoga
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @monthly_course }
     )
 
@@ -98,7 +98,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @membership_annual, # Quota 2025
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @membership_annual }
     )
     assert membership_sale.persisted?
@@ -109,7 +109,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @monthly_course,
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @monthly_course }
     )
 

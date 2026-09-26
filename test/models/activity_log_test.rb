@@ -45,7 +45,7 @@ class ActivityLogTest < ActiveSupport::TestCase
       member: @member,
       product: product,
       user: @staff,
-      sold_on: Date.today,
+      sold_on: Date.current,
       payment_method: :cash
     )
 

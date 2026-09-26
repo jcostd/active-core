@@ -4,11 +4,12 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @member = members(:alice)
     grant_membership_to(@member)
+    Sale.delete_all # via gli incassi della quota al 1° gennaio
     sign_in_as(users(:admin))
   end
 
   test "monthly report splits the day like the daily detail" do
-    day = Date.current.beginning_of_month + 9
+    day = Date.current
     travel_to day.in_time_zone.change(hour: 14, min: 30) do
       sell!(member: @member, product: products(:yoga_monthly), amount: 12, agreed_price: 100)
     end
@@ -60,5 +61,19 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     get report_path("fantasia")
     assert_redirected_to reports_path
     assert_equal "Tipo di report non valido.", flash[:alert]
+  end
+
+  test "current month lists days up to today only" do
+    get reports_path
+    dates = controller.instance_variable_get(:@daily_reports).map(&:date)
+    assert_equal Date.current, dates.first
+    assert_equal Date.current.beginning_of_month, dates.last
+  end
+
+  test "month without cash shows the empty state" do
+    Sale.delete_all
+    get reports_path(month: "2020-02")
+    assert_match "Nessun report in questo mese", response.body
+    assert_equal 29, controller.instance_variable_get(:@daily_reports).size
   end
 end

@@ -48,4 +48,17 @@ class DisciplineTest < ActiveSupport::TestCase
     discipline.destroy # Hard delete per testare la pulizia DB
     assert_equal 0, ProductDiscipline.where(discipline_id: discipline.id).count
   end
+
+  test "registry skips archived members and old subscriptions" do
+    discipline = disciplines(:yoga)
+    course = link!(products(:yoga_monthly), discipline)
+    alive = Subscription.create!(member: members(:alice), product: course, start_date: Date.current, end_date: Date.current + 10)
+    gone  = Subscription.create!(member: members(:bob), product: course, start_date: Date.current, end_date: Date.current + 10)
+    old   = Subscription.create!(member: members(:alice), product: course, start_date: Date.current - 90, end_date: Date.current - 60)
+    members(:bob).discard!
+
+    assert_includes discipline.recent_subscriptions, alive
+    assert_not_includes discipline.recent_subscriptions, gone
+    assert_not_includes discipline.recent_subscriptions, old
+  end
 end

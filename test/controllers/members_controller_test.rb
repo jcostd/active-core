@@ -95,4 +95,14 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal @alice.sales.sum(:amount_cents), controller.instance_variable_get(:@total_amount_cents)
   end
+
+  test "overpaid legacy subscription shows as settled, not negative" do
+    grant_membership_to(@alice)
+    sub = sell!(member: @alice, product: products(:yoga_monthly)).subscription
+    sub.update_columns(agreed_price_cents: 1000)
+
+    get member_subscriptions_path(@alice)
+    assert_no_match(/Resta: -/, response.body)
+    assert_match "Saldato", response.body
+  end
 end

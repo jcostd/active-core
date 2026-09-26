@@ -31,7 +31,8 @@ class Discipline < ApplicationRecord
   def recent_subscriptions
     subscriptions
       .kept
-      .where("subscriptions.end_date >= ?", 30.days.ago)
+      .joins(:member).merge(Member.kept)
+      .where(subscriptions: { end_date: 30.days.ago.to_date.. })
       .includes(:member, :product)
   end
 end

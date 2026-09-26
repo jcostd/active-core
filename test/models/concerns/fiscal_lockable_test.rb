@@ -11,7 +11,7 @@ class FiscalLockableTest < ActiveSupport::TestCase
       member: @member,
       user: @user,
       product: @product,
-      sold_on: Date.today,
+      sold_on: Date.current,
       payment_method: :cash,
       amount_cents: 1000,
       receipt_number: 100,
@@ -54,7 +54,7 @@ class FiscalLockableTest < ActiveSupport::TestCase
       member: @member,
       user: @user,
       product: @product,
-      sold_on: Date.today,
+      sold_on: Date.current,
       payment_method: :credit_card # Assumiamo che CC non generi subito numero o sia nil
     )
 

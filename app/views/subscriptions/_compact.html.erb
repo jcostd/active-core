@@ -9,7 +9,7 @@
 
   <span class="flex items-center gap-1 opacity-90">
     <% if status.key == :pending_payment %>
-      -<%= format_cents(subscription.agreed_price_cents - subscription.amount_paid) %>
+      -<%= format_cents(subscription.amount_due) %>
     <% elsif subscription.respond_to?(:days_left) && subscription.days_left.present? %>
       <%= subscription.days_left %>gg
     <% else %>

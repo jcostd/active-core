@@ -6,3 +6,11 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 # # Usare `[a, [b, c]]` e non `[ a, [ b, c ] ]`
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
+
+# date e orari sempre nel fuso di Rails (Roma), mai in quello del server
+Rails/Date:
+  Enabled: true
+  EnforcedStyle: flexible
+Rails/TimeZone:
+  Enabled: true
+  EnforcedStyle: flexible

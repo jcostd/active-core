@@ -1,7 +1,7 @@
 <%
 status = subscription.status
 active_sales = subscription.sales.reject(&:discarded?).sort_by(&:sold_on)
-amount_due = subscription.agreed_price_cents - subscription.amount_paid
+amount_due = subscription.amount_due
 %>
 
 <%= subscription_row_wrapper(subscription, status) do %>

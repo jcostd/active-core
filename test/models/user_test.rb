@@ -61,4 +61,22 @@ class UserTest < ActiveSupport::TestCase
     assert @user.discarded?
     assert @user.discarded_at.present?
   end
+
+  test "the last admin cannot lose the role" do
+    admin = users(:admin)
+    assert_not admin.update(role: :staff)
+    assert_includes admin.errors[:role], "non può essere cambiato: serve almeno un amministratore"
+  end
+
+  test "an admin can be demoted when another one exists" do
+    users(:staff).update!(role: :admin)
+    assert users(:admin).update(role: :staff)
+  end
+
+  test "archived admins do not count" do
+    other = users(:staff)
+    other.update!(role: :admin)
+    other.discard!
+    assert_not users(:admin).update(role: :staff)
+  end
 end

@@ -1,6 +1,10 @@
 module Monetizable
   extend ActiveSupport::Concern
 
+  included do
+    validate :monetized_values_parse
+  end
+
   class_methods do
     def monetize(attribute_name)
       cents_column = "#{attribute_name}_cents"
@@ -12,6 +16,7 @@ module Monetizable
       end
 
       define_method("#{attribute_name}=") do |value|
+        unparsable_money.delete(attribute_name)
         return send("#{cents_column}=", nil) if value.blank?
 
         # A. Se è già un numero (es: 10.50 o 100)
@@ -44,9 +49,26 @@ module Monetizable
           # Sostituiamo la virgola con punto per renderlo comprensibile a Ruby
           standardized = clean.gsub(",", ".")
 
-          self.send("#{cents_column}=", (BigDecimal(standardized) * 100).to_i)
+          amount = BigDecimal(standardized, exception: false)
+
+          # testo non numerico: niente crash, errore di validazione
+          unless amount
+            unparsable_money << attribute_name
+            return send("#{cents_column}=", nil)
+          end
+
+          self.send("#{cents_column}=", (amount * 100).to_i)
         end
       end
     end
   end
+
+  private
+    def unparsable_money
+      @unparsable_money ||= Set.new
+    end
+
+    def monetized_values_parse
+      unparsable_money.each { errors.add(it, "non è un importo valido") }
+    end
 end

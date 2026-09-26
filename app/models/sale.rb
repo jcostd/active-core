@@ -38,6 +38,7 @@ class Sale < ApplicationRecord
   validate :subscription_matches_sale
   validate :zero_amount_allowed,  on: :create
   validate :amount_within_due,    on: :create
+  validate :sellable,             on: :create
 
   enum :payment_method, {
          cash: 1, credit_card: 2, bank_transfer: 3, other: 4
@@ -125,6 +126,14 @@ class Sale < ApplicationRecord
       errors.add(:subscription, "non appartiene a questo socio") if subscription.member_id != member_id
       errors.add(:subscription, "non corrisponde al prodotto venduto") if subscription.product_id != product_id
       errors.add(:subscription, "è stato annullato") if new_record? && subscription.discarded?
+    end
+
+    # niente nuovi abbonamenti ad archiviati; le rate di quelli esistenti restano incassabili
+    def sellable
+      return if subscription&.persisted?
+
+      errors.add(:member, "è archiviato") if member&.discarded?
+      errors.add(:product, "è archiviato") if product&.discarded?
     end
 
     def zero_amount_allowed

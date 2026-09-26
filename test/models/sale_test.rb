@@ -34,7 +34,7 @@ class SaleTest < ActiveSupport::TestCase
   test "cash payment generates receipt number and year" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.today, payment_method: :cash
+      sold_on: Date.current, payment_method: :cash
     )
 
     assert sale.cash?
@@ -47,7 +47,7 @@ class SaleTest < ActiveSupport::TestCase
   test "credit card payment DOES NOT generate receipt number" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.today, payment_method: :credit_card
+      sold_on: Date.current, payment_method: :credit_card
     )
 
     assert sale.credit_card?
@@ -59,21 +59,21 @@ class SaleTest < ActiveSupport::TestCase
   test "bank transfer payment DOES NOT generate receipt number" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.today, payment_method: :bank_transfer
+      sold_on: Date.current, payment_method: :bank_transfer
     )
     assert_nil sale.receipt_number
   end
 
   test "counting skips non-cash payments correctly" do
-    current_year = Date.today.year
+    current_year = Date.current.year
 
-    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.today)
+    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
     assert_equal 1, s1.receipt_number
 
-    s2 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.today)
+    s2 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current)
     assert_nil s2.receipt_number
 
-    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.today)
+    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
     assert_equal 2, s3.receipt_number
 
     assert_equal "#{current_year}-institutional-1", s1.reload.receipt_code
@@ -84,18 +84,18 @@ class SaleTest < ActiveSupport::TestCase
   test "sequences are independent even with mixed payments" do
     initial_assoc_max = Sale.where(receipt_sequence: "associative").maximum(:receipt_number).to_i
 
-    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.today)
+    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
     assert_equal 1, s1.receipt_number
     assert_equal "institutional", s1.receipt_sequence
 
-    s2 = Sale.create!(member: @member, product: @prod_assoc, user: @user, payment_method: :cash, sold_on: Date.today)
+    s2 = Sale.create!(member: @member, product: @prod_assoc, user: @user, payment_method: :cash, sold_on: Date.current)
     assert_equal initial_assoc_max + 1, s2.receipt_number
     assert_equal "associative", s2.receipt_sequence
 
-    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.today)
+    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current)
     assert_nil s3.receipt_number
 
-    s4 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.today)
+    s4 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
     assert_equal 2, s4.receipt_number
   end
 
@@ -104,7 +104,7 @@ class SaleTest < ActiveSupport::TestCase
   test "snapshots product details on creation" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.today, payment_method: :cash
+      sold_on: Date.current, payment_method: :cash
     )
 
     assert_equal "Yoga Course", sale.product_name_snapshot
@@ -525,5 +525,30 @@ class SaleTest < ActiveSupport::TestCase
 
   def pay_installment(sub, **)
     build_installment(sub, **).tap(&:save!)
+  end
+
+  # --- ARCHIVIATI ---
+
+  test "no new sale to an archived member" do
+    @member.discard!
+    sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
+                    subscription_attributes: { member: @member, product: @prod_inst })
+    assert_not sale.valid?
+    assert_includes sale.errors.full_messages, "Socio è archiviato"
+  end
+
+  test "no new sale of an archived product" do
+    @prod_inst.discard!
+    sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
+                    subscription_attributes: { member: @member, product: @prod_inst })
+    assert_not sale.valid?
+    assert_includes sale.errors.full_messages, "Prodotto è archiviato"
+  end
+
+  test "installments stay payable after archiving the product" do
+    sub = sell_course(amount: 10).subscription
+    @prod_inst.discard!
+
+    assert build_installment(sub, amount: 10).valid?
   end
 end

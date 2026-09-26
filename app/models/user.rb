@@ -37,8 +37,16 @@ class User < ApplicationRecord
                        format: { with: /\A[a-z0-9_]+\z/, message: "può contenere solo lettere minuscole, numeri e underscore" }
 
   validates :password, length: { minimum: 4 }, allow_nil: true
+  validate :keep_an_admin, on: :update
 
   private
+    def keep_an_admin
+      return unless will_save_change_to_role? && role_in_database == "admin"
+      return if User.kept.admin.where.not(id:).exists?
+
+      errors.add(:role, "non può essere cambiato: serve almeno un amministratore")
+    end
+
     def terminate_all_sessions
       sessions.delete_all
     end

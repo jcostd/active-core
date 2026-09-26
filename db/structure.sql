@@ -95,8 +95,6 @@ CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
         INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
         VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
       END;
-CREATE TABLE _litestream_seq (id INTEGER PRIMARY KEY, seq INTEGER);
-CREATE TABLE _litestream_lock (id INTEGER);
 CREATE TABLE IF NOT EXISTS "sales" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "amount_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "member_id" integer NOT NULL, "notes" text, "payment_method" integer DEFAULT 0 NOT NULL, "product_id" integer NOT NULL, "product_name_snapshot" varchar NOT NULL, "receipt_code" varchar GENERATED ALWAYS AS (receipt_year || '-' || receipt_sequence || '-' || receipt_number) STORED, "receipt_number" integer, "receipt_sequence" varchar, "receipt_year" integer, "sold_on" date NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, "subscription_id" integer, CONSTRAINT "fk_rails_26eed2fa3b"
 FOREIGN KEY ("subscription_id")
   REFERENCES "subscriptions" ("id")
