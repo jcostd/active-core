@@ -37,4 +37,24 @@ class MaintenanceTasksTest < ActiveSupport::TestCase
     assert_match "FTS ricostruito", output
     assert_match "Rilascio V1 completato", output
   end
+
+  test "invalid fiscal codes are listed" do
+    members(:bob).update_column(:fiscal_code, "VECCHIOCODICE000")
+
+    output = run_task("members:invalid_fiscal_codes")
+    assert_match "1 soci con codice fiscale non valido", output
+    assert_match "VECCHIOCODICE000", output
+    assert_no_match "Alice", output
+  end
+
+  test "all valid fiscal codes" do
+    assert_match "Tutti i codici fiscali sono validi", run_task("members:invalid_fiscal_codes")
+  end
+
+  test "pending fiscal codes are listed apart" do
+    Member.create!(first_name: "Ana", last_name: "Silva", birth_date: "1990-05-05", fiscal_code_pending: true)
+    output = run_task("members:invalid_fiscal_codes")
+    assert_match "1 soci con CF da completare", output
+    assert_match "Ana Silva", output
+  end
 end

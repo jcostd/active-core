@@ -26,7 +26,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     Subscription.create!(
       member: @member,
       product: @monthly_course,
-      sales: [ Sale.create!(member: @member, user: @user, product: @monthly_course, sold_on: last_month_start) ],
+      sales: [ Sale.create!(member: @member, user: users(:admin), product: @monthly_course, sold_on: last_month_start) ],
       start_date: last_month_start,
       end_date: last_month_end
     )
@@ -76,7 +76,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     # 1. Creiamo un utente nuovo "pulito" (senza abbonamenti)
     new_guy = Member.create!(
       first_name: "New", last_name: "Guy",
-      fiscal_code: "NWGGUY90A01H501X", birth_date: "1990-01-01"
+      fiscal_code: "NWGGUY90A01H501P", birth_date: "1990-01-01"
     )
 
     # 2. Proviamo a vendergli YOGA (Corso Istituzionale)

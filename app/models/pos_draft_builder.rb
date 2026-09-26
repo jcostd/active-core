@@ -120,12 +120,9 @@ class PosDraftBuilder
       if manual_start.present?
         sale.subscription.start_date = manual_start
       elsif sale.subscription.start_date.blank?
-        sale.subscription.start_date = sale.member.suggested_start_date_for(sale.product, Date.current)
-      end
-
-      unless manual_start.present?
-        duration = Duration.for(sale.product, sale.subscription.start_date)
-        sale.subscription.start_date = duration.start_date
+        sale.subscription.start_date = Subscription.proposed_start_date(sale.member, sale.product)
+      else
+        sale.subscription.start_date = Duration.for(sale.product, sale.subscription.start_date).start_date
       end
 
       if override_end_date? && manual_end.present?
@@ -134,8 +131,6 @@ class PosDraftBuilder
         duration = Duration.for(sale.product, sale.subscription.start_date)
         sale.subscription.end_date = duration.end_date
       end
-
-      sale.subscription.entry_limit ||= sale.product.entry_limit
     end
 
     def apply_default_price

@@ -88,11 +88,10 @@ class SalesController < ApplicationController
         permitted_sub_attrs << :agreed_price
       end
 
-      params.expect(sale: [
-        :member_id, :product_id, :amount, :payment_method,
-        :sold_on, :notes, :subscription_id,
-        subscription_attributes: permitted_sub_attrs
-      ])
+      permitted = [ :member_id, :product_id, :amount, :payment_method, :notes, :subscription_id ]
+      permitted << :sold_on if current_user.admin?
+
+      params.expect(sale: [ *permitted, subscription_attributes: permitted_sub_attrs ])
     end
 
     def filter_params

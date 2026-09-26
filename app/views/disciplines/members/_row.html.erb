@@ -24,7 +24,7 @@
 
     <%# CF e Nome Prodotto %>
     <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5 mt-0.5">
-      <span class="font-mono"><%= display_value(member.fiscal_code) %></span>
+      <span class="font-mono"><%= display_value(member.fiscal_code, placeholder: "CF da completare") %></span>
 
       <% if subscription.product.present? %>
         <span class="font-bold">&bull; <%= display_value(subscription.product.name) %></span>

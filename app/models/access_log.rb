@@ -30,11 +30,6 @@ class AccessLog < ApplicationRecord
   before_validation :set_defaults
   before_validation :evaluate_access_policy, on: :create
 
-  before_destroy :cache_valid_entry_state
-
-  after_create_commit  :increment_entries_used
-  after_destroy_commit :decrement_entries_used
-
   validates :member, :checkin_by_user, :entered_at, presence: true
 
   validate :prevent_double_tap,            on: :create
@@ -71,24 +66,5 @@ class AccessLog < ApplicationRecord
       if subscription&.member_id != member_id
         errors.add(:subscription, "non appartiene a questo socio")
       end
-    end
-
-    def cache_valid_entry_state
-      @was_valid_entry = ok? || warning?
-    end
-
-    def increment_entries_used
-      return unless subscription_id && (ok? || warning?)
-
-      Subscription.where(id: subscription_id)
-                  .update_all("entries_used = entries_used + 1")
-    end
-
-    def decrement_entries_used
-      return unless subscription_id && @was_valid_entry
-
-      Subscription.where(id: subscription_id)
-                  .where("entries_used > 0")
-                  .update_all("entries_used = entries_used - 1")
     end
 end

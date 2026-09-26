@@ -42,6 +42,6 @@ class SubscriptionsController < ApplicationController
     end
 
     def subscription_params
-      params.expect(subscription: %i[ start_date end_date entry_limit ])
+      params.expect(subscription: %i[ start_date end_date ])
     end
 end

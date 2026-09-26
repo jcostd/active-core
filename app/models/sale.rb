@@ -39,6 +39,7 @@ class Sale < ApplicationRecord
   validate :zero_amount_allowed,  on: :create
   validate :amount_within_due,    on: :create
   validate :sellable,             on: :create
+  validate :staff_dates,          on: :create
 
   enum :payment_method, {
          cash: 1, credit_card: 2, bank_transfer: 3, other: 4
@@ -50,10 +51,23 @@ class Sale < ApplicationRecord
   validates :receipt_sequence, presence: true
 
   before_validation :snapshot_product_details, on: :create
+  before_validation -> { self.sold_on ||= Date.current }, on: :create
   before_validation :sync_subscription_data
   before_validation :assign_receipt_number, on: :create
 
   # staff: solo i propri pagamenti
+  # corso che finisce oltre la quota: si vende lo stesso, ma lo staff va avvisato
+  def membership_warning
+    return if product.nil? || product.associative? || member.nil?
+    return unless subscription&.new_record? && subscription.start_date && subscription.end_date
+
+    covered = member.membership_covered_until(membership_check_date)
+    return if covered.nil? || covered >= subscription.end_date
+
+    "Il corso termina il #{I18n.l(subscription.end_date)}, ma la Quota Associativa copre fino al " \
+      "#{I18n.l(covered)}: il socio dovrà rinnovarla."
+  end
+
   def reversible_by?(user)
     return false if discarded? || !(user.admin? || user_id == user.id)
 
@@ -106,18 +120,20 @@ class Sale < ApplicationRecord
       subscription.undiscard! if subscription.present? && subscription.discarded?
     end
 
+    # la quota deve coprire il giorno in cui il corso parte per il socio:
+    # l'inizio del corso, o la vendita se il corso è allineato a una data passata.
     # le rate pagano un diritto già venduto: il controllo è stato fatto allora
     def require_active_membership_for_courses
-      return if product.nil? || product.associative?
+      return if product.nil? || product.associative? || member.nil?
       return unless subscription&.new_record? && subscription.start_date
+      return if member.membership_valid?(membership_check_date)
 
-      check_date = sold_on || subscription.start_date
+      errors.add(:base, "Impossibile vendere #{product.name}: " \
+                        "il socio non ha una Quota Associativa valida il #{I18n.l(membership_check_date)}.")
+    end
 
-      unless member.membership_valid?(check_date)
-        errors.add(:base, "Impossibile vendere #{product.name}: " \
-                          "Il socio non avrà una Quota Associativa attiva " \
-                          "il #{I18n.l(check_date)}.")
-      end
+    def membership_check_date
+      [ subscription.start_date, sold_on || Date.current ].max
     end
 
     def subscription_matches_sale
@@ -134,6 +150,19 @@ class Sale < ApplicationRecord
 
       errors.add(:member, "è archiviato") if member&.discarded?
       errors.add(:product, "è archiviato") if product&.discarded?
+    end
+
+    # staff: data contabile sempre oggi, inizio abbonamento solo in avanti rispetto alla proposta
+    def staff_dates
+      return if user.nil? || user.admin?
+
+      errors.add(:sold_on, "può essere modificata solo da un amministratore") if sold_on != Date.current
+
+      return unless subscription&.new_record? && subscription.start_date && member && product
+      earliest = Subscription.proposed_start_date(member, product)
+      return if subscription.start_date >= earliest
+
+      errors.add(:subscription, "può iniziare al più presto il #{I18n.l(earliest)}")
     end
 
     def zero_amount_allowed

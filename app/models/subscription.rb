@@ -34,8 +34,6 @@ class Subscription < ApplicationRecord
   before_validation :set_default_agreed_price, on: :create
 
   validate :prevent_overlapping_subscriptions, if: :period_changed?
-  validates :entry_limit, numericality: { greater_than_or_equal_to: 0, only_integer: true }, allow_nil: true
-  validate :entry_limit_covers_used_entries
 
   after_discard :discard_sales
 
@@ -43,13 +41,7 @@ class Subscription < ApplicationRecord
   scope :expired,  -> { where(subscriptions: { end_date: ...Date.current }) }
   scope :upcoming, -> { where(subscriptions: { start_date: (Date.current + 1.day).. }) }
 
-  scope :truly_active_at, ->(date) {
-    kept
-      .where(subscriptions: { start_date: ..date, end_date: date.. })
-      .where("subscriptions.entry_limit IS NULL OR subscriptions.entry_limit = 0 OR subscriptions.entries_used < subscriptions.entry_limit")
-  }
-
-  scope :truly_active,   -> { truly_active_at(Date.current) }
+  scope :active_at, ->(date) { kept.where(subscriptions: { start_date: ..date, end_date: date.. }) }
 
   # rinnovato: stesso socio, un altro abbonamento che parte e finisce dopo questo,
   # nella stessa disciplina (o stesso prodotto, o entrambe quote associative)
@@ -88,6 +80,11 @@ class Subscription < ApplicationRecord
     joins(product: :disciplines).where(disciplines: { id: discipline.id })
   }
 
+  # inizio proposto dal POS: continuità col precedente, poi allineamento del prodotto
+  def self.proposed_start_date(member, product, date = Date.current)
+    Duration.for(product, member.suggested_start_date_for(product, date)).start_date
+  end
+
   def status
     @status ||= SubscriptionStatus.new(self)
   end
@@ -120,23 +117,6 @@ class Subscription < ApplicationRecord
     amount_paid >= agreed_price_cents
   end
 
-  def unlimited_entries?
-    entry_limit.nil? || entry_limit.zero?
-  end
-
-  def entries_used
-    unlimited_entries? ? 0 : self[:entries_used]
-  end
-
-  def entries_remaining
-    return nil if unlimited_entries?
-    [ entry_limit - entries_used, 0 ].max
-  end
-
-  def out_of_entries?
-    !unlimited_entries? && entries_used >= entry_limit
-  end
-
   def future?
     start_date.present? && start_date > Date.current
   end
@@ -152,7 +132,6 @@ class Subscription < ApplicationRecord
 
   def expiring_soon?
     return false unless end_date
-    return false if out_of_entries?
     !future? && days_left&.between?(0, 7) || false
   end
 
@@ -168,7 +147,6 @@ class Subscription < ApplicationRecord
     def apply_business_rules
       return unless product.present? && member.present?
 
-      self.entry_limit ||= product.entry_limit
       return if end_date.present?
 
       if start_date.blank?
@@ -188,12 +166,6 @@ class Subscription < ApplicationRecord
 
     def period_changed?
       new_record? || will_save_change_to_start_date? || will_save_change_to_end_date? || will_save_change_to_product_id?
-    end
-
-    def entry_limit_covers_used_entries
-      return if unlimited_entries? || self[:entries_used].to_i <= entry_limit
-
-      errors.add(:entry_limit, "non può essere inferiore agli ingressi già usati (#{self[:entries_used]})")
     end
 
     def prevent_overlapping_subscriptions

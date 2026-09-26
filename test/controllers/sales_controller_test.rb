@@ -179,7 +179,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
       post sales_path, params: { sale: { member_id: alice.id, product_id: @course.id, amount: "45", payment_method: "cash",
                                          sold_on: Date.current, subscription_attributes: { start_date: Date.current } } }
     end
-    assert_match "non avrà una Quota Associativa attiva", response.body
+    assert_match "non ha una Quota Associativa valida", response.body
   end
 
   test "successful sale redirects to the sale page" do
@@ -218,5 +218,52 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
     get sales_path(payment_method: "bank_transfer")
     assert_no_match "Bob Bianchi", response.body
+  end
+
+  # --- DATE PER LO STAFF ---
+
+  test "staff form has a locked accounting date and a minimum start" do
+    sign_in_as(@staff)
+    alice = members(:alice)
+    grant_membership_to(alice)
+
+    get new_sale_path(sale: { member_id: alice.id, product_id: @course.id })
+    assert_select "input[name='sale[sold_on]'][readonly]"
+    assert_select "input[name='sale[subscription_attributes][start_date]'][min='#{Subscription.proposed_start_date(alice, @course).iso8601}']"
+  end
+
+  test "admin form keeps dates editable" do
+    sign_in_as(@admin)
+    get new_sale_path(sale: { member_id: @member.id, product_id: @course.id })
+    assert_select "input[name='sale[sold_on]'][readonly]", count: 0
+    assert_select "input[name='sale[subscription_attributes][start_date]'][min]", count: 0
+  end
+
+  test "staff posted accounting date is ignored" do
+    sign_in_as(@staff)
+    alice = members(:alice)
+    grant_membership_to(alice)
+
+    post sales_path, params: { sale: { member_id: alice.id, product_id: @course.id, amount: "45", payment_method: "cash",
+                                       sold_on: (Date.current - 30).iso8601, subscription_attributes: { start_date: Date.current } } }
+    assert_equal Date.current, Sale.order(:id).last.sold_on
+  end
+
+  test "pos shows the membership warning without blocking" do
+    alice = members(:alice)
+    quarterly = Product.create!(name: "Yoga Trimestrale", price_cents: 12000, duration_days: 90)
+
+    travel_to Date.new(2026, 7, 10) do
+      Subscription.create!(member: alice, product: products(:annual_membership), start_date: Date.new(2025, 9, 1), end_date: Date.new(2026, 8, 31))
+      sign_in_as(@staff)
+
+      get new_sale_path(sale: { member_id: alice.id, product_id: quarterly.id })
+      assert_select "[role=alert].alert-warning", text: /dovrà rinnovarla/
+
+      assert_difference -> { Sale.count } do
+        post sales_path, params: { sale: { member_id: alice.id, product_id: quarterly.id, amount: "120", payment_method: "cash",
+                                           subscription_attributes: { start_date: "2026-07-01" } } }
+      end
+    end
   end
 end

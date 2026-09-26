@@ -24,10 +24,6 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "Pilates Mensile", 5550, [ disciplines(:yoga) ] ], [ product.name, product.price_cents, product.disciplines.to_a ]
   end
 
-  test "create carnet with entry limit" do
-    post products_path, params: { product: { name: "Carnet 10", price: "80", duration_days: 90, accounting_category: "institutional", entry_limit: 10 } }
-    assert_equal 10, Product.last.entry_limit
-  end
 
   test "invalid product re-renders" do
     assert_no_difference -> { Product.count } do

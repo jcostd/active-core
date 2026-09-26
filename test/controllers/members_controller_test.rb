@@ -49,7 +49,7 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
       post members_path, params: { member: VALID.merge(fiscal_code: "corto", first_name: "") }
     end
     assert_response :unprocessable_entity
-    assert_match "Codice fiscale non è valido", response.body
+    assert_match "Codice fiscale non è valido: controlla", response.body
     assert_match "Nome non può essere lasciato in bianco", response.body
   end
 
@@ -104,5 +104,19 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
     get member_subscriptions_path(@alice)
     assert_no_match(/Resta: -/, response.body)
     assert_match "Saldato", response.body
+  end
+
+  test "create a member with pending fiscal code" do
+    assert_difference -> { Member.missing_fiscal_code.count } do
+      post members_path, params: { member: VALID.merge(fiscal_code: "", fiscal_code_pending: "1") }
+    end
+    get members_path
+    assert_match "CF da completare", response.body
+  end
+
+  test "create without fiscal code and without the box is refused" do
+    post members_path, params: { member: VALID.merge(fiscal_code: "") }
+    assert_response :unprocessable_entity
+    assert_match "CF da completare", response.body
   end
 end

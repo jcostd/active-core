@@ -1,6 +1,5 @@
 class Kiosk::AccessLogsController < Kiosk::BaseController
   before_action :set_discipline
-  before_action :set_discipline_access_log, only: [ :destroy ]
   before_action :set_member, only: [ :create ]
 
   def create
@@ -22,21 +21,9 @@ class Kiosk::AccessLogsController < Kiosk::BaseController
     redirect_to kiosk_discipline_path(@discipline)
   end
 
-  def destroy
-    member_name = @access_log.member.first_name
-    @access_log.destroy
-
-    flash[:success] = "Check-in annullato per #{member_name}"
-    redirect_to kiosk_discipline_path(@discipline)
-  end
-
   private
     def set_discipline
       @discipline = Discipline.kept.find(params[:discipline_id])
-    end
-
-    def set_discipline_access_log
-      @access_log = @discipline.access_logs.find(params[:id])
     end
 
     def set_member

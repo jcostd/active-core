@@ -7,7 +7,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "dashboard shows today's figures" do
-    sell!(member: @member, product: products(:yoga_monthly), amount: 20, agreed_price: 20, start_date: Date.current - 20, end_date: Date.current + 3)
+    sell!(member: @member, product: products(:yoga_monthly), amount: 20, agreed_price: 20, user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 3)
     AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
     sign_in_as(users(:staff))
 
@@ -18,7 +18,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "expiring subscriptions page linked from the dashboard renders" do
-    sell!(member: @member, product: products(:yoga_monthly), start_date: Date.current - 20, end_date: Date.current + 3)
+    sell!(member: @member, product: products(:yoga_monthly), user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 3)
     sign_in_as(users(:staff))
 
     get subscriptions_path(filter: "expiring")

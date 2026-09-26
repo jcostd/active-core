@@ -25,7 +25,9 @@
         <fieldset class="fieldset">
           <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza (Modificabile)
           </label>
-          <%= sub_f.date_field :start_date, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+          <%= sub_f.date_field :start_date,
+                min: (Subscription.proposed_start_date(sale.member, sale.product) unless current_user.admin? || sale.member.nil? || sale.product.nil?),
+                class: "input w-full", data: { action: "change->autosubmit#submit" } %>
         </fieldset>
 
         <%# COLONNA DESTRA %>
@@ -50,6 +52,13 @@
           <% end %>
         </fieldset>
 
+      </div>
+    <% end %>
+
+    <% if (warning = sale.membership_warning) %>
+      <div role="alert" class="alert alert-warning alert-soft text-sm mt-3">
+        <%= icon("warning", classes: "size-5") %>
+        <span><%= warning %></span>
       </div>
     <% end %>
   <% end %>

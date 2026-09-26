@@ -93,10 +93,4 @@ class PosDraftBuilderTest < ActiveSupport::TestCase
                  override_end_date: "1")
     assert_equal finish, sale.subscription.end_date
   end
-
-  test "entry limit is copied from the product" do
-    @course.update_columns(entry_limit: 10)
-    sale = build(sale: { member_id: @member.id, product_id: @course.id })
-    assert_equal 10, sale.subscription.entry_limit
-  end
 end

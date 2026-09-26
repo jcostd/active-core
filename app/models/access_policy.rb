@@ -62,14 +62,6 @@ class AccessPolicy
         days_left = (subscription.end_date - Date.current).to_i
         @warnings << "Abbonamento in scadenza tra #{days_left} giorni."
       end
-
-      if entry_limit_applies? && subscription.entries_remaining <= 2
-        @warnings << "Rimangono solo #{subscription.entries_remaining} ingressi."
-      end
-    end
-
-    def entry_limit_applies?
-      subscription&.entry_limit.present? && subscription.entry_limit > 0
     end
 
     def subscription_expiring_soon?

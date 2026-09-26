@@ -21,7 +21,7 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     sale = Sale.create!(
       member: @member,
-      user: users(:staff),
+      user: users(:admin),
       product: @prod_inst,
       sold_on: sale_date,
       subscription_attributes: { member: @member, product: @prod_inst }
@@ -42,7 +42,7 @@ class SubscriptionTest < ActiveSupport::TestCase
     future_start = Date.new(2025, 2, 1) # Già primo del mese
 
     sale = Sale.create!(
-      member: @member, product: @prod_inst, user: @staff,
+      member: @member, product: @prod_inst, user: users(:admin),
       sold_on: sale_date, payment_method: :cash
     )
 
@@ -54,8 +54,8 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal Date.new(2025, 2, 1), sub.start_date
     assert_equal Date.new(2025, 2, 28), sub.end_date
 
-    assert_not Subscription.truly_active_at(sale_date).exists?(sub.id)
-    assert Subscription.truly_active_at(future_start).exists?(sub.id)
+    assert_not Subscription.active_at(sale_date).exists?(sub.id)
+    assert Subscription.active_at(future_start).exists?(sub.id)
   end
 
   test "scopes filter correctly" do
@@ -132,22 +132,10 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_not sub.valid?
   end
 
-  test "entries helpers for unlimited and limited subscriptions" do
-    unlimited = Subscription.new(entry_limit: nil, entries_used: 7)
-    assert unlimited.unlimited_entries?
-    assert_equal 0, unlimited.entries_used
-    assert_nil unlimited.entries_remaining
-    assert_not unlimited.out_of_entries?
 
-    carnet = Subscription.new(entry_limit: 10, entries_used: 12)
-    assert_equal 0, carnet.entries_remaining
-    assert carnet.out_of_entries?
-  end
-
-  test "expiring_soon excludes future and exhausted subscriptions" do
+  test "expiring_soon excludes future subscriptions" do
     assert Subscription.new(start_date: Date.current - 10, end_date: Date.current + 3).expiring_soon?
     assert_not Subscription.new(start_date: Date.current + 1, end_date: Date.current + 3).expiring_soon?
-    assert_not Subscription.new(start_date: Date.current - 10, end_date: Date.current + 3, entry_limit: 1, entries_used: 1).expiring_soon?
     assert_not Subscription.new(start_date: Date.current - 10, end_date: Date.current + 30).expiring_soon?
   end
 
@@ -169,15 +157,5 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_not second.update(start_date: Date.current + 5)
     assert_match "Già un abbonamento", second.errors.full_messages.to_sentence
     assert first.update(end_date: Date.current + 10), "salvare senza cambiare periodo resta possibile"
-  end
-
-  test "entry limit cannot go below used entries" do
-    sub = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10, entry_limit: 10)
-    sub.update_columns(entries_used: 6)
-
-    assert_not sub.update(entry_limit: 5)
-    assert_match "ingressi già usati (6)", sub.errors.full_messages.to_sentence
-    assert sub.update(entry_limit: 6)
-    assert sub.update(entry_limit: nil), "senza limite va sempre bene"
   end
 end

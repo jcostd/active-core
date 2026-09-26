@@ -4,7 +4,7 @@ module Member::Filterable
   included do
     scope :with_active_membership, -> {
       joins(:subscriptions)
-        .merge(Subscription.truly_active.joins(:product).merge(Product.associative))
+        .merge(Subscription.active_at(Date.current).joins(:product).merge(Product.associative))
         .distinct
     }
 

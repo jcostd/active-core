@@ -7,10 +7,9 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
     @quota = products(:annual_membership)
   end
 
-  def status_for(start_date:, end_date:, paid: true, entry_limit: nil, entries_used: 0)
+  def status_for(start_date:, end_date:, paid: true)
     sub = Subscription.create!(member: @member, product: products(:yoga_monthly), start_date:, end_date:,
-                               entry_limit:, agreed_price_cents: 1000)
-    sub.update_columns(entries_used:)
+                               agreed_price_cents: 1000)
     Sale.create!(member: @member, product: sub.product, user: users(:staff), sold_on: Date.current, amount_cents: 1000, subscription: sub) if paid
     sub.reload.status
   end
@@ -30,9 +29,6 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
     assert_equal :expired, status_for(start_date: Date.current - 40, end_date: Date.current - 1).key
   end
 
-  test "expired when entries are exhausted" do
-    assert_equal :expired, status_for(start_date: Date.current - 1, end_date: Date.current + 20, entry_limit: 5, entries_used: 5).key
-  end
 
   test "future" do
     s = status_for(start_date: Date.current + 3, end_date: Date.current + 30)

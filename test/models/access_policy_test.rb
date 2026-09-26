@@ -50,17 +50,7 @@ class AccessPolicyTest < ActiveSupport::TestCase
     assert_includes policy(@alice).warnings, "Abbonamento in scadenza tra 3 giorni."
   end
 
-  test "few entries left warns" do
-    sub = sell_course_to(@alice, end_date: Date.current + 30)
-    sub.update_columns(entry_limit: 10, entries_used: 8)
-    assert_includes policy(@alice).warnings, "Rimangono solo 2 ingressi."
-  end
 
-  test "exhausted carnet is an error" do
-    sub = sell_course_to(@alice, end_date: Date.current + 30)
-    sub.update_columns(entry_limit: 10, entries_used: 10)
-    assert_equal :error, policy(@alice).status
-  end
 
   test "no warnings are evaluated when there are errors" do
     p = policy(@bob)

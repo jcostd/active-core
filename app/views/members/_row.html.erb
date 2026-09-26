@@ -20,7 +20,7 @@
 
     <%# Riga B: Dettagli Fiscali e Status %>
     <div class="text-[11px] uppercase font-semibold opacity-70 flex flex-wrap items-center gap-1.5">
-      <span><%= display_value(member.fiscal_code) %></span>
+      <span><%= display_value(member.fiscal_code, placeholder: "CF da completare") %></span>
 
       <%= member_status_badges(member) %>
     </div>

@@ -5,7 +5,7 @@ class MemberTest < ActiveSupport::TestCase
     @member = Member.new(
       first_name: "  mario  ",
       last_name: "ROSSI",
-      fiscal_code: "rssmra80a01h501z",
+      fiscal_code: "rssmra80a01h501u",
       birth_date: "1980-01-01",
       email_address: "  MARIO@test.com "
     )
@@ -17,7 +17,7 @@ class MemberTest < ActiveSupport::TestCase
     assert_equal "Mario", @member.first_name
     assert_equal "Rossi", @member.last_name
     assert_equal "mario@test.com", @member.email_address
-    assert_equal "RSSMRA80A01H501Z", @member.fiscal_code # Upcase fondamentale
+    assert_equal "RSSMRA80A01H501U", @member.fiscal_code # Upcase fondamentale
   end
 
   test "virtual column full_name works" do
@@ -88,15 +88,11 @@ class MemberTest < ActiveSupport::TestCase
     end
   end
 
-  test "membership_valid? ignores exhausted and discarded memberships" do
+  test "membership_valid? ignores discarded memberships" do
     alice = members(:alice)
     sub = Subscription.create!(member: alice, product: products(:annual_membership), start_date: Date.current, end_date: Date.current + 30)
     assert alice.membership_valid?
 
-    sub.update_columns(entry_limit: 1, entries_used: 1)
-    assert_not alice.membership_valid?
-
-    sub.update_columns(entry_limit: nil)
     sub.discard!
     assert_not alice.reload.membership_valid?
   end
@@ -142,5 +138,75 @@ class MemberTest < ActiveSupport::TestCase
     member.phone = ""
     member.validate
     assert_empty member.errors[:phone]
+  end
+
+  test "fiscal code must pass the check character" do
+    member = members(:alice)
+    member.fiscal_code = "RSSMRA80A01H501Z"
+    assert_not member.valid?
+    assert_includes member.errors[:fiscal_code], "non è valido: controlla lettere, cifre e carattere finale"
+
+    member.fiscal_code = "rssmra80a01h501u"
+    assert member.valid?
+  end
+
+  test "blank fiscal code asks to fill it or mark it pending" do
+    member = members(:alice)
+    member.fiscal_code = " "
+    assert_not member.valid?
+    assert_equal [ "non può essere lasciato in bianco: inseriscilo o spunta \"CF da completare\"" ], member.errors[:fiscal_code]
+  end
+
+  test "touching a member with an old invalid code does not fail" do
+    member = members(:alice)
+    member.update_column(:fiscal_code, "VECCHIOCODICE000")
+    assert_nothing_raised { member.touch }
+  end
+
+  # --- CF DA COMPLETARE ---
+
+  test "new member without fiscal code when marked pending" do
+    member = Member.create!(first_name: "Ana", last_name: "Silva", birth_date: "1990-05-05", fiscal_code: "", fiscal_code_pending: true)
+    assert_nil member.fiscal_code
+    assert_includes Member.missing_fiscal_code, member
+  end
+
+  test "several pending members do not collide" do
+    2.times { |i| Member.create!(first_name: "Ospite#{i}", last_name: "Estero", birth_date: "1990-05-05", fiscal_code_pending: true) }
+    assert_equal 2, Member.missing_fiscal_code.count
+  end
+
+  test "pending members stay editable without ticking the box again" do
+    member = Member.create!(first_name: "Ana", last_name: "Silva", birth_date: "1990-05-05", fiscal_code_pending: true)
+    reloaded = Member.find(member.id)
+
+    assert reloaded.fiscal_code_pending?
+    assert reloaded.update(phone: "3331234567")
+  end
+
+  test "an existing fiscal code cannot be wiped by mistake" do
+    member = members(:alice)
+    assert_not member.update(fiscal_code: "")
+  end
+
+  test "completing a pending fiscal code validates it" do
+    member = Member.create!(first_name: "Ana", last_name: "Silva", birth_date: "1990-05-05", fiscal_code_pending: true)
+    assert_not member.update(fiscal_code: "RSSMRA80A01H501Z")
+    assert member.update(fiscal_code: "RSSMRA80A01H501U")
+    assert_not member.reload.fiscal_code_pending?
+  end
+
+  test "full text index is kept in sync by database triggers" do
+    triggers = Member.connection.select_values("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+    assert_equal %w[members_ad members_ai members_au], triggers.grep(/\Amembers_/).sort
+
+    member = Member.create!(first_name: "Zebedeo", last_name: "Nuovo", birth_date: "1990-05-05", fiscal_code_pending: true)
+    assert_includes Member.search_text("zebedeo"), member
+  end
+
+  test "legacy member with an invalid code can still be edited" do
+    member = members(:alice)
+    member.update_column(:fiscal_code, "NO11111111111111")
+    assert member.reload.update(phone: "3339998877")
   end
 end

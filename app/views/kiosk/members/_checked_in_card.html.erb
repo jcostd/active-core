@@ -1,7 +1,6 @@
 <%# locals: (log:) %>
 <%
   member = log.member
-  sub = log.subscription || member.relevant_subscriptions.find { |s| s.product.disciplines.include?(log.discipline) }
 
   if log.error?
     bg_css, text_css = "bg-error/80 border-error", "text-warning"
@@ -36,22 +35,9 @@
               </span>
             <% end %>
 
-            <% if sub && !sub.unlimited_entries? %>
-              <span class="text-[10px] uppercase font-bold opacity-75 flex items-center gap-1 mt-0.5">
-                <%= icon("access", classes: "size-3") %> Ingressi Rimanenti: <%= sub.entries_remaining %>
-              </span>
-            <% end %>
           </div>
         </div>
       </div>
-
-      <%= button_to kiosk_discipline_access_log_path(log.discipline_id, log),
-                    method: :delete,
-                    class: "btn btn-circle btn-ghost hover:bg-error/20 hover:text-error transition-colors",
-                    title: "Annulla ingresso",
-                    data: { turbo: true } do %>
-        <%= icon("close", classes: "size-8") %>
-      <% end %>
 
     </div>
   </div>

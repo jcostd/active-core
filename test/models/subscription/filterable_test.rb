@@ -38,12 +38,10 @@ class Subscription::FilterableTest < ActiveSupport::TestCase
     assert_equal @upcoming, Subscription.sorted_by("expiring_desc").first
   end
 
-  test "truly_active_at honours entry limits" do
-    @active.update_columns(entry_limit: 2, entries_used: 2)
-    assert_not Subscription.truly_active_at(Date.current).exists?(@active.id)
-
-    @active.update_columns(entries_used: 1)
-    assert Subscription.truly_active_at(Date.current).exists?(@active.id)
+  test "active_at ignores discarded subscriptions" do
+    assert Subscription.active_at(Date.current).exists?(@active.id)
+    @active.discard!
+    assert_not Subscription.active_at(Date.current).exists?(@active.id)
   end
 
   test "for_discipline uses product links" do

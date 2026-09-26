@@ -8,8 +8,8 @@ class Sale::FilterableTest < ActiveSupport::TestCase
     Sale.delete_all
 
     @cash  = sell!(member: @alice, product: products(:annual_membership), start_date: 10.years.from_now.to_date)
-    @card  = sell!(member: @alice, product: products(:yoga_monthly), payment_method: :credit_card, user: users(:admin))
-    @old   = sell!(member: @alice, product: products(:yoga_monthly), sold_on: 2.months.ago.to_date, start_date: 2.months.ago.to_date)
+    @card  = sell!(member: @alice, product: products(:yoga_monthly), payment_method: :credit_card, user: users(:staff_two))
+    @old   = sell!(member: @alice, product: products(:yoga_monthly), user: users(:admin), sold_on: 2.months.ago.to_date, start_date: 2.months.ago.to_date)
   end
 
   test "search by receipt number, member and product" do
@@ -21,7 +21,7 @@ class Sale::FilterableTest < ActiveSupport::TestCase
   test "filters by payment method, product and operator" do
     assert_equal [ @card ], Sale.by_payment_method("credit_card").to_a
     assert_equal [ @cash ], Sale.by_product(products(:annual_membership).id).to_a
-    assert_equal [ @card ], Sale.by_operator(users(:admin).id).to_a
+    assert_equal [ @card ], Sale.by_operator(users(:staff_two).id).to_a
   end
 
   test "filters by period" do

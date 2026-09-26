@@ -27,6 +27,10 @@ ActiveCore è il gestionale pensato per le **Associazioni Sportive Dilettantisti
 
 -   **Rate libere**: pagamenti progressivi di qualsiasi importo, sempre entro il residuo dovuto.
 
+-   **Quota prima di tutto**: un corso si vende solo se la Quota Associativa copre il suo inizio; se il corso finisce dopo la quota (trimestrale, annuale) il POS avvisa.
+
+-   **Codice fiscale verificato**: controllo del carattere finale (omocodia compresa); chi non lo ha con sé viene iscritto come "CF da completare".
+
 
 ### 🚪 Accessi non bloccanti (kiosk iPad)
 

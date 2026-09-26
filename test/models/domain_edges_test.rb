@@ -33,7 +33,7 @@ class DomainEdgesTest < ActiveSupport::TestCase
   test "receipt year follows the accounting date, not today" do
     member = members(:alice)
     grant_membership_to(member)
-    sale = sell!(member:, product: products(:annual_membership), sold_on: Date.new(Date.current.year - 1, 12, 31),
+    sale = sell!(member:, product: products(:annual_membership), user: users(:admin), sold_on: Date.new(Date.current.year - 1, 12, 31),
                  start_date: Date.new(Date.current.year + 5, 1, 1))
 
     assert_equal Date.current.year - 1, sale.receipt_year

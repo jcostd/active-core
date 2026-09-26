@@ -18,7 +18,7 @@ class MembersController < ApplicationController
   def show
     @active_subscriptions = @member.subscriptions.kept
                               .includes(:product, :access_logs)
-                              .select { |s| (s.end_date.nil? || s.end_date >= Date.current) && !s.out_of_entries? }
+                              .select { |s| s.end_date >= Date.current }
                               .sort_by { |s| s.start_date || Date.current }
     @recent_sales = @member.recent_sales
   end
@@ -62,7 +62,7 @@ class MembersController < ApplicationController
 
     def member_params
       params.expect(member: %i[
-        first_name last_name fiscal_code birth_date
+        first_name last_name fiscal_code fiscal_code_pending birth_date
         email_address phone address city zip_code
         medical_certificate_expiry
       ])

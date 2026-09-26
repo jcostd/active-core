@@ -26,13 +26,16 @@
       <div>
         <%= f.label :fiscal_code, "Codice Fiscale*", class: "label" %>
         <%= f.text_field :fiscal_code,
-	 required: true,
 	 class: "input w-full uppercase font-mono tracking-wide",
 	 placeholder: "RSSMRA...",
 	 data: {
            fiscal_code_target: "code",
            action: "input->fiscal-code#autofill"
           } %>
+        <label class="label cursor-pointer gap-2 mt-2 text-xs">
+          <%= f.check_box :fiscal_code_pending, checked: member.fiscal_code_pending?, class: "checkbox checkbox-xs" %>
+          CF da completare (il socio non lo ha con sé)
+        </label>
       </div>
 
       <div>

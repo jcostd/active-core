@@ -2,7 +2,7 @@
 alice:
   first_name: Alice
   last_name: Allevi
-  fiscal_code: LLVLC80A01H501ZD
+  fiscal_code: LLVLCA80A41H501H
   birth_date: 1980-01-01
   email_address: alice@example.com
   phone: "3331234567"
@@ -16,7 +16,7 @@ alice:
 bob:
   first_name: Bob
   last_name: Bianchi
-  fiscal_code: BNCBOB90B02H501X
+  fiscal_code: BNCBOB90B02H501Z
   birth_date: 1990-02-02
   email_address: bob@example.com
   city: "Roma"
@@ -27,7 +27,7 @@ bob:
 deleted:
   first_name: Carlo
   last_name: Cancellato
-  fiscal_code: CNCCRL80C03H501Y
+  fiscal_code: CNCCRL80C03H501R
   birth_date: 1980-03-03
   email_address: deleted@example.com
   discarded_at: <%= 1.day.ago %>

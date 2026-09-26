@@ -66,38 +66,19 @@ class AccessLogTest < ActiveSupport::TestCase
 
   # --- CARNET E DOPPIO TOCCO ---
 
-  test "valid entry consumes a carnet entry and cancelling gives it back" do
-    member = @member
+  test "valid entry links the active subscription" do
     link!(@product, disciplines(:yoga))
-    sub = @subscription
-    sub.update_columns(entry_limit: 5, entries_used: 0)
-
-    log = AccessLog.create!(member:, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
-    assert_equal sub, log.subscription
-    assert_equal 1, sub.reload.entries_used
-
-    log.destroy
-    assert_equal 0, sub.reload.entries_used
+    log = AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+    assert_equal @subscription, log.subscription
+    assert_not log.error?
   end
 
-  test "error entries do not consume the carnet" do
-    member = members(:bob)
-    log = AccessLog.create!(member:, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+  test "error entries have no subscription" do
+    log = AccessLog.create!(member: members(:bob), discipline: disciplines(:yoga), checkin_by_user: users(:staff))
     assert log.error?
     assert_nil log.subscription
   end
 
-  test "entries_used never goes below zero" do
-    member = @member
-    link!(@product, disciplines(:yoga))
-    sub = @subscription
-    sub.update_columns(entry_limit: 5, entries_used: 0)
-    log = AccessLog.create!(member:, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
-    sub.update_columns(entries_used: 0)
-
-    log.destroy
-    assert_equal 0, sub.reload.entries_used
-  end
 
   test "double tap within the timeout is rejected" do
     first = AccessLog.create!(member: members(:alice), discipline: disciplines(:yoga), checkin_by_user: users(:staff))

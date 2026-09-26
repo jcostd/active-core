@@ -44,7 +44,6 @@ it:
         accounting_category: Categoria contabile
         disciplines: Discipline
         duration_days: Durata (giorni)
-        entry_limit: Numero ingressi
         name: Nome
         price: Prezzo
         price_cents: Prezzo
@@ -69,7 +68,6 @@ it:
         agreed_price: Prezzo concordato
         agreed_price_cents: Prezzo concordato
         end_date: Scadenza
-        entry_limit: Numero ingressi
         member: Socio
         product: Prodotto
         start_date: Decorrenza

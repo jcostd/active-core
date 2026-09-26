@@ -34,5 +34,4 @@ class Product < ApplicationRecord
   validates :name, presence: true, uniqueness: { conditions: -> { kept } }
   validates :duration_days, numericality: { greater_than: 0, only_integer: true }
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
-  validates :entry_limit, numericality: { greater_than: 0, only_integer: true, allow_nil: true }
 end

@@ -110,7 +110,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
   test "subscription undo button follows the undo windows" do
     grant_membership_to(@member)
-    current = @member.subscriptions.kept.find_by!(end_date: Date.current.end_of_year)
+    current = sell!(member: @member, product: @product, user: @staff).subscription
     undo = "a[data-turbo-method=delete][href='#{subscription_path(current)}']"
 
     sign_in_as(users(:staff_two))

@@ -8,13 +8,13 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:admin))
   end
 
-  test "admin edits dates and entry limit" do
+  test "admin edits dates" do
     get edit_subscription_path(@sub)
     assert_response :success
 
-    patch subscription_path(@sub), params: { subscription: { end_date: (@sub.end_date + 5).iso8601, entry_limit: 8 } }
+    patch subscription_path(@sub), params: { subscription: { end_date: (@sub.end_date + 5).iso8601 } }
     assert_redirected_to member_subscriptions_path(@member)
-    assert_equal [ @sub.end_date + 5, 8 ], [ @sub.reload.end_date, @sub.entry_limit ]
+    assert_equal @sub.end_date + 5, @sub.reload.end_date
   end
 
   test "invalid dates re-render" do

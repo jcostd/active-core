@@ -1,7 +1,6 @@
 <%# locals: (member:, discipline:) %>
 <%
   policy = AccessPolicy.new(member: member, discipline: discipline).evaluate!
-  sub = policy.subscription
 
   # Definiamo i colori e i testi una volta sola
   if policy.status == :error
@@ -28,10 +27,6 @@
             <% if policy.status != :ok %>
               <span class="text-[10px] uppercase font-bold <%= text_css %> flex items-center gap-1">
                 <%= icon(icon_name, classes: "size-3") %> <%= status_msg %>
-              </span>
-            <% elsif sub && !sub.unlimited_entries? %>
-              <span class="text-[10px] uppercase font-bold text-success flex items-center gap-1">
-                <%= icon("ticket", classes: "size-3") %> <%= sub.entries_remaining %> Ingressi
               </span>
             <% end %>
           </div>

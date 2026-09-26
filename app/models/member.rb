@@ -20,14 +20,17 @@ class Member < ApplicationRecord
 
   RENEWAL_GRACE_PERIOD = 30
 
-  normalizes :fiscal_code, with: ->(c) { c.strip.upcase }
+  normalizes :fiscal_code, with: ->(c) { c.strip.upcase.presence }
+
+  # casella del form: iscrizione senza CF, da completare in seguito
+  attribute :fiscal_code_pending, :boolean, default: false
 
   has_many :sales,         dependent: :restrict_with_error
   has_many :access_logs,   dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 
   has_many :active_subscriptions,
-           -> { truly_active.order(subscriptions: { start_date: :asc }) },
+           -> { active_at(Date.current).order(subscriptions: { start_date: :asc }) },
            class_name: "Subscription"
 
   has_many :recent_sales,
@@ -36,11 +39,23 @@ class Member < ApplicationRecord
 
   validates :birth_date, presence: true
   validates :fiscal_code,
-            presence: true,
-            uniqueness: { conditions: -> { kept } },
-            format: { with: /\A[A-Z0-9]{16}\z/ }
+            presence: { message: "non può essere lasciato in bianco: inseriscilo o spunta \"CF da completare\"" },
+            unless: :fiscal_code_pending?
+  validates :fiscal_code, uniqueness: { conditions: -> { kept } }, allow_nil: true
+  # soci già presenti con CF errato restano modificabili: si verifica solo un CF nuovo o cambiato
+  validate :fiscal_code_checksum, if: -> { fiscal_code.present? && (new_record? || will_save_change_to_fiscal_code?) }
+
+  scope :missing_fiscal_code, -> { where(members: { fiscal_code: nil }) }
   validates :phone,
             phone: { possible: true, allow_blank: true, types: [ :mobile, :fixed_line ] }
+
+  def fiscal_code_pending?
+    super || (persisted? && fiscal_code_in_database.nil?)
+  end
+
+  def fiscal_code_checksum
+    errors.add(:fiscal_code, "non è valido: controlla lettere, cifre e carattere finale") unless FiscalCode.valid?(fiscal_code)
+  end
 
   def suggested_start_date_for(product, reference_date = Date.current, last_sub: nil)
     reference_date = reference_date.to_date
@@ -66,14 +81,25 @@ class Member < ApplicationRecord
         s.kept? &&
         s.product&.associative? &&
         s.start_date && s.start_date <= date &&
-        s.end_date && s.end_date >= date &&
-          (s.entry_limit.nil? || s.entry_limit.zero? || s.entries_used < s.entry_limit)
+        s.end_date && s.end_date >= date
       end
     else
-      subscriptions.truly_active_at(date)
+      subscriptions.active_at(date)
         .joins(:product)
         .merge(Product.associative)
         .exists?
+    end
+  end
+
+  # fine della copertura associativa continua a partire da date (quote consecutive sommate)
+  def membership_covered_until(date)
+    memberships = subscriptions.kept.joins(:product).merge(Product.associative)
+                               .where(subscriptions: { end_date: date.. })
+                               .order(:start_date)
+
+    memberships.reduce(nil) do |covered, membership|
+      break covered if membership.start_date > (covered ? covered + 1 : date)
+      [ covered, membership.end_date ].compact.max
     end
   end
 

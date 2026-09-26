@@ -229,9 +229,9 @@ class SaleTest < ActiveSupport::TestCase
     end
   end
 
-  test "smart renewal: staff manual start date snaps to month start for calendar products" do
+  test "smart renewal: manual start date snaps to month start for calendar products" do
     manual_date = Date.new(2025, 1, 15)
-    sale_params = default_sale_params
+    sale_params = default_sale_params.merge(user: users(:admin))
     sale_params[:subscription_attributes][:start_date] = manual_date
 
     sale = Sale.create!(sale_params)
@@ -247,7 +247,7 @@ class SaleTest < ActiveSupport::TestCase
     start_override = Date.new(2025, 1, 15)
     end_override = Date.new(2025, 3, 10)
 
-    sale_params = default_sale_params
+    sale_params = default_sale_params.merge(user: users(:admin))
     sale_params[:subscription_attributes][:start_date] = start_override
     sale_params[:subscription_attributes][:end_date] = end_override
 
@@ -510,7 +510,7 @@ class SaleTest < ActiveSupport::TestCase
       product: @prod_inst,
       start_date: start_date,
       end_date: end_date,
-      sales: [ Sale.create!(member: @member, user: @user, product: @prod_inst, sold_on: start_date) ]
+      sales: [ Sale.create!(member: @member, user: users(:admin), product: @prod_inst, sold_on: start_date) ]
     )
   end
 
@@ -565,5 +565,45 @@ class SaleTest < ActiveSupport::TestCase
     sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current, amount: 0,
                     subscription_attributes: { member: @member, product: @prod_inst })
     assert_not sale.valid?
+  end
+
+  # --- DATE NEL POS ---
+
+  test "staff cannot backdate the accounting date" do
+    sale = Sale.new(default_sale_params.merge(sold_on: Date.current - 1))
+    assert_not sale.valid?
+    assert_includes sale.errors.full_messages, "Data contabile può essere modificata solo da un amministratore"
+  end
+
+  test "admin can backdate the accounting date" do
+    assert Sale.new(default_sale_params.merge(user: users(:admin), sold_on: Date.current - 40)).valid?
+  end
+
+  test "accounting date defaults to today" do
+    sale = Sale.create!(default_sale_params.except(:sold_on))
+    assert_equal Date.current, sale.sold_on
+  end
+
+  test "staff can only move the start forward" do
+    proposed = Subscription.proposed_start_date(@member, @prod_inst)
+
+    earlier = Sale.new(default_sale_params.deep_merge(subscription_attributes: { start_date: proposed - 1 }))
+    assert_not earlier.valid?
+    assert_includes earlier.errors.full_messages, "Abbonamento può iniziare al più presto il #{I18n.l(proposed)}"
+
+    later = Sale.new(default_sale_params.deep_merge(subscription_attributes: { start_date: proposed.next_month.beginning_of_month }))
+    assert later.valid?, later.errors.full_messages.to_sentence
+  end
+
+  test "admin can start earlier than proposed" do
+    proposed = Subscription.proposed_start_date(@member, @prod_inst)
+    sale = Sale.new(default_sale_params.merge(user: users(:admin)).deep_merge(subscription_attributes: { start_date: proposed - 40 }))
+    assert sale.valid?, sale.errors.full_messages.to_sentence
+  end
+
+  test "installments are not bound to the start rule" do
+    sub = sell_course(amount: 10).subscription
+    sub.update_columns(start_date: Date.current - 60)
+    assert build_installment(sub, amount: 10).valid?
   end
 end

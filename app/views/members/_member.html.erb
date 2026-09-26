@@ -53,7 +53,7 @@
           </li>
           <li class="flex gap-3 items-center">
             <span class="w-6 opacity-50"><%= icon("fingerprint") %></span>
-            <span class="font-mono"><%= display_value(member.fiscal_code) %></span>
+            <span class="font-mono"><%= display_value(member.fiscal_code, placeholder: "CF da completare") %></span>
           </li>
         </ul>
       </div>
@@ -82,12 +82,6 @@
               </div>
               <div class="grow min-w-0">
                 <div class="font-bold truncate"><%= display_value(sub.product&.name) %></div>
-
-		<% unless sub.unlimited_entries? %>
-		  <div class="badge badge-sm badge-secondary mt-1 font-mono">
-		    <%= sub.entries_used %> / <%= sub.entry_limit %> Ingressi
-		  </div>
-		<% end %>
 
 		<div class="text-xs opacity-70 flex flex-col gap-0.5">
                   <% if sub.future? %>

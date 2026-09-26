@@ -34,7 +34,7 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "flash reflects the access outcome" do
-    sell!(member: @alice, product: @course, start_date: Date.current - 20, end_date: Date.current + 30)
+    sell!(member: @alice, product: @course, user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 30)
     post kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)
     assert_equal "Check-in registrato per Alice", flash[:success]
 
@@ -51,22 +51,13 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_match "Impossibile registrare il check-in", flash[:error]
   end
 
-  test "cancelling a check-in gives the carnet entry back" do
-    sub = sell!(member: @alice, product: @course).subscription
-    sub.update_columns(entry_limit: 10)
-    post kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)
-    assert_equal 1, sub.reload.entries_used
 
-    delete kiosk_discipline_access_log_path(@yoga, AccessLog.last)
-    assert_equal 0, sub.reload.entries_used
-    assert_equal "Check-in annullato per Alice", flash[:success]
-  end
-
-  test "a check-in cannot be cancelled through another discipline" do
+  test "kiosk has no way to cancel a check-in" do
     post kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)
 
-    delete kiosk_discipline_access_log_path(disciplines(:sala_pesi), AccessLog.last)
-    assert_response :not_found
+    get kiosk_discipline_path(@yoga)
+    assert_select "form[method=post] input[name=_method][value=delete]", count: 0
+    assert_raises(NameError) { kiosk_discipline_access_log_path(@yoga, AccessLog.last) }
   end
 
   test "kiosk search returns check-in buttons" do

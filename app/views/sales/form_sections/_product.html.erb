@@ -19,7 +19,11 @@
 
     <div>
       <%= f.label :sold_on, "Data Contabile", class: "label text-xs font-semibold uppercase opacity-70" %>
-      <%= f.date_field :sold_on, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+      <% if current_user.admin? %>
+        <%= f.date_field :sold_on, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
+      <% else %>
+        <%= f.date_field :sold_on, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
+      <% end %>
     </div>
 
     <div>

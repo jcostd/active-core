@@ -21,7 +21,7 @@ module ActiveSupport
     # Helper condivisi da tutti i test.
     def grant_membership_to(member, start_date: Date.current)
       membership_product = products(:annual_membership)
-      staff_user = users(:staff)
+      staff_user = users(:admin) # storico: date nel passato, solo admin
 
       base_date = start_date.beginning_of_year
 

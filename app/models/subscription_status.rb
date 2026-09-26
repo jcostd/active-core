@@ -23,7 +23,7 @@ class SubscriptionStatus
   def key
     if !subscription.fully_paid?
       :pending_payment
-    elsif subscription.expired? || subscription.out_of_entries?
+    elsif subscription.expired?
       :expired
     elsif subscription.future?
       :future
