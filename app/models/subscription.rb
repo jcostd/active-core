@@ -33,7 +33,9 @@ class Subscription < ApplicationRecord
   before_validation :apply_business_rules,     on: :create
   before_validation :set_default_agreed_price, on: :create
 
-  validate :prevent_overlapping_subscriptions, on: :create
+  validate :prevent_overlapping_subscriptions, if: :period_changed?
+  validates :entry_limit, numericality: { greater_than_or_equal_to: 0, only_integer: true }, allow_nil: true
+  validate :entry_limit_covers_used_entries
 
   after_discard :discard_sales
 
@@ -48,6 +50,39 @@ class Subscription < ApplicationRecord
   }
 
   scope :truly_active,   -> { truly_active_at(Date.current) }
+
+  # rinnovato: stesso socio, un altro abbonamento che parte e finisce dopo questo,
+  # nella stessa disciplina (o stesso prodotto, o entrambe quote associative)
+  RENEWAL_EXISTS = <<~SQL.squish
+    EXISTS (
+      SELECT 1 FROM subscriptions renewals
+      JOIN products renewal_products ON renewal_products.id = renewals.product_id
+      JOIN products current_products ON current_products.id = subscriptions.product_id
+      WHERE renewals.member_id = subscriptions.member_id
+        AND renewals.id <> subscriptions.id
+        AND renewals.discarded_at IS NULL
+        AND renewals.start_date > subscriptions.start_date
+        AND renewals.end_date > subscriptions.end_date
+        AND (
+          renewals.product_id = subscriptions.product_id
+          OR (current_products.accounting_category = 'associative' AND renewal_products.accounting_category = 'associative')
+          OR EXISTS (
+            SELECT 1 FROM product_disciplines current_links
+            JOIN product_disciplines renewal_links ON renewal_links.discipline_id = current_links.discipline_id
+            WHERE current_links.product_id = subscriptions.product_id
+              AND renewal_links.product_id = renewals.product_id
+          )
+        )
+    )
+  SQL
+
+  scope :renewed,     -> { where(RENEWAL_EXISTS) }
+  scope :not_renewed, -> { where.not(RENEWAL_EXISTS) }
+  scope :expiring,    -> {
+    kept.joins(:member).merge(Member.kept)
+        .where(subscriptions: { end_date: Date.current..Date.current + 7 })
+        .not_renewed
+  }
 
   scope :for_discipline, ->(discipline) {
     joins(product: :disciplines).where(disciplines: { id: discipline.id })
@@ -71,6 +106,10 @@ class Subscription < ApplicationRecord
 
     payments = kept_sales
     payments.empty? ? user.admin? : payments.all? { it.reversible_by?(user) }
+  end
+
+  def renewed?
+    persisted? && Subscription.renewed.exists?(id)
   end
 
   def amount_due
@@ -145,6 +184,16 @@ class Subscription < ApplicationRecord
     def set_default_agreed_price
       return unless product.present?
       self.agreed_price_cents ||= product.price_cents
+    end
+
+    def period_changed?
+      new_record? || will_save_change_to_start_date? || will_save_change_to_end_date? || will_save_change_to_product_id?
+    end
+
+    def entry_limit_covers_used_entries
+      return if unlimited_entries? || self[:entries_used].to_i <= entry_limit
+
+      errors.add(:entry_limit, "non può essere inferiore agli ingressi già usati (#{self[:entries_used]})")
     end
 
     def prevent_overlapping_subscriptions

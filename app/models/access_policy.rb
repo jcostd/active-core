@@ -74,6 +74,6 @@ class AccessPolicy
 
     def subscription_expiring_soon?
       return false unless subscription.end_date
-      subscription.end_date <= 7.days.from_now.to_date
+      subscription.end_date <= 7.days.from_now.to_date && !subscription.renewed?
     end
 end

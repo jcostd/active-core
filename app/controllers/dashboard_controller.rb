@@ -2,15 +2,10 @@ class DashboardController < ApplicationController
   def index
     @daily_cash = DailyCash.current
 
-    @today_accesses_count = AccessLog.where(entered_at: Time.current.beginning_of_day..Time.current.end_of_day).count
+    @today_accesses_count = AccessLog.today.count
 
-    @expiring_subscriptions = Subscription.kept
-                                .includes(:member)
-                                .where(end_date: Date.current..Date.current + 7)
-                                .order(end_date: :asc)
-                                .limit(5)
-
-    @expiring_count = Subscription.kept.where(end_date: Date.current..Date.current + 7).count
+    @expiring_subscriptions = Subscription.expiring.includes(:member).order(end_date: :asc).limit(5)
+    @expiring_count = Subscription.expiring.count
 
     @recent_accesses = AccessLog.includes(:member, :discipline)
                          .order(entered_at: :desc)

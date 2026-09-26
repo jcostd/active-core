@@ -9,7 +9,7 @@ class SubscriptionsController < ApplicationController
     @subscriptions = Subscription.kept.includes(:member, :product)
 
     if params[:filter] == "expiring"
-      @subscriptions = @subscriptions.where(end_date: Date.current..Date.current + 7).order(:end_date)
+      @subscriptions = @subscriptions.expiring.order(:end_date)
     else
       @subscriptions = @subscriptions.order(created_at: :desc)
     end

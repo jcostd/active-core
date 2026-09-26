@@ -67,6 +67,7 @@ module SubscriptionsHelper
 
   def subscription_renew_action(subscription, status)
     return unless [ :expired, :expiring_soon ].include?(status.key.to_sym)
+    return if subscription.renewed?
 
     link_to new_sale_path(member_id: subscription.member_id, renew_subscription_id: subscription.id),
             class: "btn btn-square btn-sm btn-ghost text-info",

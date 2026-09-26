@@ -34,4 +34,21 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get subscriptions_path(filter: "expiring")
     assert_no_match "Alice Allevi", response.body
   end
+
+  test "renewed subscriptions leave the expiring list" do
+    course = link!(products(:yoga_monthly), disciplines(:yoga))
+    Subscription.create!(member: @member, product: course, start_date: Date.current - 20, end_date: Date.current + 3)
+    Subscription.where(member: @member).joins(:product).merge(Product.associative).update_all(end_date: Date.current + 200)
+    sign_in_as(users(:staff))
+
+    get root_path
+    assert_equal 1, controller.instance_variable_get(:@expiring_count)
+
+    Subscription.create!(member: @member, product: course, start_date: Date.current + 4, end_date: Date.current + 30)
+    get root_path
+    assert_equal 0, controller.instance_variable_get(:@expiring_count)
+
+    get subscriptions_path(filter: "expiring")
+    assert_no_match "Alice Allevi", response.body
+  end
 end

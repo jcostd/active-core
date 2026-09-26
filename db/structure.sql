@@ -37,26 +37,6 @@ FOREIGN KEY ("user_id")
 CREATE INDEX "index_sessions_on_user_id" ON "sessions" ("user_id");
 CREATE TABLE IF NOT EXISTS "schema_migrations" ("version" varchar NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS "ar_internal_metadata" ("key" varchar NOT NULL PRIMARY KEY, "value" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
-CREATE TABLE IF NOT EXISTS "access_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "checkin_by_user_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "entered_at" datetime(6) NOT NULL, "medical_certificate_valid" boolean DEFAULT FALSE NOT NULL, "member_id" integer NOT NULL, "subscription_id" integer, "updated_at" datetime(6) NOT NULL, "discipline_id" integer, "status" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_df50081f1b"
-FOREIGN KEY ("subscription_id")
-  REFERENCES "subscriptions" ("id")
-, CONSTRAINT "fk_rails_21592df11b"
-FOREIGN KEY ("member_id")
-  REFERENCES "members" ("id")
-, CONSTRAINT "fk_rails_1f32fe057e"
-FOREIGN KEY ("checkin_by_user_id")
-  REFERENCES "users" ("id")
-, CONSTRAINT "fk_rails_94f46a97ff"
-FOREIGN KEY ("discipline_id")
-  REFERENCES "disciplines" ("id")
-);
-CREATE INDEX "index_access_logs_on_checkin_by_user_id" ON "access_logs" ("checkin_by_user_id");
-CREATE INDEX "index_access_logs_on_entered_at" ON "access_logs" ("entered_at");
-CREATE INDEX "index_access_logs_on_member_id_and_entered_at" ON "access_logs" ("member_id", "entered_at");
-CREATE INDEX "index_access_logs_on_member_id" ON "access_logs" ("member_id");
-CREATE INDEX "index_access_logs_on_subscription_id" ON "access_logs" ("subscription_id");
-CREATE INDEX "index_access_logs_on_discipline_id" ON "access_logs" ("discipline_id");
-CREATE INDEX "index_access_logs_on_status" ON "access_logs" ("status");
 CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar NOT NULL, "first_name" varchar NOT NULL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "password_digest" varchar NOT NULL, "preferences" json DEFAULT '{}', "role" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "username" varchar NOT NULL);
 CREATE INDEX "index_users_on_discarded_at" ON "users" ("discarded_at");
 CREATE UNIQUE INDEX "index_users_on_email_address" ON "users" ("email_address") WHERE discarded_at IS NULL;
@@ -95,6 +75,8 @@ CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
         INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
         VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
       END;
+CREATE TABLE _litestream_seq (id INTEGER PRIMARY KEY, seq INTEGER);
+CREATE TABLE _litestream_lock (id INTEGER);
 CREATE TABLE IF NOT EXISTS "sales" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "amount_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "member_id" integer NOT NULL, "notes" text, "payment_method" integer DEFAULT 0 NOT NULL, "product_id" integer NOT NULL, "product_name_snapshot" varchar NOT NULL, "receipt_code" varchar GENERATED ALWAYS AS (receipt_year || '-' || receipt_sequence || '-' || receipt_number) STORED, "receipt_number" integer, "receipt_sequence" varchar, "receipt_year" integer, "sold_on" date NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, "subscription_id" integer, CONSTRAINT "fk_rails_26eed2fa3b"
 FOREIGN KEY ("subscription_id")
   REFERENCES "subscriptions" ("id")
@@ -116,7 +98,8 @@ CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acd
 CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
-CREATE TABLE IF NOT EXISTS "subscriptions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "end_date" date NOT NULL, "member_id" integer NOT NULL, "product_id" integer NOT NULL, "start_date" date NOT NULL, "suspension_days_count" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "entry_limit" integer, "agreed_price_cents" integer NOT NULL, "entries_used" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_bfac3ecd2f"
+CREATE INDEX "index_sessions_on_updated_at" ON "sessions" ("updated_at") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "subscriptions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "end_date" date NOT NULL, "member_id" integer NOT NULL, "product_id" integer NOT NULL, "start_date" date NOT NULL, "updated_at" datetime(6) NOT NULL, "entry_limit" integer, "agreed_price_cents" integer NOT NULL, "entries_used" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_bfac3ecd2f"
 FOREIGN KEY ("member_id")
   REFERENCES "members" ("id")
 , CONSTRAINT "fk_rails_52a3b81fce"
@@ -127,8 +110,28 @@ CREATE INDEX "index_subscriptions_on_discarded_at" ON "subscriptions" ("discarde
 CREATE INDEX "index_subscriptions_on_member_id_and_end_date" ON "subscriptions" ("member_id", "end_date") /*application='ActiveCore'*/;
 CREATE INDEX "index_subscriptions_on_member_id" ON "subscriptions" ("member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_subscriptions_on_product_id" ON "subscriptions" ("product_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sessions_on_updated_at" ON "sessions" ("updated_at") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "access_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "checkin_by_user_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "entered_at" datetime(6) NOT NULL, "member_id" integer NOT NULL, "subscription_id" integer, "updated_at" datetime(6) NOT NULL, "discipline_id" integer, "status" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_df50081f1b"
+FOREIGN KEY ("subscription_id")
+  REFERENCES "subscriptions" ("id")
+, CONSTRAINT "fk_rails_21592df11b"
+FOREIGN KEY ("member_id")
+  REFERENCES "members" ("id")
+, CONSTRAINT "fk_rails_1f32fe057e"
+FOREIGN KEY ("checkin_by_user_id")
+  REFERENCES "users" ("id")
+, CONSTRAINT "fk_rails_94f46a97ff"
+FOREIGN KEY ("discipline_id")
+  REFERENCES "disciplines" ("id")
+);
+CREATE INDEX "index_access_logs_on_checkin_by_user_id" ON "access_logs" ("checkin_by_user_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_entered_at" ON "access_logs" ("entered_at") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_member_id_and_entered_at" ON "access_logs" ("member_id", "entered_at") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_member_id" ON "access_logs" ("member_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_subscription_id" ON "access_logs" ("subscription_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_discipline_id" ON "access_logs" ("discipline_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_access_logs_on_status" ON "access_logs" ("status") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260926130432'),
 ('20260926105131'),
 ('20260926103000'),
 ('20260428102113'),

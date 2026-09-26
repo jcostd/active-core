@@ -61,4 +61,11 @@ class SubscriptionsHelperTest < ActionView::TestCase
     assert_match @sub.sales.first.receipt_code, subscription_sale_receipt_link(@sub.sales.first)
     assert_nil subscription_sale_receipt_link(Sale.new)
   end
+
+  test "renew action hidden once renewed" do
+    expiring = Struct.new(:key).new(:expiring_soon)
+    Subscription.create!(member: @member, product: @sub.product, start_date: @sub.end_date + 1, end_date: @sub.end_date + 30)
+
+    assert_nil subscription_renew_action(@sub, expiring)
+  end
 end

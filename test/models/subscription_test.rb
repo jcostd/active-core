@@ -161,4 +161,23 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal 4000, sub.amount_due
     assert keep.kept?
   end
+
+  test "editing dates cannot create an overlap" do
+    first  = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10)
+    second = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current + 11, end_date: Date.current + 20)
+
+    assert_not second.update(start_date: Date.current + 5)
+    assert_match "Già un abbonamento", second.errors.full_messages.to_sentence
+    assert first.update(end_date: Date.current + 10), "salvare senza cambiare periodo resta possibile"
+  end
+
+  test "entry limit cannot go below used entries" do
+    sub = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10, entry_limit: 10)
+    sub.update_columns(entries_used: 6)
+
+    assert_not sub.update(entry_limit: 5)
+    assert_match "ingressi già usati (6)", sub.errors.full_messages.to_sentence
+    assert sub.update(entry_limit: 6)
+    assert sub.update(entry_limit: nil), "senza limite va sempre bene"
+  end
 end

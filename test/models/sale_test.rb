@@ -551,4 +551,19 @@ class SaleTest < ActiveSupport::TestCase
 
     assert build_installment(sub, amount: 10).valid?
   end
+
+  test "staff can register a free product" do
+    trial = Product.create!(name: "Prova Gratuita", price_cents: 0, duration_days: 7)
+    sale = Sale.create!(member: @member, product: trial, user: @user, sold_on: Date.current,
+                        subscription_attributes: { member: @member, product: trial })
+
+    assert_equal 0, sale.amount_cents
+    assert sale.subscription.fully_paid?
+  end
+
+  test "staff still cannot zero a paid product" do
+    sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current, amount: 0,
+                    subscription_attributes: { member: @member, product: @prod_inst })
+    assert_not sale.valid?
+  end
 end

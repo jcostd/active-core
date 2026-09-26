@@ -141,7 +141,8 @@ class Sale < ApplicationRecord
 
       if subscription&.persisted?
         errors.add(:base, "La rata deve essere maggiore di zero.")
-      elsif !user&.admin?
+      elsif !user&.admin? && product&.price_cents.to_i.positive?
+        # lo staff non può regalare prodotti a pagamento; quelli gratuiti sì
         errors.add(:base, "Solo un amministratore può registrare una vendita a zero.")
       end
     end

@@ -27,7 +27,7 @@ class SubscriptionStatus
       :expired
     elsif subscription.future?
       :future
-    elsif subscription.expiring_soon?
+    elsif subscription.expiring_soon? && !subscription.renewed?
       :expiring_soon
     else
       :active
