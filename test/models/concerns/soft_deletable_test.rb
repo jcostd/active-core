@@ -40,10 +40,19 @@ class SoftDeletableTest < ActiveSupport::TestCase
     assert_equal discarded_count + 1, Member.discarded.count
   end
 
-  test "concern correctly injects callback methods" do
-    # Verifica che Member abbia ricevuto i superpoteri delle callback
-    # Senza bisogno di creare classi finte che esplodono
-    assert Member.respond_to?(:after_discard), "Member dovrebbe avere il metodo after_discard"
-    assert Member.respond_to?(:after_undiscard), "Member dovrebbe avere il metodo after_undiscard"
+  test "discard runs model callbacks" do
+    user = users(:staff)
+    user.sessions.create!
+    user.discard!
+    assert_empty user.sessions.reload
+  end
+
+  test "discard and undiscard can be repeated safely" do
+    @member.discard!
+    first = @member.discarded_at
+    travel 1.minute
+    @member.undiscard!
+    @member.discard!
+    assert_operator @member.discarded_at, :>, first
   end
 end

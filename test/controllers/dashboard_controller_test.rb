@@ -51,4 +51,15 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get subscriptions_path(filter: "expiring")
     assert_no_match "Alice Allevi", response.body
   end
+
+  test "today's accesses ignore previous days" do
+    travel_to 1.day.ago do
+      AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+    end
+    AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+    sign_in_as(users(:staff))
+
+    get root_path
+    assert_equal 1, controller.instance_variable_get(:@today_accesses_count)
+  end
 end

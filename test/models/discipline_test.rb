@@ -5,10 +5,6 @@ class DisciplineTest < ActiveSupport::TestCase
     @discipline = disciplines(:yoga)
   end
 
-  test "valid discipline setup" do
-    assert @discipline.valid?
-    assert @discipline.requires_medical_certificate?
-  end
 
   test "name normalization" do
     discipline = Discipline.new(name: "  karate  kid  ")
@@ -36,17 +32,17 @@ class DisciplineTest < ActiveSupport::TestCase
     assert new_yoga.valid?
   end
 
-  test "associations work" do
+  test "hard deleting a discipline unlinks products but keeps the access history" do
     discipline = Discipline.create!(name: "Boxe")
-    product = products(:annual_membership)
+    link!(products(:yoga_monthly), discipline)
+    log = AccessLog.create!(member: members(:alice), discipline:, checkin_by_user: users(:staff))
 
-    discipline.products << product
+    discipline.destroy
 
-    assert_includes discipline.products, product
-    assert_equal 1, discipline.product_disciplines.count
-
-    discipline.destroy # Hard delete per testare la pulizia DB
-    assert_equal 0, ProductDiscipline.where(discipline_id: discipline.id).count
+    assert_empty ProductDiscipline.where(discipline_id: discipline.id)
+    assert AccessLog.exists?(log.id)
+    assert_nil log.reload.discipline_id
+    assert Product.exists?(products(:yoga_monthly).id)
   end
 
   test "registry skips archived members and old subscriptions" do

@@ -5,10 +5,6 @@ class UserTest < ActiveSupport::TestCase
     @user = users(:staff)
   end
 
-  test "valid user setup from fixtures" do
-    assert @user.valid?
-    assert @user.staff?
-  end
 
   test "normalization cleans username" do
     user = User.new(
@@ -50,16 +46,19 @@ class UserTest < ActiveSupport::TestCase
     assert_includes @user.errors[:first_name], "non può essere lasciato in bianco"
   end
 
-  test "cannot delete user with associated sales" do
-    reflection = User.reflect_on_association(:sales)
-    assert_equal :restrict_with_error, reflection.options[:dependent]
+  test "a user who registered payments cannot be hard deleted" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: products(:yoga_monthly), user: @user)
+
+    assert_not @user.destroy
+    assert User.exists?(@user.id)
   end
 
-  test "soft delete works" do
-    assert_nil @user.discarded_at
+  test "archiving a user closes every open session" do
+    2.times { @user.sessions.create! }
     @user.discard!
-    assert @user.discarded?
-    assert @user.discarded_at.present?
+    assert_equal 0, @user.sessions.count
   end
 
   test "the last admin cannot lose the role" do

@@ -67,4 +67,21 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       assert_match "Alicia Allevi", response.body
     end
   end
+
+  test "user rows are not shared between admins" do
+    other_admin = users(:staff_two)
+    other_admin.update!(role: :admin)
+
+    with_fragment_caching do
+      sign_in_as(users(:admin))
+      get users_path
+      assert_select "a[data-turbo-method=delete][href='#{user_path(other_admin)}']"
+      assert_select "a[data-turbo-method=delete][href='#{user_path(users(:admin))}']", count: 0
+
+      sign_in_as(other_admin)
+      get users_path
+      assert_select "a[data-turbo-method=delete][href='#{user_path(other_admin)}']", count: 0, message: "nessuno archivia sé stesso"
+      assert_select "a[data-turbo-method=delete][href='#{user_path(users(:admin))}']"
+    end
+  end
 end

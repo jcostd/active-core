@@ -25,8 +25,12 @@ class Sale::FilterableTest < ActiveSupport::TestCase
   end
 
   test "filters by period" do
+    last_month = sell!(member: @alice, product: products(:annual_membership), user: users(:admin),
+                       sold_on: 1.month.ago.to_date, start_date: 20.years.from_now.to_date)
+
+    assert_equal [ last_month ], Sale.by_period("last_month").to_a
+    assert_not_includes Sale.by_period("this_month"), last_month
     assert_not_includes Sale.by_period("this_month"), @old
-    assert_includes Sale.by_period("last_month").or(Sale.where(id: @old.id)), @old
     assert_equal [ @cash, @card ].sort_by(&:id), Sale.by_period("today").sort_by(&:id)
   end
 

@@ -9,7 +9,8 @@ class KioskScopingTest < ActionDispatch::IntegrationTest
   test "search skips discarded members" do
     get kiosk_discipline_member_searches_path(@discipline, query: "Carlo")
     assert_response :success
-    assert_select "body", text: /Carlo Cancellato/, count: 0
+    assert_no_match "Cancellato", response.body
+    assert_match "Nessun socio trovato", response.body
 
     get kiosk_discipline_member_searches_path(@discipline, query: "Alice")
     assert_select "button", text: /Alice Allevi/

@@ -42,11 +42,13 @@ class MemberTest < ActiveSupport::TestCase
     assert duplicate.valid?
   end
 
-  test "prevents deletion if sales exist" do
-    @member.save!
-    assert_respond_to @member, :sales
-    reflection = Member.reflect_on_association(:sales)
-    assert_equal :restrict_with_error, reflection.options[:dependent]
+  test "a member with payments cannot be hard deleted" do
+    member = members(:alice)
+    grant_membership_to(member)
+
+    assert_not member.destroy
+    assert Member.exists?(member.id)
+    assert member.errors[:base].any?
   end
 
   # --- RINNOVI E VALIDITÀ ---

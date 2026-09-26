@@ -29,4 +29,9 @@ class FiscalCodeTest < ActiveSupport::TestCase
     code = "RSSMRAUMA0MH501"
     assert FiscalCode.valid?(code + FiscalCode.new(code + "A").check_char)
   end
+
+  test "month letter must be a valid month code" do
+    body = "RSSMRA80F01H501" # F non è un mese
+    assert_not FiscalCode.valid?(body + FiscalCode.new(body + "A").check_char)
+  end
 end

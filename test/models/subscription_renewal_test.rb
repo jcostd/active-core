@@ -91,4 +91,9 @@ class SubscriptionRenewalTest < ActiveSupport::TestCase
     @alice.discard!
     assert_not_includes Subscription.expiring, @current
   end
+
+  test "a parallel subscription starting the same day is not a renewal" do
+    sub(@quarterly, @current.start_date, @current.end_date + 60)
+    assert_not @current.renewed?
+  end
 end

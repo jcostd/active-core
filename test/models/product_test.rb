@@ -5,11 +5,6 @@ class ProductTest < ActiveSupport::TestCase
     @product = products(:yoga_monthly)
   end
 
-  test "valid product setup" do
-    assert @product.valid?
-    assert @product.institutional?
-    assert_equal 45.00, @product.price
-  end
 
   test "name normalization squishes spaces" do
     product = Product.new(
@@ -38,11 +33,6 @@ class ProductTest < ActiveSupport::TestCase
     assert_not @product.valid?
   end
 
-  test "membership product is associative" do
-    membership = products(:annual_membership)
-    assert membership.associative?
-    assert_not membership.institutional?
-  end
 
   test "monetizable concern integration" do
     product = Product.new
@@ -63,18 +53,14 @@ class ProductTest < ActiveSupport::TestCase
     assert new_pilates.valid?
   end
 
-  test "association with disciplines" do
-    # Verifichiamo che possiamo collegare una disciplina
-    yoga = disciplines(:yoga)
-    @product.disciplines << yoga
 
-    assert_includes @product.disciplines, yoga
-    assert_equal 1, @product.product_disciplines.count
-  end
+  test "a product with payments cannot be hard deleted" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product)
 
-  test "cannot delete product with sales" do
-    # Verifica strutturale della protezione
-    reflection = Product.reflect_on_association(:sales)
-    assert_equal :restrict_with_error, reflection.options[:dependent]
+    assert_not @product.destroy
+    assert Product.exists?(@product.id)
+    assert @product.errors[:base].any?
   end
 end

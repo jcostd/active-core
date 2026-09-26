@@ -89,4 +89,16 @@ class MembershipCoverageTest < ActiveSupport::TestCase
                     subscription_attributes: { member: @alice, product: @quota, start_date: Date.current, end_date: Date.current + 400 })
     assert_nil sale.membership_warning
   end
+
+  test "no warning when the course ends exactly with the membership" do
+    travel_to Date.new(2026, 6, 10) do
+      membership(2025)
+      sale = draft(@quarterly, Date.new(2026, 6, 1))
+      sale.subscription.end_date = Date.new(2026, 8, 31)
+      assert_nil sale.membership_warning
+
+      sale.subscription.end_date = Date.new(2026, 9, 1)
+      assert_not_nil sale.membership_warning
+    end
+  end
 end
