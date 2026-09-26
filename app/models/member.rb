@@ -60,10 +60,6 @@ class Member < ApplicationRecord
     medical_certificate_expiry.present? && medical_certificate_expiry >= date
   end
 
-  def compliant?(date = Date.current)
-    medical_certificate_valid?(date) && membership_valid?(date)
-  end
-
   def membership_valid?(date = Date.current)
     if subscriptions.loaded?
       subscriptions.any? do |s|
@@ -88,33 +84,10 @@ class Member < ApplicationRecord
   def relevant_subscriptions(date = Date.current)
     subs = subscriptions.loaded? ? subscriptions.select(&:kept?) : subscriptions.kept.to_a
 
-    subs
-      .select { |s| s.end_date && s.end_date >= (date - 30.days) }
-      .group_by(&:product_id)
-      .map { |_, product_subs|
-      product_subs.max_by(&:end_date)
-    }
-      .sort_by(&:end_date)
-      .reverse
-  end
-
-  def relevant_subscriptions_from_loaded(date = Date.current)
-    return relevant_subscriptions(date) unless subscriptions.loaded?
-
-    subscriptions
-      .select { |s| s.kept? && s.end_date && s.end_date >= (date - 30.days) }
-      .sort_by { |s| s.end_date || Date.new(1970) }
-      .reverse
-  end
-
-  def renewal_info_for(product)
-    last_sub = subscriptions.kept
-                            .where(product:)
-                            .order(subscriptions: { end_date: :desc })
-                            .first
-    {
-      start_date:            suggested_start_date_for(product, last_sub:),
-      last_subscription_end: last_sub&.end_date
-    }
+    subs.select { it.end_date && it.end_date >= date - 30.days }
+        .group_by(&:product_id)
+        .map { |_, product_subs| product_subs.max_by(&:end_date) }
+        .sort_by(&:end_date)
+        .reverse
   end
 end

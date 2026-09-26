@@ -62,7 +62,7 @@
 
   <%# -- Colonna 4: Azioni (Solo delete se < 24h) -- %>
   <div class="flex items-center gap-1 shrink-0 self-start sm:self-center min-w-[2rem] justify-end">
-    <% if sale.created_at > 24.hours.ago %>
+    <% if sale.reversible_by?(current_user) %>
       <%= ui_row_delete_button(sale, confirm: "Annullare VENDITA e abbonamento? L'operazione è irreversibile.", title: "Annulla") %>
     <% end %>
   </div>

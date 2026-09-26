@@ -13,10 +13,6 @@ class AccessLogsController < ApplicationController
     )
   end
 
-  def new
-    @access_log = AccessLog.new
-  end
-
   def destroy
     @access_log.destroy
     turbo_refresh_or_redirect_to access_logs_path, status: :see_other, notice: "Accesso annullato con successo."

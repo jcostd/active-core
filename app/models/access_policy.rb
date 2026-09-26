@@ -34,10 +34,6 @@ class AccessPolicy
     self
   end
 
-  def granted?
-    errors.empty?
-  end
-
   def status
     return :error if errors.any?
     return :warning if warnings.any?

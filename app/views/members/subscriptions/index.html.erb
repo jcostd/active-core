@@ -17,7 +17,8 @@
                message: "Questo utente non ha ancora abbonamenti attivi o passati." %>
   <% else %>
     <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription, cached: true %>
+      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription,
+                 cached: ->(subscription) { [ subscription, subscription.product, current_user.admin?, Date.current ] } %>
     </ul>
 
     <%= render "shared/pagination" %>

@@ -1,4 +1,6 @@
-class Members::SalesController < MembersController
+class Members::SalesController < ApplicationController
+  include Filterable
+
   before_action :require_admin
   before_action :set_member
 

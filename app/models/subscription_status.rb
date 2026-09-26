@@ -20,10 +20,6 @@ class SubscriptionStatus
     @subscription = subscription
   end
 
-  def requires_attention?
-    [ :pending_payment, :expired, :expiring_soon, :out_of_entries ].include?(key)
-  end
-
   def key
     if !subscription.fully_paid?
       :pending_payment

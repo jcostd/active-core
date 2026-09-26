@@ -64,7 +64,8 @@
 
       <% if @recent_sales.any? %>
         <ul class="list bg-base-100/50 rounded-box">
-          <%= render partial: "dashboard/recent_sale", collection: @recent_sales, as: :sale, cached: true %>
+          <%= render partial: "dashboard/recent_sale", collection: @recent_sales, as: :sale,
+                     cached: ->(sale) { [ sale, sale.member ] } %>
         </ul>
       <% else %>
         <div class="flex items-center justify-center py-10 text-base-content/40 text-sm">
@@ -83,7 +84,8 @@
 
       <% if @expiring_subscriptions.any? %>
         <ul class="list bg-base-100/50 rounded-box">
-          <%= render partial: "dashboard/expiring_subscription", collection: @expiring_subscriptions, as: :sub, cached: true %>
+          <%= render partial: "dashboard/expiring_subscription", collection: @expiring_subscriptions, as: :sub,
+                     cached: ->(sub) { [ sub, sub.member ] } %>
         </ul>
 
         <% if @expiring_count > 5 %>
@@ -116,7 +118,8 @@
         <%# Qui potresti anche valutare una griglia interna se gli accessi sono tanti,
         ma la lista DaisyUI che abbiamo creato è molto pulita %>
         <ul class="list bg-base-100/50 rounded-box">
-          <%= render partial: "dashboard/recent_access", collection: @recent_accesses, as: :log, cached: true %>
+          <%= render partial: "dashboard/recent_access", collection: @recent_accesses, as: :log,
+                     cached: ->(log) { [ log, log.member, log.discipline ] } %>
         </ul>
       <% else %>
         <div class="flex items-center justify-center py-10 text-base-content/40 text-sm">

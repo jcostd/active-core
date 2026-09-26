@@ -1,7 +1,8 @@
 class DisciplinesController < ApplicationController
   include Filterable
 
-  before_action :set_discipline, only: [ :show, :edit, :update, :destroy ]
+  before_action :require_admin, except: %i[ index show ]
+  before_action :set_discipline, only: %i[ show edit update destroy ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]
 
@@ -59,7 +60,7 @@ class DisciplinesController < ApplicationController
     end
 
     def discipline_params
-      params.require(:discipline).permit(:name, :requires_medical_certificate, :requires_membership)
+      params.expect(discipline: %i[ name requires_medical_certificate requires_membership ])
     end
 
     def filter_params

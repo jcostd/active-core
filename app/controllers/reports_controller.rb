@@ -1,6 +1,8 @@
 class ReportsController < ApplicationController
   include Filterable, SafeDateParsing
 
+  before_action :require_admin
+
   def index
     @date = parse_month_param(params[:month])
     @month_range = @date.beginning_of_month..@date.end_of_month

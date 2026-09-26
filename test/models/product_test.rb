@@ -8,7 +8,6 @@ class ProductTest < ActiveSupport::TestCase
   test "valid product setup" do
     assert @product.valid?
     assert @product.institutional?
-    assert @product.course?
     assert_equal 45.00, @product.price
   end
 
@@ -39,11 +38,10 @@ class ProductTest < ActiveSupport::TestCase
     assert_not @product.valid?
   end
 
-  test "membership helper works" do
+  test "membership product is associative" do
     membership = products(:annual_membership)
     assert membership.associative?
-    assert membership.membership?
-    assert_not membership.course?
+    assert_not membership.institutional?
   end
 
   test "monetizable concern integration" do

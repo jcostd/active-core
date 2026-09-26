@@ -32,7 +32,7 @@ class Kiosk::AccessLogsController < Kiosk::BaseController
 
   private
     def set_discipline
-      @discipline = Discipline.find(params[:discipline_id])
+      @discipline = Discipline.kept.find(params[:discipline_id])
     end
 
     def set_discipline_access_log
@@ -40,6 +40,6 @@ class Kiosk::AccessLogsController < Kiosk::BaseController
     end
 
     def set_member
-      @member = Member.find(params[:member_id])
+      @member = Member.kept.find(params[:member_id])
     end
 end

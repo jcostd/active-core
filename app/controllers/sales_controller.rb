@@ -1,7 +1,7 @@
 class SalesController < ApplicationController
   include Filterable
 
-  before_action :require_admin, only: [ :index ]
+  before_action :require_admin, only: %i[ index destroy ]
   before_action :set_sale, only: [ :show, :destroy ]
 
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
@@ -55,6 +55,10 @@ class SalesController < ApplicationController
   end
 
   def destroy
+    unless @sale.reversible_by?(current_user)
+      return redirect_back(fallback_location: sale_path(@sale), status: :see_other, alert: "La transazione non è più annullabile.")
+    end
+
     if @sale.discard!
       redirect_back(fallback_location: sales_path, status: :see_other, notice: "Vendita annullata/stornata.")
     else
@@ -67,21 +71,13 @@ class SalesController < ApplicationController
       @sale = Sale.find(params[:id])
     end
 
-  def build_draft(sale_params, existing_sale: nil)
-    context = params.to_unsafe_h.deep_symbolize_keys
-
-    if context[:manual_start_date].present?
-      context[:sale] ||= {}
-      context[:sale][:subscription_attributes] ||= {}
-      context[:sale][:subscription_attributes][:start_date] = context[:manual_start_date]
+    def build_draft(sale_params, existing_sale: nil)
+      PosDraftBuilder.new(
+        sale_params:    sale_params,
+        context_params: params.to_unsafe_h.deep_symbolize_keys,
+        existing_sale:  existing_sale
+      ).build
     end
-
-    PosDraftBuilder.new(
-      sale_params:    sale_params,
-      context_params: context,
-      existing_sale:  existing_sale
-    ).build
-  end
 
     def sale_params_for_build
       params.has_key?(:sale) ? sale_params : {}
@@ -95,11 +91,11 @@ class SalesController < ApplicationController
         permitted_sub_attrs << :agreed_price
       end
 
-      params.require(:sale).permit(
+      params.expect(sale: [
         :member_id, :product_id, :amount, :payment_method,
         :sold_on, :notes, :subscription_id,
         subscription_attributes: permitted_sub_attrs
-      )
+      ])
     end
 
     def filter_params

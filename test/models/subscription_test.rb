@@ -54,8 +54,8 @@ class SubscriptionTest < ActiveSupport::TestCase
     assert_equal Date.new(2025, 2, 1), sub.start_date
     assert_equal Date.new(2025, 2, 28), sub.end_date
 
-    assert_not sub.active?(sale_date)
-    assert sub.active?(future_start)
+    assert_not Subscription.truly_active_at(sale_date).exists?(sub.id)
+    assert Subscription.truly_active_at(future_start).exists?(sub.id)
   end
 
   test "scopes filter correctly" do

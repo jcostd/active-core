@@ -40,7 +40,6 @@ class AccessLog < ApplicationRecord
   validate :prevent_double_tap,            on: :create
   validate :subscription_belongs_to_member
 
-  scope :valid_entries,    -> { where(access_logs: { status: [ :ok, :warning ] }) }
   scope :today,            -> { where(access_logs: { entered_at: Time.current.all_day }) }
   scope :recent_for_kiosk, -> { where("access_logs.entered_at >= ?", KIOSK_COOLDOWN.ago) }
 

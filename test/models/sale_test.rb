@@ -274,6 +274,128 @@ class SaleTest < ActiveSupport::TestCase
     assert_not sale.subscription.reload.discarded?
   end
 
+  # --- INSTALLMENTS ---
+
+  test "progressive installments recompute amount due until fully paid" do
+    first = sell_course(amount: 12.34)
+    sub = first.subscription
+
+    assert_equal 5000, sub.agreed_price_cents
+    assert_equal 5000 - 1234, sub.amount_due
+    assert_not sub.fully_paid?
+
+    pay_installment(sub, amount: 20)
+    assert_equal 5000 - 1234 - 2000, sub.reload.amount_due
+
+    last = pay_installment(sub)
+    assert_equal 5000 - 1234 - 2000, last.amount_cents, "defaults to remaining due"
+    assert_equal 0, sub.reload.amount_due
+    assert sub.fully_paid?
+  end
+
+  test "installment cannot exceed remaining due" do
+    sub = sell_course(amount: 40).subscription
+
+    sale = build_installment(sub, amount: 10.01)
+    assert_not sale.valid?
+    assert_includes sale.errors[:amount].join, "10,00"
+  end
+
+  test "first payment cannot exceed agreed price" do
+    sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
+                    amount: 50.01, subscription_attributes: { member: @member, product: @prod_inst })
+    assert_not sale.valid?
+    assert sale.errors[:amount].any?
+  end
+
+  test "installment cannot be zero, not even for admin" do
+    sub = sell_course(amount: 10).subscription
+
+    sale = build_installment(sub, amount: 0, user: users(:admin))
+    assert_not sale.valid?
+  end
+
+  test "discarded installment frees its amount again" do
+    sub = sell_course(amount: 10).subscription
+    rata = pay_installment(sub, amount: 15)
+
+    rata.discard!
+    assert_equal 4000, sub.reload.amount_due
+  end
+
+  test "installment is accepted after membership expired" do
+    sub = sell_course(amount: 10).subscription
+
+    travel_to 5.years.from_now do
+      assert_not @member.membership_valid?
+      assert build_installment(sub, amount: 10).valid?
+    end
+  end
+
+  test "installment on a discarded subscription is rejected" do
+    sub = sell_course(amount: 10).subscription
+    sub.discard!
+
+    assert_not build_installment(sub, amount: 10).valid?
+  end
+
+  # --- ZERO AMOUNT ---
+
+  test "staff cannot register a zero sale" do
+    sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
+                    amount: 0, subscription_attributes: { member: @member, product: @prod_inst })
+    assert_not sale.valid?
+    assert_includes sale.errors[:base].join, "amministratore"
+  end
+
+  test "admin can register a free sale with zero agreed price" do
+    sale = Sale.create!(member: @member, product: @prod_inst, user: users(:admin), sold_on: Date.current,
+                        amount: 0, subscription_attributes: { member: @member, product: @prod_inst, agreed_price: 0 })
+
+    assert_equal 0, sale.amount_cents
+    assert_equal 0, sale.subscription.agreed_price_cents
+    assert sale.subscription.fully_paid?
+  end
+
+  test "blank amount defaults to product price" do
+    sale = sell_course(amount: nil)
+    assert_equal 5000, sale.amount_cents
+  end
+
+  # --- SUBSCRIPTION OWNERSHIP ---
+
+  test "sale cannot pay another member subscription" do
+    other = members(:alice)
+    grant_membership_to(other)
+    sub = sell_course(amount: 10).subscription
+
+    sale = Sale.new(member: other, product: @prod_inst, user: @user, sold_on: Date.current, amount: 10, subscription: sub)
+    assert_not sale.valid?
+    assert sale.errors[:subscription].any?
+  end
+
+  test "sale product must match subscription product" do
+    sub = sell_course(amount: 10).subscription
+
+    sale = build_installment(sub, amount: 10)
+    sale.product = @prod_assoc
+    assert_not sale.valid?
+    assert sale.errors[:subscription].any?
+  end
+
+  # --- REVERSAL ---
+
+  test "only admin can reverse, within the window" do
+    sale = sell_course(amount: 10)
+
+    assert_not sale.reversible_by?(@user)
+    assert sale.reversible_by?(users(:admin))
+
+    travel_to (Sale::REVERSAL_WINDOW + 1.minute).from_now do
+      assert_not sale.reversible_by?(users(:admin))
+    end
+  end
+
   private
 
   def default_sale_params
@@ -304,5 +426,18 @@ class SaleTest < ActiveSupport::TestCase
       end_date: end_date,
       sales: [ Sale.create!(member: @member, user: @user, product: @prod_inst, sold_on: start_date) ]
     )
+  end
+
+  def sell_course(amount:)
+    Sale.create!(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
+                 amount:, subscription_attributes: { member: @member, product: @prod_inst })
+  end
+
+  def build_installment(sub, amount: nil, user: @user)
+    Sale.new(member: sub.member, product: sub.product, user:, sold_on: Date.current, amount:, subscription: sub)
+  end
+
+  def pay_installment(sub, **)
+    build_installment(sub, **).tap(&:save!)
   end
 end

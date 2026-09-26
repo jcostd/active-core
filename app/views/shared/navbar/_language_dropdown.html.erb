@@ -6,7 +6,7 @@
 } do %>
 
   <% I18n.available_locales.each do |locale| %>
-    <% is_active = current_user.try(:locale_or_default).to_s == locale.to_s %>
+    <% is_active = current_user.locale == locale.to_s %>
 
     <li class="w-full">
       <%= link_to preferences_language_path(language: locale), data: { turbo_method: :patch }, class: "flex w-full justify-between #{'active' if is_active}" do %>

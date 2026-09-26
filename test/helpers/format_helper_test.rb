@@ -85,21 +85,4 @@ class FormatHelperTest < ActionView::TestCase
       assert_match /€/, result     # Simbolo
     end
   end
-
-  test "format_percentage handles formatting" do
-    I18n.with_locale(:it) do
-      # In Italia: 12,5% (virgola)
-      assert_equal "50%", format_percentage(0.5)
-      assert_equal "12,5%", format_percentage(0.125, precision: 1)
-    end
-    assert_match /span/, format_percentage(nil)
-  end
-
-  test "format_boolean returns translated text" do
-    # Questo metodo usa stringhe hardcoded nel codice ruby ("Sì"/"No"),
-    # quindi non serve I18n.with_locale, ma male non fa.
-    assert_equal "Sì", format_boolean(true)
-    assert_equal "No", format_boolean(false)
-    assert_equal "Certo", format_boolean(true, true_text: "Certo")
-  end
 end

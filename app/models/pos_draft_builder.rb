@@ -80,16 +80,14 @@ class PosDraftBuilder
     end
 
     def apply_installment_logic
-      sub = Subscription.find_by(id: context_params[:installment_for_subscription_id])
+      sub = Subscription.kept.find_by(id: context_params[:installment_for_subscription_id])
       return unless sub
 
       sale.subscription  = sub
       sale.member_id   ||= sub.member_id
       sale.product_id  ||= sub.product_id
 
-      if sale.amount.blank? || sale.amount.zero?
-        sale.amount_cents = [ sub.agreed_price_cents - sub.amount_paid, 0 ].max
-      end
+      sale.amount_cents ||= sub.amount_due
     end
 
     def apply_renewal_template
@@ -143,12 +141,8 @@ class PosDraftBuilder
     def apply_default_price
       return unless sale.product_id.present?
 
-      if sale.subscription.agreed_price.blank? || sale.subscription.agreed_price.zero?
-        sale.subscription.agreed_price = sale.product.price
-      end
-
-      if sale.amount.blank? || sale.amount.zero?
-        sale.amount = sale.subscription.agreed_price
-      end
+      # nil only: zero is a deliberate admin choice
+      sale.subscription.agreed_price_cents ||= sale.product.price_cents
+      sale.amount_cents ||= sale.subscription.agreed_price_cents
     end
 end

@@ -29,10 +29,6 @@ class SportYear
     Date.new(@year + 1, 8, 31)
   end
 
-  def range
-    start_date..end_date
-  end
-
   def to_s
     "#{@year}/#{@year + 1}"
   end

@@ -30,7 +30,7 @@
 
         <%# COLONNA DESTRA %>
         <fieldset class="fieldset">
-          <% if current_user.try(:admin?) %>
+          <% if current_user.admin? %>
             <% override_active = params[:override_end_date] == "1" %>
 
             <label class="label text-xs font-semibold uppercase opacity-70 cursor-pointer transition-colors <%= 'text-warning' if override_active %>" for="override_end_date">

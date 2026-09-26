@@ -1,5 +1,5 @@
 class SubscriptionsController < ApplicationController
-  before_action :require_admin, only: [ :edit, :update ]
+  before_action :require_admin, only: %i[ edit update destroy ]
   before_action :set_subscription, only: [ :edit, :update, :destroy ]
 
   layout "modal", only: [ :edit, :update ]
@@ -41,6 +41,6 @@ class SubscriptionsController < ApplicationController
     end
 
     def subscription_params
-      params.require(:subscription).permit([ :start_date, :end_date, :entry_limit ])
+      params.expect(subscription: %i[ start_date end_date entry_limit ])
     end
 end

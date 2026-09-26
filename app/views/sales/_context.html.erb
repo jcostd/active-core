@@ -43,7 +43,7 @@
 	<%= icon("print") %> <span class="hidden sm:inline">Stampa</span>
       <% end %>
 
-      <% if current_user.admin? && sale.created_at > 24.hours.ago %>
+      <% if sale.reversible_by?(current_user) %>
 	<%= render layout: "shared/dropdown_layout", locals: {
 	  group_name: "sale_header_dropdowns",
 	  summary_class: "btn-sm btn-square btn-ghost",

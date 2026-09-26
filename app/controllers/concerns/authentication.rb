@@ -33,16 +33,29 @@ module Authentication
     end
 
     def find_session_by_cookie
-      Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      return unless id = cookies.signed[:session_id]
+      return unless session = Session.find_resumable(id)
+
+      if session.expired?(kiosk_request: kiosk_request?)
+        session.destroy
+        cookies.delete(:session_id)
+        @session_expired = true
+        return
+      end
+
+      session.tap { it.record_activity!(kiosk_request: kiosk_request?) }
     end
+
+    # overridden by kiosk controllers: exempt from idle timeout
+    def kiosk_request? = false
 
     def current_user
       Current.session&.user
     end
 
     def request_authentication
-      session[:return_to_after_authenticating] = request.url
-      redirect_to new_session_path
+      session[:return_to_after_authenticating] = request.url if request.get? || request.head?
+      redirect_to new_session_path, alert: ("Sessione scaduta per inattività." if @session_expired)
     end
 
     def after_authentication_url

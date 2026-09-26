@@ -12,14 +12,6 @@ module Member::Filterable
       where.not(id: with_active_membership.select("members.id"))
     }
 
-    scope :with_active_subscription_for, ->(discipline) {
-      joins(subscriptions: { product: :disciplines })
-        .where(disciplines: { id: discipline.id })
-        .where("subscriptions.start_date <= :today AND subscriptions.end_date >= :today", today: Date.current)
-        .where(subscriptions: { discarded_at: nil })
-        .distinct
-    }
-
     scope :without_recent_checkin_for, ->(discipline) {
       where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
     }

@@ -1,7 +1,8 @@
 class MembersController < ApplicationController
   include Filterable
 
-  before_action :set_member, only: [ :show, :edit, :update, :destroy ]
+  before_action :require_admin, only: :destroy
+  before_action :set_member, only: %i[ show edit update destroy ]
 
   layout "modal", only: [ :new, :edit ]
 
@@ -15,7 +16,6 @@ class MembersController < ApplicationController
   end
 
   def show
-    @member = Member.find(params[:id])
     @active_subscriptions = @member.subscriptions.kept
                               .includes(:product, :access_logs)
                               .select { |s| (s.end_date.nil? || s.end_date >= Date.current) && !s.out_of_entries? }
@@ -61,11 +61,11 @@ class MembersController < ApplicationController
     end
 
     def member_params
-      params.require(:member).permit(
-        :first_name, :last_name, :fiscal_code, :birth_date,
-        :email_address, :phone, :address, :city, :zip_code,
-        :medical_certificate_expiry
-      )
+      params.expect(member: %i[
+        first_name last_name fiscal_code birth_date
+        email_address phone address city zip_code
+        medical_certificate_expiry
+      ])
     end
 
     def filter_params

@@ -17,7 +17,8 @@
                message: "Questo utente non ha ancora effettuato alcun accesso alla struttura." %>
   <% else %>
     <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-      <%= render partial: "members/access_logs/row", collection: @access_logs, as: :log, cached: true %>
+      <%= render partial: "members/access_logs/row", collection: @access_logs, as: :log,
+                 cached: ->(log) { [ log, log.discipline, log.subscription&.product ] } %>
     </ul>
 
     <%= render "shared/pagination" %>

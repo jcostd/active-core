@@ -15,18 +15,8 @@ module Trackable
     after_update_commit  :track_update
     after_destroy_commit :track_destroy
 
-    after_discard   :track_discard   rescue nil
-    after_undiscard :track_undiscard rescue nil
-  end
-
-  def log_activity(action, changes = {})
-    return unless Current.user
-
-    activity_logs.create!(
-      user:        Current.user,
-      action:      action,
-      changes_set: changes
-    )
+    after_discard   :track_discard
+    after_undiscard :track_undiscard
   end
 
   private
@@ -66,7 +56,6 @@ module Trackable
 
     def track_discard
       return unless Current.user
-      return unless respond_to?(:discarded_at)
 
       activity_logs.create!(
         user:        Current.user,
@@ -77,7 +66,6 @@ module Trackable
 
     def track_undiscard
       return unless Current.user
-      return unless respond_to?(:discarded_at)
 
       activity_logs.create!(
         user:        Current.user,

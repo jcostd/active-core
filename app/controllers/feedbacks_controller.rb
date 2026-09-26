@@ -19,6 +19,6 @@ class FeedbacksController < ApplicationController
 
   private
     def feedback_params
-      params.require(:feedback).permit(:message, :page_url)
+      params.expect(feedback: %i[ message page_url ])
     end
 end

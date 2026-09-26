@@ -123,7 +123,8 @@
       <%= filtered_results_counter(@pagy) %>
 
       <ul id="sales" class="list bg-base-100 rounded-box shadow-sm">
-        <%= render partial: "sales/row", collection: @sales, as: :sale, cached: true %>
+        <%= render partial: "sales/row", collection: @sales, as: :sale,
+                 cached: ->(sale) { [ sale, sale.member, sale.reversible_by?(current_user) ] } %>
       </ul>
 
       <%= render "shared/pagination" %>

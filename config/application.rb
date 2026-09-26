@@ -1,6 +1,18 @@
 require_relative "boot"
 
-require "rails/all"
+require "rails"
+
+# no action_text, action_mailbox
+%w[
+  active_record/railtie
+  active_storage/engine
+  action_controller/railtie
+  action_view/railtie
+  action_mailer/railtie
+  active_job/railtie
+  action_cable/engine
+  rails/test_unit/railtie
+].each { require it }
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

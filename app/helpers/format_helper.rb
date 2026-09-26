@@ -51,11 +51,6 @@ module FormatHelper
     format_money(cents / 100.0, currency: currency)
   end
 
-  def format_percentage(number, precision: 0)
-    return display_value(nil) unless number
-    number_to_percentage(number * 100, precision: precision)
-  end
-
   # ==========================================
   # CONTACTS & STRINGS
   # ==========================================
@@ -78,8 +73,4 @@ module FormatHelper
   # ==========================================
   # BOOLEANS
   # ==========================================
-
-  def format_boolean(bool, true_text: "Sì", false_text: "No")
-    bool ? true_text : false_text
-  end
 end

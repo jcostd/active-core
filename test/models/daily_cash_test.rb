@@ -23,7 +23,7 @@ class DailyCashTest < ActiveSupport::TestCase
         sold_on: today,
         amount: 50.00, # Usiamo il setter del tuo concern!
         payment_method: :cash,
-        subscription_attributes: { member: @member, product: @product }
+        subscription_attributes: { member: @member, product: @product, agreed_price: 100.00 }
       )
     end
 
@@ -34,7 +34,7 @@ class DailyCashTest < ActiveSupport::TestCase
         sold_on: today,
         amount: 30.00,
         payment_method: :cash,
-        subscription_attributes: { member: @member, product: @product }
+        subscription_attributes: { member: @member, product: @product, agreed_price: 100.00 }
       )
     end
 
@@ -45,7 +45,7 @@ class DailyCashTest < ActiveSupport::TestCase
         sold_on: today,
         amount: 100.00,
         payment_method: :credit_card,
-        subscription_attributes: { member: @member, product: @product }
+        subscription_attributes: { member: @member, product: @product, agreed_price: 100.00 }
       )
     end
 

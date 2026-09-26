@@ -1,7 +1,9 @@
 class UsersController < ApplicationController
   include Filterable
 
-  before_action :set_user, only: [ :show, :edit, :update, :destroy ]
+  before_action :require_admin, except: %i[ show edit update ]
+  before_action :set_user, only: %i[ show edit update destroy ]
+  before_action :require_self_or_admin, only: %i[ show edit update ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]
 
@@ -34,14 +36,11 @@ class UsersController < ApplicationController
   def edit; end
 
   def update
-    upd_params = user_params
-    if upd_params[:password].blank?
-      upd_params.delete(:password)
-      upd_params.delete(:password_confirmation)
-    end
+    attrs = user_params
+    attrs = attrs.except(:password, :password_confirmation) if attrs[:password].blank?
 
-    if @user.update(upd_params)
-      turbo_refresh_or_redirect_to users_path, notice: t(".updated", default: "Profilo utente aggiornato.")
+    if @user.update(attrs)
+      turbo_refresh_or_redirect_to user_path(@user), notice: t(".updated", default: "Profilo utente aggiornato.")
     else
       render :edit, status: :unprocessable_entity
     end
@@ -57,17 +56,19 @@ class UsersController < ApplicationController
 
   private
     def set_user
-      @user = User.find(params[:id])
+      @user = User.kept.find(params[:id])
+    end
+
+    def require_self_or_admin
+      return if current_user.admin? || @user == current_user
+      redirect_to root_path, alert: "Non disponi dei permessi necessari per accedere a questa sezione."
     end
 
     def user_params
-      permitted_params = [
-        :first_name, :last_name, :username,
-        :email_address, :password, :password_confirmation
-      ]
-      permitted_params << :role if current_user&.admin?
+      permitted = %i[ first_name last_name username email_address password password_confirmation ]
+      permitted << :role if current_user.admin?
 
-      params.require(:user).permit(permitted_params)
+      params.expect(user: permitted)
     end
 
     def filter_params

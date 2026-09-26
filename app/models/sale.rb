@@ -19,6 +19,8 @@ class Sale < ApplicationRecord
   include FiscalLockable, Monetizable, Trackable
   include Sale::Filterable
 
+  REVERSAL_WINDOW = 24.hours
+
   monetize :amount
 
   belongs_to :member, touch: true
@@ -32,6 +34,9 @@ class Sale < ApplicationRecord
   after_undiscard :undiscard_subscription
 
   validate :require_active_membership_for_courses, on: :create
+  validate :subscription_matches_sale
+  validate :zero_amount_allowed,  on: :create
+  validate :amount_within_due,    on: :create
 
   enum :payment_method, {
          cash: 1, credit_card: 2, bank_transfer: 3, other: 4
@@ -42,9 +47,13 @@ class Sale < ApplicationRecord
   validates :member, :user, :product, presence: true
   validates :receipt_sequence, presence: true
 
-  before_validation :snapshot_product_details
+  before_validation :snapshot_product_details, on: :create
   before_validation :sync_subscription_data
   before_validation :assign_receipt_number, on: :create
+
+  def reversible_by?(user)
+    user.admin? && created_at > REVERSAL_WINDOW.ago
+  end
 
   private
     def sync_subscription_data
@@ -58,8 +67,17 @@ class Sale < ApplicationRecord
       return unless product.present?
 
       self.product_name_snapshot = product.name
-      self.amount_cents = product.price_cents if amount_cents.nil? || amount_cents.zero?
+      self.amount_cents ||= default_amount_cents
       self.receipt_sequence ||= product.accounting_category
+    end
+
+    # installment: remaining due; new sale: agreed price
+    def default_amount_cents
+      if subscription&.persisted?
+        subscription.amount_due
+      else
+        subscription&.agreed_price_cents || product.price_cents
+      end
     end
 
     def assign_receipt_number
@@ -83,9 +101,10 @@ class Sale < ApplicationRecord
       subscription.undiscard! if subscription.present? && subscription.discarded?
     end
 
+    # installments pay an existing right: guard ran when it was sold
     def require_active_membership_for_courses
       return if product.nil? || product.associative?
-      return unless subscription&.start_date
+      return unless subscription&.new_record? && subscription.start_date
 
       check_date = sold_on || subscription.start_date
 
@@ -94,5 +113,32 @@ class Sale < ApplicationRecord
                           "Il socio non avrà una Quota Associativa attiva " \
                           "il #{I18n.l(check_date)}.")
       end
+    end
+
+    def subscription_matches_sale
+      return unless subscription
+
+      errors.add(:subscription, "non appartiene a questo socio") if subscription.member_id != member_id
+      errors.add(:subscription, "non corrisponde al prodotto venduto") if subscription.product_id != product_id
+      errors.add(:subscription, "è stato annullato") if new_record? && subscription.discarded?
+    end
+
+    def zero_amount_allowed
+      return unless amount_cents&.zero?
+
+      if subscription&.persisted?
+        errors.add(:base, "La rata deve essere maggiore di zero.")
+      elsif !user&.admin?
+        errors.add(:base, "Solo un amministratore può registrare una vendita a zero.")
+      end
+    end
+
+    def amount_within_due
+      return unless subscription && amount_cents
+
+      due = subscription.persisted? ? subscription.amount_due : subscription.agreed_price_cents || product&.price_cents
+      return if due.nil? || amount_cents <= due
+
+      errors.add(:amount, "supera il residuo dovuto (#{format("%.2f", due / 100.0).tr(".", ",")} €)")
     end
 end

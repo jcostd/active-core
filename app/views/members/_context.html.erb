@@ -61,16 +61,18 @@
 	  <%= icon("edit") %> Modifica Anagrafica
 	<% end %>
       </li>
-      <li>
-	<%= link_to member_path(member),
-		    class: "text-error hover:bg-error/10 hover:text-error",
-		    data: {
-		      turbo_method: :delete,
-		      turbo_confirm: "Sei sicuro?"
-		    } do %>
-	  <%= icon("delete") %> Archivia Socio
-	<% end %>
-      </li>
+      <% if current_user.admin? %>
+	<li>
+	  <%= link_to member_path(member),
+		      class: "text-error hover:bg-error/10 hover:text-error",
+		      data: {
+			turbo_method: :delete,
+			turbo_confirm: "Sei sicuro?"
+		      } do %>
+	    <%= icon("delete") %> Archivia Socio
+	  <% end %>
+	</li>
+      <% end %>
     <% end %>
   </div>
 <% end %>

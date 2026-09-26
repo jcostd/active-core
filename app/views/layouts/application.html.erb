@@ -23,8 +23,10 @@
   </head>
 
   <body
-    data-controller="theme-sync"
+    data-controller="theme-sync idle"
     data-theme-sync-theme-value="<%= current_theme %>"
+    data-idle-timeout-value="<%= Session::IDLE_TIMEOUT.to_i %>"
+    data-idle-url-value="<%= session_path(reason: "idle") %>"
     class="bg-base-200 antialiased text-base-content selection:bg-primary selection:text-primary-content"
   >
 

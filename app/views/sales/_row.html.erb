@@ -47,7 +47,7 @@
   </div>
 
   <% unless sale.discarded? %>
-    <% if current_user.admin? && sale.created_at > 24.hours.ago %>
+    <% if sale.reversible_by?(current_user) %>
       <div class="flex items-center gap-1 shrink-0">
 	<%= ui_row_delete_button(sale, confirm: "Sei sicuro di voler archiviare questa vendita?") %>
       </div>

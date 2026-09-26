@@ -27,6 +27,7 @@ class Subscription < ApplicationRecord
   has_many :access_logs, dependent: :nullify
 
   validates :start_date, :end_date, presence: true
+  validates :agreed_price_cents, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validate :end_date_after_start_date
 
   before_validation :apply_business_rules,     on: :create
@@ -54,17 +55,16 @@ class Subscription < ApplicationRecord
     @status ||= SubscriptionStatus.new(self)
   end
 
-  def calculate_dates!(manual_start_date: nil)
-    self.start_date = manual_start_date if manual_start_date.present?
-    apply_business_rules
-  end
-
   def amount_paid
     if sales.loaded?
       sales.reject(&:discarded?).sum(&:amount_cents)
     else
       sales.kept.sum(:amount_cents)
     end
+  end
+
+  def amount_due
+    [ agreed_price_cents.to_i - amount_paid, 0 ].max
   end
 
   def fully_paid?
@@ -86,11 +86,6 @@ class Subscription < ApplicationRecord
 
   def out_of_entries?
     !unlimited_entries? && entries_used >= entry_limit
-  end
-
-  def active?(date = Date.current)
-    return false unless start_date && end_date
-    date.between?(start_date, end_date)
   end
 
   def future?
@@ -131,8 +126,7 @@ class Subscription < ApplicationRecord
 
     def set_default_agreed_price
       return unless product.present?
-      return unless agreed_price_cents.nil? || agreed_price_cents.zero?
-      self.agreed_price_cents = product.price_cents
+      self.agreed_price_cents ||= product.price_cents
     end
 
     def prevent_overlapping_subscriptions
