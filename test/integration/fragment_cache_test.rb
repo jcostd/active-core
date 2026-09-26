@@ -44,7 +44,7 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       get sales_path
       assert_select "a[data-turbo-method=delete][href='#{sale_path(sale)}']"
 
-      travel Sale::REVERSAL_WINDOW + 1.minute
+      travel Sale::ADMIN_REVERSAL_WINDOW + 1.minute
       sign_in_as(users(:admin))
       get sales_path
       assert_select "a[data-turbo-method=delete][href='#{sale_path(sale)}']", count: 0
@@ -61,7 +61,8 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       assert_match "Alice Allevi", response.body
 
       travel 1.second
-      @member.update!(first_name: "Alicia")
+      # istanza nuova: quella della vendita ha un touch differito che nei test non viene mai confermato
+      Member.find(@member.id).update!(first_name: "Alicia")
       get root_path
       assert_match "Alicia Allevi", response.body
     end

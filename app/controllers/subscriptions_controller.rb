@@ -1,5 +1,5 @@
 class SubscriptionsController < ApplicationController
-  before_action :require_admin, only: %i[ edit update destroy ]
+  before_action :require_admin, only: %i[ edit update ]
   before_action :set_subscription, only: [ :edit, :update, :destroy ]
 
   layout "modal", only: [ :edit, :update ]
@@ -9,7 +9,7 @@ class SubscriptionsController < ApplicationController
     @subscriptions = Subscription.kept.includes(:member, :product)
 
     if params[:filter] == "expiring"
-      @subscriptions = @subscriptions.where(end_date: Date.current..7.days.from_now).order(:end_date)
+      @subscriptions = @subscriptions.where(end_date: Date.current..Date.current + 7).order(:end_date)
     else
       @subscriptions = @subscriptions.order(created_at: :desc)
     end
@@ -28,11 +28,12 @@ class SubscriptionsController < ApplicationController
   end
 
   def destroy
-    if @subscription.discard!
-      redirect_back(fallback_location: @subscription.member, status: :see_other, notice: "Abbonamento annullato (Soft Delete).")
-    else
-      redirect_back(fallback_location: @subscription.member, status: :see_other, alert: "Impossibile annullare l'abbonamento.")
+    unless @subscription.discardable_by?(current_user)
+      return redirect_back(fallback_location: @subscription.member, status: :see_other, alert: "Questo abbonamento non è più annullabile.")
     end
+
+    @subscription.discard!
+    redirect_back(fallback_location: @subscription.member, status: :see_other, notice: "Abbonamento e pagamenti collegati annullati.")
   end
 
   private

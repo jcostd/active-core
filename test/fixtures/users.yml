@@ -15,3 +15,11 @@ admin:
   first_name: Mario
   last_name: Capo
   role: 1 # admin
+
+staff_two:
+  email_address: staff2@asd.it
+  password_digest: <%= password_digest %>
+  username: staff2
+  first_name: Giulia
+  last_name: Collega
+  role: 0 # staff

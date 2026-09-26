@@ -2,14 +2,14 @@
   <li>
     <%= active_link_to root_path do %>
       <%= icon("dashboard", classes: "size-5 opacity-75") %>
-      <%= t("sidebar.items.dashboard", default: "Dashboard") %>
+      Dashboard
     <% end %>
   </li>
 
   <li>
     <%= active_link_to members_path do %>
       <%= icon("member", classes: "size-5 opacity-75") %>
-      <%= t("sidebar.items.members", default: "Soci") %>
+      Soci
     <% end %>
     <%= yield :member_actions if content_for?(:member_actions) %>
   </li>
@@ -17,7 +17,7 @@
   <li>
     <%= active_link_to disciplines_path do %>
       <%= icon("spa", classes: "size-5 opacity-75") %>
-      <%= t("sidebar.items.disciplines", default: "Discipline") %>
+      Discipline
     <% end %>
     <%= yield :discipline_actions if content_for?(:discipline_actions) %>
   </li>

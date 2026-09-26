@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="dropdown"
+// Collegato a data-controller="dropdown"
 export default class extends Controller {
     close(event) {
 	if (this.element.open && !this.element.contains(event.target)) {

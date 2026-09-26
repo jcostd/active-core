@@ -1,96 +1,124 @@
 # ActiveCore 🏋️‍♂️
 
-ActiveCore is a high-performance ERP engine specifically engineered for **Italian Sports Associations (ASD)**. It streamlines the complex bureaucratic and operational requirements of the Italian sports reform, ensuring compliance with institutional rules while maintaining a friction-free experience for the front-desk.
+ActiveCore è il gestionale pensato per le **Associazioni Sportive Dilettantistiche (ASD) italiane**. Semplifica gli adempimenti burocratici e operativi della riforma dello sport, rispettando le regole istituzionali senza complicare il lavoro della segreteria.
 
-Built on the **Rails 8 "Solid Stack"**, ActiveCore is designed for stability, data integrity, and rapid deployment.
+È costruito sullo **"Solid Stack" di Rails 8**: stabilità, integrità dei dati e deploy semplice.
 
-## 🇮🇹 Built for Italian ASD
+## 🇮🇹 Fatto per le ASD italiane
 
-ActiveCore is designed with the unique logic of Italian sports associations in mind:
+-   **Quota Associativa**: il vincolo associativo è sempre verificato.
 
--   **Quota Associativa (Membership Fee)**: Strict enforcement of the associative bond.
+-   **Anno Sportivo**: tesseramenti allineati all'anno sportivo (settembre - agosto).
 
--   **Sport Year Alignment**: Support for the Italian "Anno Sportivo" (September - August) logic.
+-   **Certificato Medico**: scadenze del certificato agonistico/non agonistico con avvisi.
 
--   **Medical Certificate Management**: Built-in tracking for "Certificato Medico Agonistico/Non Agonistico" with expiration alerts.
-
--   **Fiscal Compliance**: Receipt (Ricevuta) generation with sequential numbering and fiscal locking.
+-   **Ricevute**: numerazione progressiva per registro e dati fiscali non modificabili dopo l'emissione. Niente "storni": le ASD non vendono, tesserano.
 
 
-## ✨ Key Features
+## ✨ Funzionalità principali
 
-### 🔄 Intelligent Subscription Engine
+### 🔄 Abbonamenti
 
--   **Institutional Snap**: Automatically aligns institutional course subscriptions to calendar months or the sports year.
+-   **Allineamento automatico**: i corsi istituzionali si allineano ai mesi di calendario o all'anno sportivo.
 
--   **Smart Renewal Logic**: Detects existing subscriptions to eliminate gaps in coverage and calculate "Smart Start Dates".
+-   **Rinnovi senza buchi**: il rinnovo riparte dal giorno dopo la scadenza se il socio rientra entro 30 giorni.
 
--   **Membership Guard**: A core safety mechanism that prevents selling any sports course if the member does not have a valid, active _Quota Associativa_.
+-   **Controllo Quota**: non si può vendere un corso a chi non ha una Quota Associativa valida.
 
-
-### 🚪 Non-Blocking Access Control
-
--   **Real-time Policy Evaluation**: Instant check on medical certificates, active subscriptions, and payments at the point of entry.
-
--   **Soft Enforcement**: Unlike rigid turnstile systems, ActiveCore logs entries with specific statuses (OK/Warning/Error), allowing staff to handle issues (like an expiring certificate) with empathy rather than blocking the member.
-
--   **Double-tap Prevention**: Cooldown logic to prevent duplicate check-ins within the same training session.
+-   **Rate libere**: pagamenti progressivi di qualsiasi importo, sempre entro il residuo dovuto.
 
 
-### 📄 Document & Fiscal Engine
+### 🚪 Accessi non bloccanti (kiosk iPad)
 
--   **PDF Receipts**: Automated generation of receipts via Prawn, ready for delivery to members.
+-   **Verifica in tempo reale**: certificato medico, abbonamento attivo e pagamenti al momento dell'ingresso.
 
--   **Sequential Integrity**: Robust handling of receipt sequences to meet accounting standards.
+-   **Nessun blocco**: l'ingresso viene sempre registrato con un esito (OK/Avviso/Errore) e la segreteria gestisce i casi con calma.
 
-
-## 🛠 Tech Stack
-
--   **Backend**: [Rails 8.1](https://rubyonrails.org/) running on **Ruby 4.0.3**
-
--   **Frontend**: [Hotwire](https://hotwired.dev/) (Turbo 8 / Stimulus)
-
--   **UI & Styling**: [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
-
--   **Database**: SQLite (optimized for production with WAL mode and immediate transactions)
-
--   **Infrastructure**: [Solid Cache](https://github.com/rails/solid_cache), [Solid Queue](https://github.com/rails/solid_queue), [Solid Cable](https://github.com/rails/solid_cable)
-
--   **Deployment**: [Kamal](https://kamal-deploy.org/) (Docker-based)
+-   **Doppio tocco**: un secondo check-in ravvicinato viene ignorato.
 
 
-## 🚀 Installation & Setup
+### 📄 Ricevute
+
+-   **PDF** generati con Prawn, pronti da consegnare al socio.
+
+-   **Numerazione sicura** anche con più operatori contemporanei.
+
+
+## 🔐 Utenti e sicurezza
+
+-   **Due ruoli**: lo **staff** gestisce soci, vendite e kiosk; l'**admin** ha anche prodotti, discipline, report, utenti e il registro accessi.
+
+-   **Correzione degli errori**: lo staff può annullare **solo i propri** pagamenti e abbonamenti entro **15 minuti**; l'admin qualsiasi pagamento entro **24 ore**. Annullare un abbonamento annulla anche i pagamenti collegati.
+
+-   **Vendite a 0 €**: solo l'admin.
+
+-   **Sessione**: si chiude dopo **1 ora di inattività**. Il kiosk resta collegato.
+
+-   **Protezioni**: Content Security Policy, dati personali esclusi dai log, limite ai tentativi di accesso.
+
+
+## 🛠 Tecnologie
+
+-   **Backend**: [Rails 8.1](https://rubyonrails.org/) su **Ruby 4.0.5**
+
+-   **Frontend**: [Hotwire](https://hotwired.dev/) (Turbo 8 / Stimulus), import map senza build JavaScript
+
+-   **Interfaccia**: [Tailwind CSS 4](https://tailwindcss.com/) + [daisyUI 5](https://daisyui.com/)
+
+-   **Database**: SQLite (modalità WAL), backup con Litestream
+
+-   **Infrastruttura**: [Solid Cache](https://github.com/rails/solid_cache), [Solid Queue](https://github.com/rails/solid_queue) (job ricorrenti in `config/recurring.yml`), [Solid Cable](https://github.com/rails/solid_cable)
+
+-   **Deploy**: [Kamal](https://kamal-deploy.org/) (Docker)
+
+
+## 🚀 Installazione
 
 ```
-# Clone the repository
+# Clona il repository
 git clone https://github.com/jcostd/active-core.git
 cd active-core
 
-# Automated setup (install gems, prepare DB, seed data)
+# Setup automatico (gem, database, dati di esempio)
 bin/setup
 
-# Start the development environment (Rails + Tailwind + DaisyUI)
+# Avvia l'ambiente di sviluppo (Rails + Tailwind)
 bin/dev
-
 ```
 
-## 🛡 Quality & Security
+### Produzione in rete locale
 
-Data integrity is our top priority. Every build must pass the comprehensive `bin/ci` suite:
+L'app gira nella rete della palestra, in HTTP. Variabili d'ambiente utili:
 
--   **Minitest**: Full unit and integration testing coverage.
-
--   **Brakeman**: Static analysis for security vulnerabilities.
-
--   **Bundler-Audit**: Verification of dependencies against known CVEs.
-
--   **Rubocop**: Omakase-style code linting for maintainable Ruby.
+| Variabile   | Esempio                        | Uso                                             |
+| ----------- | ------------------------------ | ----------------------------------------------- |
+| `APP_HOST`  | `palestra.lan`                 | indirizzo usato nei link delle email            |
+| `APP_HOSTS` | `palestra.lan,192.168.1.10`    | nomi/IP accettati (protezione DNS rebinding)    |
 
 
-## 📄 License
+## 🛡 Qualità
 
-This project is released under the **GPLv3 License**.
+Ogni modifica deve superare `bin/ci`:
+
+-   **Minitest**: test di modelli, controller e integrazione.
+
+-   **Brakeman**: analisi statica di sicurezza.
+
+-   **Bundler-Audit** e **importmap audit**: dipendenze senza vulnerabilità note.
+
+-   **Rubocop**: stile Omakase.
+
+Per verificare i casi di calendario (capodanno, cambio anno sportivo, ora legale) la suite si può eseguire in una data qualsiasi:
+
+```
+TEST_NOW="2027-01-01 10:00" bin/rails test
+```
+
+
+## 📄 Licenza
+
+Progetto rilasciato con licenza **GPLv3**.
 
 ----------
 
-Developed with ❤️ for the Italian sports community.
+Sviluppato con ❤️ per lo sport dilettantistico italiano.

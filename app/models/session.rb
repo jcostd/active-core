@@ -19,7 +19,7 @@ class Session < ApplicationRecord
     updated_at < (kiosk_request ? KIOSK_TIMEOUT : IDLE_TIMEOUT).ago
   end
 
-  # throttled: at most one write per ACTIVITY_INTERVAL
+  # al massimo una scrittura ogni ACTIVITY_INTERVAL
   def record_activity!(kiosk_request: false)
     return if updated_at > ACTIVITY_INTERVAL.ago && (kiosk? || !kiosk_request)
 

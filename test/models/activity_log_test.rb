@@ -24,9 +24,9 @@ class ActivityLogTest < ActiveSupport::TestCase
     log = ActivityLog.new
     assert_not log.valid?
 
-    assert_includes log.errors[:user], "must exist"
-    assert_includes log.errors[:subject], "must exist"
-    assert_includes log.errors[:action], "can't be blank"
+    assert_includes log.errors[:user], "deve esistere"
+    assert_includes log.errors[:subject], "deve esistere"
+    assert_includes log.errors[:action], "non può essere lasciato in bianco"
   end
 
   test "polymorphism works with different models" do

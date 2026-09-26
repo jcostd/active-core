@@ -19,7 +19,7 @@ module NavigationHelper
     # 3. Uniamo le classi (DaisyUI 'menu-active')
     options[:class] = class_names(options[:class], "menu-active" => is_active)
 
-    # 4. Render
+    # 4. Rendering
     block_given? ? link_to(text, options, &block) : link_to(text, path, options)
   end
 end

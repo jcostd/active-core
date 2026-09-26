@@ -1,5 +1,5 @@
 module CachingTestHelper
-  # fragment caching is off in test env; enable it for one block
+  # nei test la cache dei frammenti è spenta: la accende per un blocco
   def with_fragment_caching
     store = ActiveSupport::Cache::MemoryStore.new
     previous = [ ActionController::Base.perform_caching, ActionController::Base.cache_store, ActionView::PartialRenderer.collection_cache ]

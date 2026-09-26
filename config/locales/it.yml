@@ -1,0 +1,84 @@
+# nomi di modelli e campi usati nei messaggi di errore
+it:
+  activerecord:
+    models:
+      access_log: Accesso
+      discipline: Disciplina
+      feedback: Segnalazione
+      gym_profile: Profilo palestra
+      member: Socio
+      product: Prodotto
+      sale: Pagamento
+      subscription: Abbonamento
+      user: Utente
+    attributes:
+      access_log:
+        checkin_by_user: Operatore
+        discipline: Disciplina
+        entered_at: Ingresso
+        member: Socio
+        status: Esito
+        subscription: Abbonamento
+      discipline:
+        name: Nome
+        requires_medical_certificate: Richiede certificato medico
+        requires_membership: Richiede quota associativa
+      feedback:
+        message: Messaggio
+        page_url: Pagina
+        user: Utente
+      gym_profile:
+        name: Nome
+      member:
+        address: Indirizzo
+        birth_date: Data di nascita
+        city: Città
+        email_address: Email
+        first_name: Nome
+        fiscal_code: Codice fiscale
+        last_name: Cognome
+        medical_certificate_expiry: Scadenza certificato medico
+        phone: Telefono
+        zip_code: CAP
+      product:
+        accounting_category: Categoria contabile
+        disciplines: Discipline
+        duration_days: Durata (giorni)
+        entry_limit: Numero ingressi
+        name: Nome
+        price: Prezzo
+        price_cents: Prezzo
+      sale:
+        amount: Importo
+        amount_cents: Importo
+        member: Socio
+        notes: Note
+        payment_method: Metodo di pagamento
+        product: Prodotto
+        receipt_number: Numero ricevuta
+        receipt_sequence: Registro ricevute
+        receipt_year: Anno ricevuta
+        sold_on: Data contabile
+        subscription: Abbonamento
+        user: Operatore
+      sale/subscription:
+        base: Abbonamento
+        end_date: Scadenza abbonamento
+        start_date: Decorrenza abbonamento
+      subscription:
+        agreed_price: Prezzo concordato
+        agreed_price_cents: Prezzo concordato
+        end_date: Scadenza
+        entry_limit: Numero ingressi
+        member: Socio
+        product: Prodotto
+        start_date: Decorrenza
+      user:
+        email_address: Email
+        first_name: Nome
+        last_name: Cognome
+        password: Password
+        password_confirmation: Conferma password
+        role: Ruolo
+        theme: Tema
+        username: Username

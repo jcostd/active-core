@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="drawer"
+// Collegato a data-controller="drawer"
 export default class extends Controller {
     static targets = ["dialog"]
 

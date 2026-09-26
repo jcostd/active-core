@@ -257,7 +257,7 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal end_override, sale.subscription.end_date
   end
 
-  # --- TEST SOFT DELETE ---
+  # --- TEST ARCHIVIAZIONE ---
 
   test "discarding sale cascades to subscription" do
     sale = create_sale_with_smart_subscription
@@ -274,7 +274,7 @@ class SaleTest < ActiveSupport::TestCase
     assert_not sale.subscription.reload.discarded?
   end
 
-  # --- INSTALLMENTS ---
+  # --- RATE ---
 
   test "progressive installments recompute amount due until fully paid" do
     first = sell_course(amount: 12.34)
@@ -339,7 +339,7 @@ class SaleTest < ActiveSupport::TestCase
     assert_not build_installment(sub, amount: 10).valid?
   end
 
-  # --- ZERO AMOUNT ---
+  # --- IMPORTO ZERO ---
 
   test "staff cannot register a zero sale" do
     sale = Sale.new(member: @member, product: @prod_inst, user: @user, sold_on: Date.current,
@@ -362,7 +362,7 @@ class SaleTest < ActiveSupport::TestCase
     assert_equal 5000, sale.amount_cents
   end
 
-  # --- SUBSCRIPTION OWNERSHIP ---
+  # --- APPARTENENZA DELL'ABBONAMENTO ---
 
   test "sale cannot pay another member subscription" do
     other = members(:alice)
@@ -383,17 +383,103 @@ class SaleTest < ActiveSupport::TestCase
     assert sale.errors[:subscription].any?
   end
 
-  # --- REVERSAL ---
+  # --- ANNULLAMENTO ---
 
-  test "only admin can reverse, within the window" do
+  test "staff reverses own sale within the staff window" do
     sale = sell_course(amount: 10)
 
+    travel Sale::STAFF_REVERSAL_WINDOW - 1.minute
+    assert sale.reversible_by?(@user)
+
+    travel 2.minutes
     assert_not sale.reversible_by?(@user)
+  end
+
+  test "staff cannot reverse a colleague sale" do
+    sale = sell_course(amount: 10)
+    assert_not sale.reversible_by?(users(:staff_two))
+  end
+
+  test "admin reverses any sale within the admin window" do
+    sale = sell_course(amount: 10)
+
+    travel Sale::ADMIN_REVERSAL_WINDOW - 1.minute
     assert sale.reversible_by?(users(:admin))
 
-    travel_to (Sale::REVERSAL_WINDOW + 1.minute).from_now do
-      assert_not sale.reversible_by?(users(:admin))
-    end
+    travel 2.minutes
+    assert_not sale.reversible_by?(users(:admin))
+  end
+
+  test "discarded sale is not reversible again" do
+    sale = sell_course(amount: 10)
+    sale.discard!
+    assert_not sale.reversible_by?(users(:admin))
+  end
+
+  # --- CASCATA SULL'ABBONAMENTO ---
+
+  test "discarding a subscription annuls all its payments" do
+    sub = sell_course(amount: 10).subscription
+    pay_installment(sub, amount: 15)
+
+    sub.discard!
+
+    assert sub.sales.reload.all?(&:discarded?)
+    assert_equal 2, sub.sales.count
+  end
+
+  test "subscription cascade is atomic" do
+    sub = sell_course(amount: 10).subscription
+    pay_installment(sub, amount: 15)
+    conn = Sale.connection
+    conn.execute(<<~SQL)
+      CREATE TEMP TRIGGER fail_second_payment BEFORE UPDATE OF discarded_at ON sales
+      WHEN NEW.amount_cents = 1500 BEGIN SELECT RAISE(ABORT, 'boom'); END
+    SQL
+
+    assert_raises(ActiveRecord::StatementInvalid) { sub.discard! }
+    assert sub.reload.kept?
+    assert sub.sales.reload.none?(&:discarded?)
+  ensure
+    conn&.execute("DROP TRIGGER IF EXISTS temp.fail_second_payment")
+  end
+
+  test "aborted discard raises" do
+    sale = sell_course(amount: 10)
+    sale.define_singleton_method(:run_callbacks) { |*| false }
+
+    assert_raises(ActiveRecord::RecordNotSaved) { sale.discard! }
+  end
+
+  test "staff discards own fresh subscription" do
+    sub = sell_course(amount: 10).subscription
+    assert sub.discardable_by?(@user)
+    assert_not sub.discardable_by?(users(:staff_two))
+  end
+
+  test "subscription with a colleague payment is not discardable by staff" do
+    sub = sell_course(amount: 10).subscription
+    pay_installment(sub, amount: 10, user: users(:staff_two))
+
+    assert_not sub.discardable_by?(@user)
+    assert_not sub.discardable_by?(users(:staff_two))
+    assert sub.discardable_by?(users(:admin))
+  end
+
+  test "subscription follows the oldest payment window" do
+    sub = sell_course(amount: 10).subscription
+    travel Sale::ADMIN_REVERSAL_WINDOW - 1.hour
+    pay_installment(sub, amount: 10)
+
+    travel 2.hours
+    assert_not sub.reload.discardable_by?(users(:admin))
+  end
+
+  test "subscription without payments is discardable by admin only" do
+    sub = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current)
+
+    assert sub.discardable_by?(users(:admin))
+    assert_not sub.discardable_by?(@user)
   end
 
   private

@@ -46,7 +46,7 @@ module Authentication
       session.tap { it.record_activity!(kiosk_request: kiosk_request?) }
     end
 
-    # overridden by kiosk controllers: exempt from idle timeout
+    # sovrascritto dai controller kiosk: esenti dal timeout di inattività
     def kiosk_request? = false
 
     def current_user

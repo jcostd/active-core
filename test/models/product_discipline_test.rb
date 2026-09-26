@@ -22,7 +22,7 @@ class ProductDisciplineTest < ActiveSupport::TestCase
     duplicate_link = ProductDiscipline.new(product: @product, discipline: @discipline)
 
     assert_not duplicate_link.valid?
-    assert_includes duplicate_link.errors[:product_id], "already includes this discipline"
+    assert_includes duplicate_link.errors[:product_id], "include già questa disciplina"
   end
 
   test "prevent duplicate links via DB constraint" do

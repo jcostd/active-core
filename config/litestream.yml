@@ -1,14 +1,12 @@
-# This is the actual configuration file for litestream.
+# Configurazione effettiva di litestream.
 #
-# You can either use the generated `config/initializers/litestream.rb`
-# file to configure the litestream-ruby gem, which will populate these
-# ENV variables when using the `rails litestream:replicate` command.
+# Si può usare `config/initializers/litestream.rb`, che popola
+# queste variabili d'ambiente con `rails litestream:replicate`,
 #
-# Or, if you prefer, manually manage ENV variables and this configuration file.
-# In that case, simply ensure that the ENV variables are set before running the
-# `replicate` command.
+# oppure gestire a mano variabili e file: in quel caso vanno
+# impostate prima di lanciare il comando `replicate`.
 #
-# For more details, see: https://litestream.io/reference/config/
+# Dettagli: https://litestream.io/reference/config/
 dbs:
   - path: storage/production.sqlite3
     replicas:

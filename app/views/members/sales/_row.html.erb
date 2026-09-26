@@ -60,10 +60,10 @@
     <%= format_money(sale.amount) %>
   </div>
 
-  <%# -- Colonna 4: Azioni (Solo delete se < 24h) -- %>
+  <%# -- Colonna 4: Azioni (annullabile entro la finestra consentita) -- %>
   <div class="flex items-center gap-1 shrink-0 self-start sm:self-center min-w-[2rem] justify-end">
     <% if sale.reversible_by?(current_user) %>
-      <%= ui_row_delete_button(sale, confirm: "Annullare VENDITA e abbonamento? L'operazione è irreversibile.", title: "Annulla") %>
+      <%= ui_row_delete_button(sale, confirm: "Annullare questo pagamento? Se è l'unico dell'abbonamento, verrà annullato anche l'abbonamento.", title: "Annulla pagamento") %>
     <% end %>
   </div>
 

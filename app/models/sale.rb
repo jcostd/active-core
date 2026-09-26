@@ -19,7 +19,8 @@ class Sale < ApplicationRecord
   include FiscalLockable, Monetizable, Trackable
   include Sale::Filterable
 
-  REVERSAL_WINDOW = 24.hours
+  ADMIN_REVERSAL_WINDOW = 24.hours
+  STAFF_REVERSAL_WINDOW = 15.minutes
 
   monetize :amount
 
@@ -51,8 +52,11 @@ class Sale < ApplicationRecord
   before_validation :sync_subscription_data
   before_validation :assign_receipt_number, on: :create
 
+  # staff: solo i propri pagamenti
   def reversible_by?(user)
-    user.admin? && created_at > REVERSAL_WINDOW.ago
+    return false if discarded? || !(user.admin? || user_id == user.id)
+
+    created_at > (user.admin? ? ADMIN_REVERSAL_WINDOW : STAFF_REVERSAL_WINDOW).ago
   end
 
   private
@@ -71,7 +75,7 @@ class Sale < ApplicationRecord
       self.receipt_sequence ||= product.accounting_category
     end
 
-    # installment: remaining due; new sale: agreed price
+    # rata: residuo dovuto; nuova vendita: prezzo concordato
     def default_amount_cents
       if subscription&.persisted?
         subscription.amount_due
@@ -101,7 +105,7 @@ class Sale < ApplicationRecord
       subscription.undiscard! if subscription.present? && subscription.discarded?
     end
 
-    # installments pay an existing right: guard ran when it was sold
+    # le rate pagano un diritto già venduto: il controllo è stato fatto allora
     def require_active_membership_for_courses
       return if product.nil? || product.associative?
       return unless subscription&.new_record? && subscription.start_date

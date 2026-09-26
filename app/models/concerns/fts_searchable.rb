@@ -21,8 +21,8 @@ module FtsSearchable
         clean = query.gsub(/[^\p{L}\p{N}\s]/, " ").squish
         return nil if clean.blank?
 
-        # "san polo" -> "san* polo*" (nota lo spazio nel join qui sotto!)
-        clean.split.map { |word| "#{word}*" }.join(" ")
+        # "san polo" -> "san"* "polo"*: le virgolette neutralizzano OR/AND/NOT/NEAR
+        clean.split.map { %("#{it}"*) }.join(" ")
       end
   end
 end

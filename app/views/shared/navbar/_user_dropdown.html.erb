@@ -15,7 +15,7 @@
   <li>
     <%= link_to user_path(current_user), class: "flex items-center gap-3" do %>
       <%= icon("user", classes: "size-5 opacity-70") %>
-      <%= t("navbar.my_profile", default: "Il mio profilo") %>
+      Il mio profilo
     <% end %>
   </li>
 
@@ -25,7 +25,7 @@
 		class: "flex items-center gap-3 text-error hover:bg-error hover:text-error-content",
 		data: { turbo_method: :delete } do %>
       <%= icon("logout") %>
-      <%= t("navbar.logout", default: "Esci") %>
+      Esci
     <% end %>
   </li>
 

@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-  resource :session
-  resources :passwords, param: :token
+  resource :session, only: %i[ new create destroy ]
+  resources :passwords, param: :token, only: %i[ new create edit update ]
 
   concern :searchable do
     resources :searches, only: [ :index ]
@@ -18,8 +18,7 @@ Rails.application.routes.draw do
 
   resources :users
   namespace :preferences do
-    resource :theme, only: [ :show, :update ]
-    resource :language, only: [ :update ]
+    resource :theme, only: [ :update ]
   end
 
   resources :disciplines do
@@ -37,7 +36,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   root "dashboard#index"
 
-  # --- KIOSK MODE (iPad Appello) ---
+  # --- MODALITÀ KIOSK (iPad Appello) ---
   namespace :kiosk do
     root to: "disciplines#index"
 

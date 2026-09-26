@@ -1,6 +1,6 @@
 module FormatHelper
   # ==========================================
-  # GENERIC DISPLAY
+  # VISUALIZZAZIONE GENERICA
   # ==========================================
 
   def display_value(value, placeholder: "—")
@@ -11,7 +11,7 @@ module FormatHelper
   end
 
   # ==========================================
-  # DATE & TIME
+  # DATE E ORARI
   # ==========================================
 
   def format_date(date, format: :default)
@@ -35,7 +35,7 @@ module FormatHelper
   end
 
   # ==========================================
-  # MONEY & NUMBERS
+  # IMPORTI E NUMERI
   # ==========================================
   def format_money(amount, currency: "EUR")
     return display_value(nil) if amount.nil?
@@ -52,7 +52,7 @@ module FormatHelper
   end
 
   # ==========================================
-  # CONTACTS & STRINGS
+  # CONTATTI E TESTI
   # ==========================================
 
   def format_phone(phone)
@@ -71,6 +71,6 @@ module FormatHelper
   end
 
   # ==========================================
-  # BOOLEANS
+  # BOOLEANI
   # ==========================================
 end

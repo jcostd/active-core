@@ -35,6 +35,8 @@ class Subscription < ApplicationRecord
 
   validate :prevent_overlapping_subscriptions, on: :create
 
+  after_discard :discard_sales
+
   scope :active,   -> { where(subscriptions: { start_date: ..Date.current, end_date: Date.current.. }) }
   scope :expired,  -> { where(subscriptions: { end_date: ...Date.current }) }
   scope :upcoming, -> { where(subscriptions: { start_date: (Date.current + 1.day).. }) }
@@ -61,6 +63,14 @@ class Subscription < ApplicationRecord
     else
       sales.kept.sum(:amount_cents)
     end
+  end
+
+  # archiviabile solo se ogni pagamento è ancora annullabile da user
+  def discardable_by?(user)
+    return false if discarded?
+
+    payments = kept_sales
+    payments.empty? ? user.admin? : payments.all? { it.reversible_by?(user) }
   end
 
   def amount_due
@@ -108,6 +118,14 @@ class Subscription < ApplicationRecord
   end
 
   private
+    def kept_sales
+      sales.loaded? ? sales.reject(&:discarded?) : sales.kept.to_a
+    end
+
+    def discard_sales
+      sales.kept.each(&:discard!)
+    end
+
     def apply_business_rules
       return unless product.present? && member.present?
 

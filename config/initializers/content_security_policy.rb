@@ -1,5 +1,5 @@
-# Be sure to restart your server when you modify this file.
-# See https://guides.rubyonrails.org/security.html#content-security-policy-header
+# Dopo ogni modifica riavviare il server.
+# Vedi https://guides.rubyonrails.org/security.html#content-security-policy-header
 
 Rails.application.configure do
   config.content_security_policy do |policy|
@@ -11,11 +11,11 @@ Rails.application.configure do
     policy.font_src        :self, :data
     policy.img_src         :self, :data
     policy.script_src      :self
-    policy.style_src       :self, :unsafe_inline # avatar colors are inline
+    policy.style_src       :self, :unsafe_inline # colori degli avatar inline
     policy.connect_src     :self, :ws, :wss      # action cable
   end
 
-  # per request: session id is blank before login, Turbo ignores nonce when diffing assets
+  # per richiesta: prima del login l'id di sessione è vuoto; Turbo ignora il nonce nel confronto degli asset
   config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
   config.content_security_policy_nonce_directives = %w[ script-src ]
 end

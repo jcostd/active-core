@@ -34,7 +34,7 @@ class User < ApplicationRecord
   normalizes :username, with: ->(u) { u.strip.downcase }
   validates :username, presence: true,
                        uniqueness: { conditions: -> { kept } },
-                       format: { with: /\A[a-z0-9_]+\z/, message: "only allows lowercase letters, numbers and underscores" }
+                       format: { with: /\A[a-z0-9_]+\z/, message: "può contenere solo lettere minuscole, numeri e underscore" }
 
   validates :password, length: { minimum: 4 }, allow_nil: true
 

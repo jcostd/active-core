@@ -1,12 +1,12 @@
 class ApplicationController < ActionController::Base
-  include Themable, Localizable, Authentication
+  include Themable, Authentication
 
   include Pagy::Method
 
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
+  # Solo browser moderni (webp, web push, badge, import map, CSS nesting e :has).
   allow_browser versions: :modern
 
-  # Changes to the importmap will invalidate the etag for HTML responses
+  # Un cambio dell'importmap invalida l'etag delle risposte HTML
   stale_when_importmap_changes
 
   private

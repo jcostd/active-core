@@ -1,45 +1,45 @@
-# Use this hook to configure the litestream-ruby gem.
-# All configuration options will be available as environment variables, e.g.
-# config.replica_bucket becomes LITESTREAM_REPLICA_BUCKET
-# This allows you to configure Litestream using Rails encrypted credentials,
-# or some other mechanism where the values are only available at runtime.
+# Configurazione della gem litestream-ruby.
+# Ogni opzione diventa una variabile d'ambiente, es.
+# config.replica_bucket diventa LITESTREAM_REPLICA_BUCKET.
+# Così Litestream si configura con le credentials cifrate di Rails
+# o con valori disponibili solo a runtime.
 
 Rails.application.configure do
-  # Configure Litestream through environment variables. Use Rails encrypted credentials for secrets.
+  # Litestream si configura via variabili d'ambiente; i segreti nelle credentials cifrate.
   litestream_credentials = Rails.application.credentials.litestream
 
-  # Replica-specific bucket location. This will be your bucket's URL without the `https://` prefix.
-  # For example, if you used DigitalOcean Spaces, your bucket URL could look like:
+  # Bucket della replica: URL del bucket senza `https://`.
+  # Per esempio, con DigitalOcean Spaces l'URL del bucket è:
   #
   #   https://myapp.fra1.digitaloceanspaces.com
   #
-  # And so you should set your `replica_bucket` to:
+  # e quindi `replica_bucket` vale:
   #
   #   myapp.fra1.digitaloceanspaces.com
   #
   config.litestream.replica_bucket = litestream_credentials&.replica_bucket
   #
-  # Replica-specific authentication key. Litestream needs authentication credentials to access your storage provider bucket.
+  # Chiave di accesso al bucket della replica.
   config.litestream.replica_key_id = litestream_credentials&.replica_key_id
   #
-  # Replica-specific secret key. Litestream needs authentication credentials to access your storage provider bucket.
+  # Chiave segreta del bucket della replica.
   config.litestream.replica_access_key = litestream_credentials&.replica_access_key
   #
-  # Replica-specific region. Set the bucket’s region. Only used for AWS S3 & Backblaze B2.
+  # Regione del bucket (solo AWS S3 e Backblaze B2).
   config.litestream.replica_region = "auto"
   #
-  # Replica-specific endpoint. Set the endpoint URL of the S3-compatible service. Only required for non-AWS services.
+  # Endpoint del servizio compatibile S3 (solo per servizi non AWS).
   config.litestream.replica_endpoint = litestream_credentials&.replica_endpoint
 
-  # Configure the default Litestream config path
+  # Percorso del file di configurazione di Litestream
   # config.config_path = Rails.root.join("config", "litestream.yml")
 
-  # Configure the Litestream dashboard
+  # Dashboard di Litestream
   #
-  # Set the default base controller class
+  # Controller base della dashboard
   # config.litestream.base_controller_class = "MyApplicationController"
   #
-  # Set authentication credentials for Litestream dashboard
+  # Credenziali di accesso alla dashboard
   # config.litestream.username = litestream_credentials&.username
   # config.litestream.password = litestream_credentials&.password
 end

@@ -1,7 +1,7 @@
 class SalesController < ApplicationController
   include Filterable
 
-  before_action :require_admin, only: %i[ index destroy ]
+  before_action :require_admin, only: :index
   before_action :set_sale, only: [ :show, :destroy ]
 
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
@@ -37,7 +37,7 @@ class SalesController < ApplicationController
     @sale.user = current_user
 
     if @sale.save
-      redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
+      redirect_to sale_path(@sale), notice: "Vendita registrata con successo."
     else
       @sale = build_draft(sale_params, existing_sale: @sale)
 
@@ -56,14 +56,11 @@ class SalesController < ApplicationController
 
   def destroy
     unless @sale.reversible_by?(current_user)
-      return redirect_back(fallback_location: sale_path(@sale), status: :see_other, alert: "La transazione non è più annullabile.")
+      return redirect_back(fallback_location: @sale.member, status: :see_other, alert: "Questo pagamento non è più annullabile.")
     end
 
-    if @sale.discard!
-      redirect_back(fallback_location: sales_path, status: :see_other, notice: "Vendita annullata/stornata.")
-    else
-      redirect_back(fallback_location: sales_path, status: :see_other, alert: "Impossibile annullare la vendita.")
-    end
+    @sale.discard!
+    redirect_back(fallback_location: @sale.member, status: :see_other, notice: "Pagamento annullato.")
   end
 
   private

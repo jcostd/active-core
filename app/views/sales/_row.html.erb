@@ -46,11 +46,9 @@
     <%= payment_method_badge(sale.payment_method) %>
   </div>
 
-  <% unless sale.discarded? %>
-    <% if sale.reversible_by?(current_user) %>
-      <div class="flex items-center gap-1 shrink-0">
-	<%= ui_row_delete_button(sale, confirm: "Sei sicuro di voler archiviare questa vendita?") %>
-      </div>
-    <% end %>
+  <% if sale.reversible_by?(current_user) %>
+    <div class="flex items-center gap-1 shrink-0">
+      <%= ui_row_delete_button(sale, confirm: "Annullare questo pagamento? Se è l'unico dell'abbonamento, verrà annullato anche l'abbonamento.", title: "Annulla pagamento") %>
+    </div>
   <% end %>
 </li>

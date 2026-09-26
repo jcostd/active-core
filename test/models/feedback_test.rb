@@ -26,8 +26,8 @@ class FeedbackTest < ActiveSupport::TestCase
     feedback = Feedback.new
     assert_not feedback.valid?
 
-    assert_includes feedback.errors[:message], "can't be blank"
-    assert_includes feedback.errors[:user], "must exist"
+    assert_includes feedback.errors[:message], "non può essere lasciato in bianco"
+    assert_includes feedback.errors[:user], "deve esistere"
   end
 
   test "sets default status to pending" do

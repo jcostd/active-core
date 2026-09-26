@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="dialog"
+// Collegato a data-controller="dialog"
 export default class extends Controller {
     connect() {
 	if (document.documentElement.hasAttribute("data-turbo-preview")) return

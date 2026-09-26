@@ -6,13 +6,19 @@ require_relative "test_helpers/caching_test_helper"
 
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
+    # Test in parallelo con N worker
     parallelize(workers: ENV["CI"] ? 1 : :number_of_processors)
 
-    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+    # Carica tutte le fixture di test/fixtures/*.yml in ordine alfabetico.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # TEST_NOW="2027-01-01 10:00" bin/rails test: esegue la suite in una data a scelta
+    if ENV["TEST_NOW"]
+      setup { travel_to Time.zone.parse(ENV["TEST_NOW"]) }
+      teardown { travel_back }
+    end
+
+    # Helper condivisi da tutti i test.
     def grant_membership_to(member, start_date: Date.current)
       membership_product = products(:annual_membership)
       staff_user = users(:staff)
@@ -35,6 +41,17 @@ module ActiveSupport
           }
         )
       end
+    end
+
+    # vendita + abbonamento in un colpo; amount nil = prezzo concordato
+    def sell!(member:, product:, user: users(:staff), amount: nil, sold_on: Date.current, payment_method: :cash, **subscription)
+      Sale.create!(member:, product:, user:, amount:, sold_on:, payment_method:,
+                   subscription_attributes: { member:, product:, **subscription })
+    end
+
+    def link!(product, *disciplines)
+      disciplines.each { ProductDiscipline.create!(product:, discipline: it) }
+      product.reload
     end
   end
 end

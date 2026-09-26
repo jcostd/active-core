@@ -27,7 +27,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
 
     if @user.save
-      turbo_refresh_or_redirect_to users_path, notice: t(".created", default: "Utente creato con successo.")
+      turbo_refresh_or_redirect_to users_path, notice: "Utente creato con successo."
     else
       render :new, status: :unprocessable_entity
     end
@@ -40,7 +40,7 @@ class UsersController < ApplicationController
     attrs = attrs.except(:password, :password_confirmation) if attrs[:password].blank?
 
     if @user.update(attrs)
-      turbo_refresh_or_redirect_to user_path(@user), notice: t(".updated", default: "Profilo utente aggiornato.")
+      turbo_refresh_or_redirect_to user_path(@user), notice: "Profilo utente aggiornato."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -48,9 +48,9 @@ class UsersController < ApplicationController
 
   def destroy
     if @user != current_user && @user.discard!
-      turbo_refresh_or_redirect_to users_path, status: :see_other, notice: t(".discarded", default: "Utente archiviato.")
+      turbo_refresh_or_redirect_to users_path, status: :see_other, notice: "Utente archiviato."
     else
-      turbo_refresh_or_redirect_to users_path, status: :see_other, alert: t(".error", default: "Impossibile archiviare utente.")
+      turbo_refresh_or_redirect_to users_path, status: :see_other, alert: "Impossibile archiviare utente."
     end
   end
 

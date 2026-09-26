@@ -20,7 +20,7 @@ class DisciplineTest < ActiveSupport::TestCase
     # Provo a creare un altro "Yoga" attivo -> Errore
     duplicate = Discipline.new(name: "Yoga")
     assert_not duplicate.valid?
-    assert_includes duplicate.errors[:name], "has already been taken"
+    assert_includes duplicate.errors[:name], "è già presente"
 
     # Provo a creare "Pilates" (che esiste ma è soft-deleted) -> OK
     new_pilates = Discipline.new(name: "Pilates")

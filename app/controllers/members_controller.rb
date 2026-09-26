@@ -31,7 +31,7 @@ class MembersController < ApplicationController
     @member = Member.new(member_params)
 
     if @member.save
-      turbo_refresh_or_redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: "Socio creato con successo."
     else
       render :new, layout: "modal", status: :unprocessable_entity
     end
@@ -41,7 +41,7 @@ class MembersController < ApplicationController
 
   def update
     if @member.update(member_params)
-      turbo_refresh_or_redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: "Socio aggiornato con successo."
     else
       render :edit, layout: "modal", status: :unprocessable_entity
     end
@@ -49,9 +49,9 @@ class MembersController < ApplicationController
 
   def destroy
     if @member.discard!
-      turbo_refresh_or_redirect_to members_path, status: :see_other, notice: t(".discarded", default: "Socio archiviato correttamente.")
+      turbo_refresh_or_redirect_to members_path, status: :see_other, notice: "Socio archiviato correttamente."
     else
-      redirect_to members_path, status: :see_other, alert: t(".discard_error", default: "Impossibile archiviare il socio.")
+      redirect_to members_path, status: :see_other, alert: "Impossibile archiviare il socio."
     end
   end
 

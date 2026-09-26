@@ -16,7 +16,7 @@ class MonetizableTest < ActiveSupport::TestCase
 
   test "handles dot as decimal separator" do
     product = Product.new
-    product.price = "10.50" # Input "USA"
+    product.price = "10.50" # Input "USA" (punto decimale)
 
     assert_equal 1050, product.price_cents
   end

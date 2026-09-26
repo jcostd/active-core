@@ -1,102 +1,101 @@
-# Name of your application. Used to uniquely configure containers.
+# Nome dell'applicazione, identifica i container.
 service: active-core
 
-# Name of the container image (use your-user/app-name on external registries).
+# Nome dell'immagine (utente/app sui registry esterni).
 image: jcostd/active-core
 
-# Deploy to these servers.
+# Server di destinazione.
 servers:
   web:
     - activecore_qr
 
-# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
-# If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
+# Certificati SSL automatici con Let's Encrypt e più app sullo stesso server.
+# Con Cloudflare impostare SSL/TLS su "Full".
 #
-# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
+# Richiede config.assume_ssl e config.force_ssl in production.rb!
 #
-# Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
+# Non usarlo con più server web (SSL va terminato sul load balancer).
 #
 # proxy:
 #   ssl: true
 #   host: app.example.com
 
-# Where you keep your container images.
+# Registry delle immagini.
 registry:
-  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
+  # Alternative: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
   server: ghcr.io
 
-  # Needed for authenticated registries.
+  # Necessario per i registry con autenticazione.
   username: jcostd
 
-  # Always use an access token rather than real password when possible.
+  # Usare sempre un token invece della password reale.
   password:
     - KAMAL_REGISTRY_PASSWORD
 
-# Inject ENV variables into containers (secrets come from .kamal/secrets).
+# Variabili d'ambiente nei container (i segreti arrivano da .kamal/secrets).
 env:
   secret:
     - RAILS_MASTER_KEY
   clear:
-    # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
-    # When you start using multiple servers, you should split out job processing to a dedicated machine.
+    # Solid Queue gira dentro Puma per eseguire i job.
+    # Con più server spostare i job su una macchina dedicata.
     SOLID_QUEUE_IN_PUMA: true
 
-    # Set number of processes dedicated to Solid Queue (default: 1)
+    # Processi dedicati a Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
 
-    # Set number of cores available to the application on each server (default: 1).
+    # Core disponibili all'app su ogni server (default: 1).
     # WEB_CONCURRENCY: 2
 
-    # Match this to any external database server to configure Active Record correctly
-    # Use active-core-db for a db accessory server on same machine via local kamal docker network.
+    # Indirizzo di un eventuale database esterno per Active Record.
+    # active-core-db per un database accessorio sulla stessa macchina (rete docker di kamal).
     # DB_HOST: 192.168.0.2
 
-    # Log everything from Rails
+    # Log completo di Rails
     # RAILS_LOG_LEVEL: debug
 
-# Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
-# "bin/kamal logs -r job" will tail logs from the first server in the job section.
+# Alias da usare con "bin/kamal <alias>"; gli argomenti si possono sovrascrivere:
+# "bin/kamal logs -r job" segue i log del primo server job.
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
 
-# Use a persistent storage volume for sqlite database files and local Active Storage files.
-# Recommended to change this to a mounted volume path that is backed up off server.
+# Volume persistente per i database SQLite e i file di Active Storage.
+# Meglio un volume montato con backup fuori dal server.
 volumes:
   - "/activecore-storage:/rails/storage"
 
-# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
-# hitting 404 on in-flight requests. Combines all files from new and old
-# version inside the asset_path.
+# Mantiene gli asset (JS, CSS) di versione vecchia e nuova
+# per evitare 404 sulle richieste in corso durante il deploy.
 asset_path: /rails/public/assets
 
 
-# Configure the image builder.
+# Configurazione della build dell'immagine.
 builder:
   arch: amd64
 
-  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
+  # # Build su server remoto (utile per build amd64 da macchine arm64)
   # remote: ssh://docker@docker-builder-server
   #
-  # # Pass arguments and secrets to the Docker build process
+  # # Argomenti e segreti per la build Docker
   # args:
   #   RUBY_VERSION: ruby-4.0.0
   # secrets:
   #   - GITHUB_TOKEN
   #   - RAILS_MASTER_KEY
 
-# Use a different ssh user than root
+# Utente ssh diverso da root
 # ssh:
 #   user: app
 
-# Use accessory services (secrets come from .kamal/secrets).
+# Servizi accessori (i segreti arrivano da .kamal/secrets).
 # accessories:
 #   db:
 #     image: mysql:8.0
 #     host: 192.168.0.2
-#     # Change to 3306 to expose port to the world instead of just local network.
+#     # Con 3306 la porta è esposta a tutti, non solo alla rete locale.
 #     port: "127.0.0.1:3306:3306"
 #     env:
 #       clear:

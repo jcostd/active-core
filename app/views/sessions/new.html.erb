@@ -1,13 +1,13 @@
 <div class="hero min-h-screen relative bg-base-100">
   <div class="hero-content flex-col lg:flex-row-reverse gap-12 relative">
     <div class="text-center lg:text-left">
-      <h1 class="text-5xl font-bold"><%= t('global.sign_in', default: "Accedi qui") %></h1>
-      <p class="py-6"><%= t('global.sign_in_comp', default: "per utilizzare il sistema ActiveCore") %></p>
+      <h1 class="text-5xl font-bold">Accedi qui</h1>
+      <p class="py-6">per utilizzare il sistema ActiveCore</p>
     </div>
 
     <%= form_with url: session_url, class: "contents" do |form| %>
       <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-md border p-4">
-        <legend class="fieldset-legend">Login</legend>
+        <legend class="fieldset-legend">Accesso</legend>
 
         <%= form.label :username, class: "label" %>
         <%= form.text_field :username,
@@ -27,7 +27,7 @@
 
         <%= form.submit "Entra", class: "btn btn-neutral mt-4" %>
 
-        <%# = link_to "Forgot password?", new_password_path, class: "text-gray-700 underline hover:no-underline" %>
+        <%# = link_to "Password dimenticata?", new_password_path, class: "text-gray-700 underline hover:no-underline" %>
       </fieldset>
     <% end %>
   </div>

@@ -15,7 +15,7 @@ class SessionTest < ActiveSupport::TestCase
     travel Session::IDLE_TIMEOUT + 1.minute
     assert_not @session.expired?(kiosk_request: true)
 
-    travel Session::KIOSK_TIMEOUT
+    travel Session::KIOSK_TIMEOUT + 1.day # margine per il cambio ora legale
     assert @session.expired?(kiosk_request: true)
   end
 
@@ -65,7 +65,7 @@ class SessionTest < ActiveSupport::TestCase
 
   test "sweep removes kiosk sessions unused for the kiosk timeout" do
     kiosk = users(:admin).sessions.create!(kiosk: true)
-    travel Session::KIOSK_TIMEOUT + 1.minute
+    travel Session::KIOSK_TIMEOUT + 1.day # margine per il cambio ora legale
 
     Session.sweep
 

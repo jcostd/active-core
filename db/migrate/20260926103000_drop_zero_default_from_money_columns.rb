@@ -1,4 +1,4 @@
-# nil = unset, 0 = deliberate (admin free sale)
+# nil = non impostato, 0 = voluto (vendita gratuita dell'admin)
 class DropZeroDefaultFromMoneyColumns < ActiveRecord::Migration[8.1]
   def change
     change_column_default :sales,         :amount_cents,       from: 0, to: nil

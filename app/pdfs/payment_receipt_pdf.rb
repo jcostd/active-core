@@ -1,5 +1,5 @@
 class PaymentReceiptPdf < ApplicationPdf
-  # --- LAYOUT CONSTANTS ---
+  # --- COSTANTI DI IMPAGINAZIONE ---
   # MODIFICA SPAZI: Allargo la destra, stringo la sinistra per non sovrapporre
   HEADER_RIGHT_WIDTH   = 240  # Era 180 (Più spazio per il numero lungo)
   HEADER_RIGHT_X       = 300  # Era 350 (Spostato a sx per farci stare i 240pt)
@@ -12,7 +12,8 @@ class PaymentReceiptPdf < ApplicationPdf
     super()
     @sale = sale
     @member = sale.member
-    @product_name = @sale.product&.name || "Servizio Palestra"
+    # nome congelato alla vendita: la ricevuta non cambia se il prodotto viene rinominato
+    @product_name = @sale.product_name_snapshot.presence || @sale.product&.name || "Servizio Palestra"
     @gym_profile = GymProfile.current
 
     header_section
@@ -37,7 +38,7 @@ class PaymentReceiptPdf < ApplicationPdf
 
         text "Data: #{I18n.l(@sale.sold_on)}", size: FONT_SIZE_M, align: :right
         move_down GAP_XS
-        text "Pagamento: #{@sale.payment_method.humanize}", size: FONT_SIZE_S, align: :right
+        text "Pagamento: #{SalesHelper::PAYMENT_METHODS.dig(@sale.payment_method, :label)}", size: FONT_SIZE_S, align: :right
       end
     end
 
@@ -117,7 +118,7 @@ class PaymentReceiptPdf < ApplicationPdf
     ]
 
     table(data, width: bounds.width) do
-      # Header
+      # Intestazione
       row(0).font_style = :bold
       row(0).size = FONT_SIZE_XS
       row(0).text_color = COLOR_SECONDARY
@@ -125,13 +126,13 @@ class PaymentReceiptPdf < ApplicationPdf
       row(0).borders = [ :bottom ]
       row(0).border_color = COLOR_LINE
 
-      # Body
+      # Corpo
       cells.padding = [ GAP_S, GAP_XS ]
       cells.borders = [ :bottom ]
       cells.border_width = 0.5
       cells.border_color = COLOR_LINE
 
-      # Footer (Totale)
+      # Piè di pagina (Totale)
       row(-1).font_style = :bold
       row(-1).size = FONT_SIZE_L
       row(-1).background_color = "FFFFFF"

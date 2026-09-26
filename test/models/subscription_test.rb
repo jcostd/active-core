@@ -105,4 +105,60 @@ class SubscriptionTest < ActiveSupport::TestCase
 
     assert_equal invalid_end_date, subscription.end_date
   end
+
+  # --- REGOLE DI BASE ---
+
+  test "end date cannot precede start date" do
+    sub = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current - 1)
+    assert_not sub.valid?
+    assert sub.errors[:end_date].any?
+  end
+
+  test "overlapping subscriptions for the same product are rejected" do
+    Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10)
+    dup = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current + 5, end_date: Date.current + 20)
+
+    assert_not dup.valid?
+    assert_match "Già un abbonamento", dup.errors.full_messages.to_sentence
+  end
+
+  test "overlap ignores discarded subscriptions" do
+    Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10).discard!
+    assert Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10).valid?
+  end
+
+  test "negative agreed price is rejected" do
+    sub = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 1, agreed_price_cents: -1)
+    assert_not sub.valid?
+  end
+
+  test "entries helpers for unlimited and limited subscriptions" do
+    unlimited = Subscription.new(entry_limit: nil, entries_used: 7)
+    assert unlimited.unlimited_entries?
+    assert_equal 0, unlimited.entries_used
+    assert_nil unlimited.entries_remaining
+    assert_not unlimited.out_of_entries?
+
+    carnet = Subscription.new(entry_limit: 10, entries_used: 12)
+    assert_equal 0, carnet.entries_remaining
+    assert carnet.out_of_entries?
+  end
+
+  test "expiring_soon excludes future and exhausted subscriptions" do
+    assert Subscription.new(start_date: Date.current - 10, end_date: Date.current + 3).expiring_soon?
+    assert_not Subscription.new(start_date: Date.current + 1, end_date: Date.current + 3).expiring_soon?
+    assert_not Subscription.new(start_date: Date.current - 10, end_date: Date.current + 3, entry_limit: 1, entries_used: 1).expiring_soon?
+    assert_not Subscription.new(start_date: Date.current - 10, end_date: Date.current + 30).expiring_soon?
+  end
+
+  test "amount paid ignores discarded payments whether loaded or not" do
+    sub = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10, agreed_price_cents: 5000)
+    keep = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current, amount_cents: 1000, subscription: sub)
+    Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current, amount_cents: 2000, subscription: sub).discard!
+
+    assert_equal 1000, sub.reload.amount_paid
+    assert_equal 1000, Subscription.includes(:sales).find(sub.id).amount_paid
+    assert_equal 4000, sub.amount_due
+    assert keep.kept?
+  end
 end

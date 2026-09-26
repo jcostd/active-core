@@ -17,22 +17,21 @@ class DailyCash
   SPLIT_HOUR = 14
   attr_reader :date
 
-  # Aggiungiamo 'stats' come parametro per i totali pre-calcolati da SQL
-  def initialize(date = Date.current, sales: nil, stats: nil)
+  # sales: pagamenti già caricati (evita query), altrimenti li legge dal database
+  def initialize(date = Date.current, sales: nil)
     @date = date
     @preloaded_sales = sales
-    @stats = stats # Hash: { morning: 0, afternoon: 0, total: 0 }
   end
 
   def self.current
     new(Date.current)
   end
 
-  def self.for(date, sales: nil, stats: nil)
-    new(date, sales: sales, stats: stats)
+  def self.for(date, sales: nil)
+    new(date, sales:)
   end
 
-  # --- API ---
+  # --- INTERFACCIA PUBBLICA ---
 
   def morning_total
     to_currency(morning_cents)
@@ -47,13 +46,8 @@ class DailyCash
   end
 
   def count
-    # 1. Se abbiamo le statistiche da SQL, usiamo il numero istantaneamente!
-    return @stats[:count] if @stats
-
-    # 2. Se abbiamo i record in memoria (azione show), contiamo l'array
     return @preloaded_sales.size if @preloaded_sales
 
-    # 3. Fallback: query singola al DB
     base_scope.count
   end
 
@@ -74,21 +68,14 @@ class DailyCash
   # --- LOGICA DI AGGREGAZIONE MIGLIORATA ---
 
   def morning_cents
-    # 1. Se abbiamo i totali da SQL (azione index) usa quelli istantaneamente
-    return @stats[:morning] if @stats
-
-    # 2. Se abbiamo i record in RAM (azione show) calcola in Ruby
     if @preloaded_sales
       return @preloaded_sales.select { |s| s.created_at < split_time }.sum(&:amount_cents)
     end
 
-    # 3. Fallback: calcolo SQL puro per un singolo giorno isolato
     @morning_cents ||= base_scope.where("created_at < ?", split_time).sum(:amount_cents)
   end
 
   def afternoon_cents
-    return @stats[:afternoon] if @stats
-
     if @preloaded_sales
       return @preloaded_sales.select { |s| s.created_at >= split_time }.sum(&:amount_cents)
     end
@@ -97,7 +84,6 @@ class DailyCash
   end
 
   def total_cents
-    return @stats[:total] if @stats
     morning_cents + afternoon_cents
   end
 

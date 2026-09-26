@@ -20,8 +20,8 @@ class PersonableTest < ActiveSupport::TestCase
   test "validates presence of names" do
     user = User.new(email_address: "valid@test.com")
     assert_not user.valid?
-    assert_includes user.errors[:first_name], "can't be blank"
-    assert_includes user.errors[:last_name], "can't be blank"
+    assert_includes user.errors[:first_name], "non può essere lasciato in bianco"
+    assert_includes user.errors[:last_name], "non può essere lasciato in bianco"
   end
 
   test "validates email format" do
@@ -29,7 +29,7 @@ class PersonableTest < ActiveSupport::TestCase
 
     user.email_address = "not-an-email"
     user.validate
-    assert_includes user.errors[:email_address], "is invalid"
+    assert_includes user.errors[:email_address], "non è valido"
 
     user.email_address = "valid@email.com"
     user.validate

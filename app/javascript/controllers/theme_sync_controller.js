@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="theme-sync"
+// Collegato a data-controller="theme-sync"
 export default class extends Controller {
     static values = { theme: String }
 

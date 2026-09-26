@@ -19,7 +19,7 @@ class ProductDiscipline < ApplicationRecord
 
   validates :product_id, uniqueness: {
     scope: :discipline_id,
-    message: "already includes this discipline"
+    message: "include già questa disciplina"
   }
 
   validates :product, :discipline, presence: true

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ActiveCore is a Rails 8 ERP for Italian Sports Associations (ASD — Associazioni Sportive Dilettantistiche). It manages members, memberships (*Quota Associativa*), course subscriptions, access control/check-in (including an iPad kiosk mode), point-of-sale, and fiscal receipt generation, per Italian sports-reform rules. Domain terms and validation messages throughout the codebase are in Italian — keep new user-facing strings in Italian to match.
+ActiveCore is a Rails 8 ERP for Italian Sports Associations (ASD — Associazioni Sportive Dilettantistiche). It manages members, memberships (*Quota Associativa*), course subscriptions, access control/check-in (including an iPad kiosk mode), point-of-sale, and fiscal receipt generation, per Italian sports-reform rules. The app is **Italian-only** (ASD is an Italian legal form): UI strings, validation messages, code comments and README are all Italian; there is no locale switching and no `t()` indirection. Attribute names for error messages live in `config/locales/it.yml` (a test fails if a validated attribute lacks one). Keep comments minimal.
 
 Single-tenant: there is one `GymProfile` per deployment (`GymProfile.current`, first-or-create).
 
@@ -44,7 +44,7 @@ Database is SQLite with `schema_format: :sql` for the primary db (`db/structure.
 
 ### Shared model concerns (`app/models/concerns/`)
 
-- `SoftDeletable` — `discard!`/`undiscard!` + `kept`/`discarded` scopes (not a gem; hand-rolled, uses `discarded_at`). Almost all domain models use this instead of hard deletes.
+- `SoftDeletable` — `discard!`/`undiscard!` + `kept`/`discarded` scopes (not a gem; hand-rolled, uses `discarded_at`), wrapped in a transaction so callback cascades are atomic. Almost all domain models use this instead of hard deletes.
 - `Trackable` — auto-writes `ActivityLog` rows (polymorphic `subject`) on create/update/destroy/discard/undiscard, scoped to `Current.user`; sensitive/noisy fields excluded via `IGNORED_FIELDS`.
 - `Monetizable` — declarative `monetize :attr` generates float accessors over an `attr_cents` integer column, with locale-aware string parsing (handles both `1.200,50` and `1,200.50` styles). Money is always stored in cents.
 - `FtsSearchable` — `search_text(query)` joins against a SQLite FTS5 shadow table (`#{table}_fts`) for full-text search (used by `Member`).
@@ -56,7 +56,9 @@ Database is SQLite with `schema_format: :sql` for the primary db (`db/structure.
 
 - `Authentication` concern (cookie/session-based, signed `session_id` cookie, `Current.session`/`Current.user`) is required by default; `allow_unauthenticated_access` opts out per-action. `require_admin` is an explicit opt-in check, not global.
 - `Kiosk::*` controllers (under `Kiosk::BaseController`, layout `kiosk`) serve the iPad check-in flow at `/kiosk`, separate from the staff-facing admin UI — treat them as a distinct, touch-first surface (member search, discipline selection, check-in) even though they share models with the main app.
-- `Localizable`/`Themable` concerns apply per-user locale (`I18n.available_locales = [:en, :it]`, default `:it`) and daisyUI theme around every request based on `current_user` preferences (stored via `UserPreferences` concern on `User`).
+- `Themable` applies the per-user daisyUI theme (`UserPreferences` concern on `User`). Locale is fixed to `:it` in `config/application.rb`.
+- Sessions expire after `Session::IDLE_TIMEOUT` (1h) of inactivity: server side in `Authentication#find_session_by_cookie` (activity write throttled to `ACTIVITY_INTERVAL`) plus the `idle` Stimulus controller on the app layout, because Turbo broadcast refreshes keep sessions alive. Kiosk controllers override `kiosk_request?` and are exempt (flagged sessions live up to `KIOSK_TIMEOUT`). `SessionSweepJob` runs every 15 min via `config/recurring.yml`. ActionCable's connection applies the same rules.
+- Permissions: `require_admin` guards admin-only actions server side; views must mirror them. Undo windows live on the models: `Sale#reversible_by?` (staff: own sales within `STAFF_REVERSAL_WINDOW` 15 min; admin: any within `ADMIN_REVERSAL_WINDOW` 24h) and `Subscription#discardable_by?` (all kept payments reversible by that user). Discarding a subscription discards its payments; `SoftDeletable#discard!` is transactional and raises if a callback aborts. The matrix is covered by `test/controllers/authorization_test.rb`.
 
 ### Frontend
 
@@ -64,4 +66,4 @@ Hotwire (Turbo + Stimulus) with importmaps (no Node/bundler build step), Tailwin
 
 ## Testing conventions
 
-Minitest with fixtures (`test/fixtures/`), parallelized outside CI. `test_helper.rb` defines shared helpers like `grant_membership_to(member)` for seeding a multi-year membership history. Prefer extending existing model/controller test files and fixtures over introducing new test infrastructure.
+Minitest with fixtures (`test/fixtures/`, users `staff`, `staff_two`, `admin`), parallelized outside CI. `test_helper.rb` defines shared helpers like `grant_membership_to(member)` for seeding a multi-year membership history; `with_fragment_caching` (in `test/test_helpers/`) enables real fragment/collection caching for a block, since the test env uses `:null_store`; `sell!`/`link!` create a sale+subscription or product↔discipline links in one line. `TEST_NOW="2027-01-01 10:00" bin/rails test` runs the whole suite frozen at that moment — use it to check calendar edges (Jan 1 membership receipts, Aug 31/Sep 1 sport year, DST). Tests must not assume today's date. Prefer extending existing model/controller test files and fixtures over introducing new test infrastructure.

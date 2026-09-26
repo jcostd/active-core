@@ -3,7 +3,7 @@
   <li>
     <%= active_link_to root_path do %>
       <%= icon("dashboard", classes: "size-5 opacity-75") %>
-      <%= t("sidebar.items.dashboard", default: "Dashboard") %>
+      Dashboard
     <% end %>
   </li>
 
@@ -11,18 +11,18 @@
     <details id="disclosure-registry" open>
       <summary>
         <%= icon("group", classes: "size-5 opacity-75") %>
-        <%= t("sidebar.sections.registry", default: "Anagrafica") %>
+        Anagrafica
       </summary>
       <ul>
         <li>
           <%= active_link_to members_path do %>
-            <%= t("sidebar.items.members", default: "Soci") %>
+            Soci
           <% end %>
           <%= yield :member_actions if content_for?(:member_actions) %>
         </li>
         <li>
           <%= active_link_to users_path do %>
-            <%= t("sidebar.items.system_users", default: "Utenti Sistema") %>
+            Utenti Sistema
           <% end %>
           <%= yield :user_actions if content_for?(:user_actions) %>
         </li>
@@ -34,18 +34,18 @@
     <details id="disclosure-catalog" open>
       <summary>
         <%= icon("category", classes: "size-5 opacity-75") %>
-        <%= t("sidebar.sections.catalog", default: "Catalogo") %>
+        Catalogo
       </summary>
       <ul>
         <li>
           <%= active_link_to products_path do %>
-            <%= t("sidebar.items.products", default: "Prodotti") %>
+            Prodotti
           <% end %>
           <%= yield :product_actions if content_for?(:product_actions) %>
         </li>
         <li>
           <%= active_link_to disciplines_path do %>
-            <%= t("sidebar.items.disciplines", default: "Discipline") %>
+            Discipline
           <% end %>
           <%= yield :discipline_actions if content_for?(:discipline_actions) %>
         </li>
@@ -57,18 +57,18 @@
     <details id="disclosure-accounting" open>
       <summary>
         <%= icon("payments", classes: "size-5 opacity-75") %>
-        <%= t("sidebar.sections.accounting", default: "Amministrazione") %>
+        Amministrazione
       </summary>
       <ul>
         <li>
           <%= active_link_to sales_path do %>
-            <%= t("sidebar.items.payments", default: "Vendite") %>
+            Vendite
           <% end %>
           <%= yield :sale_actions if content_for?(:sale_actions) %>
         </li>
 	<li>
           <%= active_link_to reports_path do %>
-            <%= t("sidebar.items.reports", default: "Report Incassi") %>
+            Report Incassi
           <% end %>
           <%= yield :report_actions if content_for?(:report_actions) %>
         </li>
@@ -80,12 +80,12 @@
     <details id="disclosure-accesses" open>
       <summary>
         <%= icon("login", classes: "size-5 opacity-75") %>
-        <%= t("sidebar.sections.accesses", default: "Controllo Accessi") %>
+        Controllo Accessi
       </summary>
       <ul>
         <li>
           <%= active_link_to access_logs_path do %>
-            <%= t("sidebar.items.access_logs", default: "Registro Entrate") %>
+            Registro Entrate
           <% end %>
           <%= yield :access_log_actions if content_for?(:access_log_actions) %>
         </li>

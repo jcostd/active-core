@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Signs out after timeoutValue seconds without user input.
-// Last activity is shared across tabs via localStorage.
+// Esce dopo timeoutValue secondi senza input dell'utente.
+// L'ultima attività è condivisa tra le schede via localStorage.
 const STORAGE_KEY = "idle:last-activity"
 const EVENTS = [ "pointerdown", "keydown", "wheel", "touchstart" ]
 const CHECK_EVERY_MS = 15_000

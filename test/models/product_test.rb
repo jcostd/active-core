@@ -24,7 +24,7 @@ class ProductTest < ActiveSupport::TestCase
   test "price validation" do
     @product.price_cents = -500
     assert_not @product.valid?
-    assert_includes @product.errors[:price_cents], "must be greater than or equal to 0"
+    assert_includes @product.errors[:price_cents], "deve essere maggiore o uguale a 0"
 
     @product.price_cents = 0 # Gratis è ok
     assert @product.valid?

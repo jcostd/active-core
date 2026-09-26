@@ -55,9 +55,9 @@
 			class: "text-error hover:bg-error/10 hover:text-error",
 			data: {
 			  turbo_method: :delete,
-			  turbo_confirm: "Sei sicuro di voler annullare questa transazione?"
+			  turbo_confirm: "Annullare questo pagamento? Se è l'unico dell'abbonamento, verrà annullato anche l'abbonamento."
 			} do %>
-	      <%= icon("delete") %> Annulla Transazione
+	      <%= icon("delete") %> Annulla Pagamento
 	    <% end %>
           </li>
         <% end %>

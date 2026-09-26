@@ -1,45 +1,37 @@
-# This configuration file will be evaluated by Puma. The top-level methods that
-# are invoked here are part of Puma's configuration DSL. For more information
-# about methods provided by the DSL, see https://puma.io/puma/Puma/DSL.html.
+# Configurazione letta da Puma. I metodi usati qui fanno parte del DSL di Puma:
+# https://puma.io/puma/Puma/DSL.html
 #
-# Puma starts a configurable number of processes (workers) and each process
-# serves each request in a thread from an internal thread pool.
+# Puma avvia N processi (worker); ognuno serve le richieste
+# con i thread di un pool interno.
 #
-# You can control the number of workers using ENV["WEB_CONCURRENCY"]. You
-# should only set this value when you want to run 2 or more workers. The
-# default is already 1. You can set it to `auto` to automatically start a worker
-# for each available processor.
+# Il numero di worker si imposta con ENV["WEB_CONCURRENCY"] (default 1).
+# Serve solo per 2 o più worker; `auto` ne avvia uno per processore.
 #
-# The ideal number of threads per worker depends both on how much time the
-# application spends waiting for IO operations and on how much you wish to
-# prioritize throughput over latency.
+# Il numero ideale di thread dipende da quanto l'app attende l'IO
+# e da quanto si preferisce il throughput alla latenza.
 #
-# As a rule of thumb, increasing the number of threads will increase how much
-# traffic a given process can handle (throughput), but due to CRuby's
-# Global VM Lock (GVL) it has diminishing returns and will degrade the
-# response time (latency) of the application.
+# Più thread = più traffico gestito, ma per il GVL di CRuby
+# il guadagno cala e la latenza peggiora.
 #
-# The default is set to 3 threads as it's deemed a decent compromise between
-# throughput and latency for the average Rails application.
+# Default 3 thread: buon compromesso per una tipica app Rails.
 #
-# Any libraries that use a connection pool or another resource pool should
-# be configured to provide at least as many connections as the number of
-# threads. This includes Active Record's `pool` parameter in `database.yml`.
+# I pool di connessioni devono avere almeno tante connessioni quanti thread
+# (incluso `pool` di Active Record in `database.yml`).
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
 threads threads_count, threads_count
 
-# Specifies the `port` that Puma will listen on to receive requests; default is 3000.
+# Porta di ascolto di Puma (default 3000).
 port ENV.fetch("PORT", 3000)
 
-# Allow puma to be restarted by `bin/rails restart` command.
+# Permette il riavvio con `bin/rails restart`.
 plugin :tmp_restart
 
-# Run the Solid Queue supervisor inside of Puma for single-server deployments.
+# Solid Queue gira dentro Puma (deploy su un solo server).
 plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 
-# Run litestream only in production.
+# Litestream solo in produzione.
 plugin :litestream if ENV.fetch("RAILS_ENV", "production") == "production"
 
-# Specify the PID file. Defaults to tmp/pids/server.pid in development.
-# In other environments, only set the PID file if requested.
+# File PID: in sviluppo tmp/pids/server.pid,
+# negli altri ambienti solo se richiesto.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]

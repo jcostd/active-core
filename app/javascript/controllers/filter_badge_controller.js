@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="filter-badge"
+// Collegato a data-controller="filter-badge"
 export default class extends Controller {
     remove(event) {
 	const key = event.params.key

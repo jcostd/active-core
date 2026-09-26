@@ -12,7 +12,7 @@
   <%# -- Colonna 2: Contenuto centrale (Anagrafica & Prodotto) -- %>
   <div class="flex flex-col gap-1 min-w-0 grow">
 
-    <%# Nome e Status Dot %>
+    <%# Nome e pallino di stato %>
     <div class="font-bold truncate text-base leading-none flex items-center gap-2">
       <%= link_to display_value(member.full_name), member_path(member),
       data: { turbo_frame: "_top" },

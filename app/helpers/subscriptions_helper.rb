@@ -76,9 +76,8 @@ module SubscriptionsHelper
   end
 
   def subscription_archive_action(subscription)
-    return unless current_user.admin?
-    return unless subscription.end_date && subscription.end_date >= 7.days.ago.to_date
+    return unless subscription.discardable_by?(current_user)
 
-    ui_row_delete_button([ subscription ], confirm: "Eliminando l'abbonamento annullerai l'incasso. Continuare?", title: "Archivia")
+    ui_row_delete_button([ subscription ], confirm: "Annullando l'abbonamento annullerai anche i pagamenti collegati. Continuare?", title: "Annulla")
   end
 end

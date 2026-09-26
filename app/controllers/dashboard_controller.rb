@@ -6,11 +6,11 @@ class DashboardController < ApplicationController
 
     @expiring_subscriptions = Subscription.kept
                                 .includes(:member)
-                                .where(end_date: Date.current..7.days.from_now)
+                                .where(end_date: Date.current..Date.current + 7)
                                 .order(end_date: :asc)
                                 .limit(5)
 
-    @expiring_count = Subscription.kept.where(end_date: Date.current..7.days.from_now).count
+    @expiring_count = Subscription.kept.where(end_date: Date.current..Date.current + 7).count
 
     @recent_accesses = AccessLog.includes(:member, :discipline)
                          .order(entered_at: :desc)

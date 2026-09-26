@@ -141,7 +141,7 @@ class PosDraftBuilder
     def apply_default_price
       return unless sale.product_id.present?
 
-      # nil only: zero is a deliberate admin choice
+      # solo se nil: lo zero è una scelta voluta dell'admin
       sale.subscription.agreed_price_cents ||= sale.product.price_cents
       sale.amount_cents ||= sale.subscription.agreed_price_cents
     end

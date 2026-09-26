@@ -26,7 +26,7 @@ class UserTest < ActiveSupport::TestCase
   test "username format validation" do
     @user.username = "bad name!" # Spazi e punti esclamativi vietati
     assert_not @user.valid?
-    assert_includes @user.errors[:username], "only allows lowercase letters, numbers and underscores"
+    assert_includes @user.errors[:username], "può contenere solo lettere minuscole, numeri e underscore"
   end
 
   test "password length enforcement" do
@@ -37,7 +37,7 @@ class UserTest < ActiveSupport::TestCase
       password: "sho" # 3 char
     )
     assert_not user.valid?
-    assert_includes user.errors[:password], "is too short (minimum is 4 characters)"
+    assert_includes user.errors[:password], "è troppo corto (il minimo è 4 caratteri)"
 
     user.password = "longenough"
     assert user.valid?
@@ -47,7 +47,7 @@ class UserTest < ActiveSupport::TestCase
     # Verifica che le validazioni del concern Personable (es. nome obbligatorio) siano attive
     @user.first_name = nil
     assert_not @user.valid?
-    assert_includes @user.errors[:first_name], "can't be blank"
+    assert_includes @user.errors[:first_name], "non può essere lasciato in bianco"
   end
 
   test "cannot delete user with associated sales" do

@@ -1,6 +1,6 @@
 require "test_helper"
 
-# staff vs admin permission matrix, enforced server side
+# matrice dei permessi staff/admin, applicata lato server
 class AuthorizationTest < ActionDispatch::IntegrationTest
   setup do
     @staff      = users(:staff)
@@ -108,18 +108,27 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_select "a", text: /Archivia Socio/
   end
 
-  test "subscription archive button is admin only" do
+  test "subscription undo button follows the undo windows" do
     grant_membership_to(@member)
     current = @member.subscriptions.kept.find_by!(end_date: Date.current.end_of_year)
+    undo = "a[data-turbo-method=delete][href='#{subscription_path(current)}']"
+
+    sign_in_as(users(:staff_two))
+    get member_subscriptions_path(@member)
+    assert_select undo, count: 0
 
     sign_in_as(@staff)
     get member_subscriptions_path(@member)
-    assert_select "a[data-turbo-method=delete][href='#{subscription_path(current)}']", count: 0
+    assert_select undo
 
-    sign_out
+    travel Sale::STAFF_REVERSAL_WINDOW + 1.minute
+    sign_in_as(@staff)
+    get member_subscriptions_path(@member)
+    assert_select undo, count: 0
+
     sign_in_as(@admin)
     get member_subscriptions_path(@member)
-    assert_select "a[data-turbo-method=delete][href='#{subscription_path(current)}']"
+    assert_select undo
   end
 
   test "malformed params return bad request" do
