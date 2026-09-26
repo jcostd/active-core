@@ -40,10 +40,35 @@ class IconsHelperTest < ActionView::TestCase
     assert_match /size-16 bg-red-500/, result
   end
 
-  test "caching mechanism works" do
-    first_call = icon("chat_bubble")
-    second_call = icon("chat_bubble")
+  test "icons are cached in process, not in Rails.cache" do
+    IconsHelper::SVG_CACHE.clear
+    reads = []
+    ActiveSupport::Notifications.subscribed(->(*args) { reads << args.first }, /\Acache_/) { icon("chat_bubble") }
 
-    assert_equal first_call, second_call
+    assert_empty reads, "Rails.cache non va usato per le icone"
+    assert IconsHelper::SVG_CACHE.key?("chat_bubble")
+    assert_equal icon("chat_bubble"), icon("chat_bubble")
+  end
+
+  test "extra class is merged, never duplicated" do
+    html = icon("search", classes: "size-4", class: "opacity-70")
+    assert_equal 1, html.scan("class=").size
+    assert_match 'class="size-4 opacity-70"', html
+  end
+
+  test "attribute values are escaped" do
+    html = icon("search", title: %q{"><script>alert(1)</script>})
+    assert_no_match "<script>", html
+    assert_match "&quot;&gt;&lt;script&gt;", html
+  end
+
+  test "names cannot escape the icons folder" do
+    assert_match "<span", icon("../../../config/master")
+  end
+
+  test "missing icons are remembered as missing" do
+    IconsHelper::SVG_CACHE.clear
+    icon("non_esiste")
+    assert_equal false, IconsHelper::SVG_CACHE["non_esiste"]
   end
 end

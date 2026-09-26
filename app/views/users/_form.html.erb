@@ -43,7 +43,7 @@
         <%= f.select :role,
             User.roles.keys.map { |r| [r.humanize, r] },
             {},
-            class: "select select-bordered bg-base-100 w-full",
+            class: "select w-full",
             disabled: !current_user.admin? %>
       </div>
     </div>

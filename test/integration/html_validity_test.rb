@@ -1,0 +1,49 @@
+require "test_helper"
+
+# HTML5 valido su tutte le pagine principali: struttura, id unici, attributi non ripetuti
+class HtmlValidityTest < ActionDispatch::IntegrationTest
+  setup do
+    @member = members(:alice)
+    grant_membership_to(@member)
+    course = link!(products(:yoga_monthly), disciplines(:yoga))
+    @sale = sell!(member: @member, product: course)
+    AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+    sign_in_as(users(:admin))
+  end
+
+  PAGES = {
+    "dashboard" => ->(t) { t.root_path },
+    "soci" => ->(t) { t.members_path },
+    "socio" => ->(t) { t.member_path(t.members(:alice)) },
+    "abbonamenti socio" => ->(t) { t.member_subscriptions_path(t.members(:alice)) },
+    "acquisti socio" => ->(t) { t.member_sales_path(t.members(:alice)) },
+    "discipline" => ->(t) { t.disciplines_path },
+    "iscritti disciplina" => ->(t) { t.discipline_members_path(t.disciplines(:yoga)) },
+    "prodotti" => ->(t) { t.products_path },
+    "vendite" => ->(t) { t.sales_path },
+    "vendita" => ->(t) { t.sale_path(t.instance_variable_get(:@sale)) },
+    "POS" => ->(t) { t.new_sale_path(member_id: t.members(:alice).id) },
+    "report" => ->(t) { t.reports_path },
+    "registro accessi" => ->(t) { t.access_logs_path },
+    "utenti" => ->(t) { t.users_path },
+    "kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) }
+  }
+
+  PAGES.each do |name, path|
+    test "#{name} is valid html" do
+      get path.(self)
+      assert_response :success
+
+      html = response.body
+      doc = Nokogiri::HTML5(html, max_errors: 20)
+      errors = doc.errors.map(&:message).reject { it.include?("Expected a doctype token") } # frammenti turbo/modal
+      assert_empty errors, "errori HTML in #{name}:\n#{errors.join("\n")}"
+
+      duplicated_ids = doc.css("[id]").map { it["id"] }.tally.select { |_, n| n > 1 }.keys
+      assert_empty duplicated_ids, "id duplicati in #{name}"
+
+      assert_empty doc.css("legend").reject { it.parent.name == "fieldset" && it.parent.element_children.first == it }, "legend fuori posto"
+      assert_empty doc.css("div[disabled], span[disabled], a[disabled]"), "disabled su elemento non di form"
+    end
+  end
+end

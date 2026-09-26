@@ -11,7 +11,7 @@
       Totale speso
     </div>
     <div class="text-lg font-semibold text-primary">
-      <%= format_cents(@member.sales.kept.sum(:amount_cents) || 0) %>
+      <%= format_cents(@total_amount_cents) %>
     </div>
   </div>
 </div>

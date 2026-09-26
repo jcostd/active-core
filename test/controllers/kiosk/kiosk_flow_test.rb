@@ -64,4 +64,17 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     get kiosk_discipline_member_searches_path(@yoga, query: "Ali")
     assert_select "form[action='#{kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)}']"
   end
+
+  test "cards show the real access outcome" do
+    sell!(member: @alice, product: @course, user: users(:admin), start_date: Date.current - 5, end_date: Date.current + 30)
+    Subscription.create!(member: members(:bob), product: @course, start_date: Date.current - 5, end_date: Date.current + 30) # senza quota
+
+    get kiosk_discipline_path(@yoga)
+
+    alice_card = "##{ActionView::RecordIdentifier.dom_id(@alice, :pending)}"
+    bob_card = "##{ActionView::RecordIdentifier.dom_id(members(:bob), :pending)}"
+    assert_select "#{alice_card} .btn-primary"
+    assert_select "#{alice_card} .btn-error", count: 0
+    assert_select "#{bob_card} .btn-error"
+  end
 end

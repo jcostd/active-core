@@ -93,7 +93,8 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
 
     get member_sales_path(@alice)
     assert_response :success
-    assert_equal @alice.sales.sum(:amount_cents), controller.instance_variable_get(:@total_amount_cents)
+    assert_equal @alice.sales.kept.sum(:amount_cents), controller.instance_variable_get(:@total_amount_cents)
+    assert_match format("%.2f", @alice.sales.kept.sum(:amount_cents) / 100.0).tr(".", ","), response.body
   end
 
   test "overpaid legacy subscription shows as settled, not negative" do

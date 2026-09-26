@@ -106,7 +106,22 @@ class Subscription < ApplicationRecord
   end
 
   def renewed?
-    persisted? && Subscription.renewed.exists?(id)
+    return @renewed if defined?(@renewed)
+
+    @renewed = persisted? && Subscription.renewed.exists?(id)
+  end
+
+  # una sola query per un'intera lista invece di una per riga
+  def self.preload_renewed(records)
+    records = records.to_a
+    renewed_ids = renewed.where(id: records.map(&:id)).pluck(:id).to_set
+    records.each { it.instance_variable_set(:@renewed, renewed_ids.include?(it.id)) }
+  end
+
+  def reload(*)
+    remove_instance_variable(:@renewed) if defined?(@renewed)
+    @status = nil
+    super
   end
 
   def amount_due

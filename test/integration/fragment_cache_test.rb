@@ -84,4 +84,28 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       assert_select "a[data-turbo-method=delete][href='#{user_path(users(:admin))}']"
     end
   end
+
+  test "member rows refresh on new subscriptions, product renames and role" do
+    with_fragment_caching do
+      sign_in_as(users(:staff))
+      get members_path
+      assert_no_match "Nuoto Libero", response.body
+
+      nuoto = Product.create!(name: "Nuoto Libero", price_cents: 0, duration_days: 30)
+      travel 1.second
+      Subscription.create!(member: @member, product: nuoto, start_date: Date.current, end_date: Date.current + 20)
+      get members_path
+      assert_match "Nuoto Libero", response.body
+
+      travel 1.second
+      nuoto.update!(name: "Nuoto Serale")
+      get members_path
+      assert_match "Nuoto Serale", response.body
+
+      assert_select "a[data-turbo-method=delete][href='#{member_path(@member)}']", count: 0
+      sign_in_as(users(:admin))
+      get members_path
+      assert_select "a[data-turbo-method=delete][href='#{member_path(@member)}']"
+    end
+  end
 end

@@ -38,41 +38,25 @@
 
   <% unless is_installment %>
     <%= f.fields_for :subscription do |sub_f| %>
-      <fieldset class="bg-base-200/40 p-4 rounded-box border border-base-300 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4 mt-4">
+        <% price = sale.subscription&.agreed_price || sale.product&.price %>
+        <legend class="fieldset-legend"><%= current_user.admin? ? "Prezzo Concordato" : "Prezzo di Listino" %></legend>
 
-	<%# --- SINISTRA: Titolo e Descrizione --- %>
-	<div>
-          <legend class="font-bold text-sm mb-0.5">
-            <%= current_user&.admin? ? "Prezzo Concordato (Admin)" : "Prezzo di Listino" %>
-          </legend>
-          <div class="text-xs opacity-70">
-            <%= current_user&.admin? ? "Applica uno sconto o sovrapprezzo manuale per questo acquisto." : "Questo valore è bloccato e non può essere modificato." %>
-          </div>
-	</div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <p class="label">
+            <%= current_user.admin? ? "Applica uno sconto o un sovrapprezzo a questo acquisto." : "Il prezzo di listino non è modificabile." %>
+          </p>
 
-	<%# --- DESTRA: Campo (Editabile o Bloccato) --- %>
-	<div class="shrink-0">
-          <% if current_user&.admin? %>
-
-            <label class="input input-sm focus-within:border-warning focus-within:ring-warning w-32">
-              <span class="label"><%= icon("euro_symbol", classes: "size-4 text-base-content/50") %></span>
-              <%= sub_f.text_field :agreed_price,
-                autocomplete: "off",
-                data: { action: "change->autosubmit#submit" },
-               value: sale.subscription&.agreed_price || sale.product&.price,
-               class: "grow text-right font-bold" %>
-            </label>
-
-          <% else %>
-
-            <div class="input input-sm cursor-not-allowed bg-base-100 w-32" disabled>
-              <span class="label"><%= icon("euro_symbol", classes: "size-4 opacity-50") %></span>
-              <span class="grow text-right font-bold opacity-70"><%= format_money(sale.subscription&.agreed_price || sale.product&.price) %></span>
-            </div>
-
-          <% end %>
-	</div>
-
+          <label class="input input-sm w-32 shrink-0">
+            <%= icon("euro_symbol", classes: "size-4 opacity-50") %>
+            <% if current_user.admin? %>
+              <%= sub_f.text_field :agreed_price, value: price, autocomplete: "off", class: "text-right font-bold",
+                                   data: { action: "change->autosubmit#submit" } %>
+            <% else %>
+              <input type="text" value="<%= format_money(price) %>" disabled class="text-right font-bold">
+            <% end %>
+          </label>
+        </div>
       </fieldset>
     <% end %>
   <% end %>

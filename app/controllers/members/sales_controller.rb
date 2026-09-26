@@ -10,7 +10,7 @@ class Members::SalesController < ApplicationController
                .includes(:product, :user, subscription: [ :product, :sales ])
 
     @pagy, @sales = pagy(@query)
-    @total_amount_cents = @query.sum(:amount_cents)
+    @total_amount_cents = @member.sales.kept.sum(:amount_cents)
   end
 
   private

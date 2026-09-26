@@ -62,18 +62,10 @@
     </p>
 
     <% if Discipline.kept.any? %>
-      <%# STRATAGEMMA UI/UX: Checkbox nascoste con stile a "Pill" interattiva %>
+      <%# checkbox con stile btn di daisyUI: pillola accessibile da tastiera, il testo arriva da aria-label %>
       <div class="flex flex-wrap gap-2">
         <%= f.collection_check_boxes :discipline_ids, Discipline.kept.order(:name), :id, :name do |b| %>
-          <label class="cursor-pointer select-none">
-            <%# Nascondiamo la checkbox vera e propria e usiamo 'peer' %>
-            <%= b.check_box class: "peer hidden" %>
-
-            <%# Questo div reagisce allo stato :checked del 'peer' nascosto %>
-            <div class="px-4 py-2 rounded-full border border-base-300 bg-base-100 text-sm font-medium transition-all hover:border-primary/40 peer-checked:bg-primary peer-checked:text-primary-content peer-checked:border-primary shadow-sm">
-              <%= b.text %>
-            </div>
-          </label>
+          <%= b.check_box class: "btn btn-sm btn-outline btn-primary rounded-full", aria: { label: b.text } %>
         <% end %>
       </div>
     <% else %>

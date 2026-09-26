@@ -26,10 +26,4 @@ export default class extends Controller {
 	if (event) event.preventDefault()
 	this.dialogTarget.close()
     }
-
-    clickOutside(event) {
-	if (event.target === this.dialogTarget) {
-	    this.close()
-	}
-    }
 }

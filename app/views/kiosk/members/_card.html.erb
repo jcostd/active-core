@@ -14,7 +14,6 @@
   end
 %>
 
-<% cache [member, discipline, policy.status, Date.current] do %>
   <div id="<%= dom_id(member, :pending) %>" class="card shadow-sm border transition-colors <%= bg_css %>">
     <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
 
@@ -42,4 +41,3 @@
 
     </div>
   </div>
-<% end %>

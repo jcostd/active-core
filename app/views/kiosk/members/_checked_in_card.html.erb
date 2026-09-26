@@ -13,7 +13,6 @@
   end
 %>
 
-<% cache [log, Date.current] do %>
   <div id="<%= dom_id(log) %>" class="card <%= bg_css %> shadow-sm border transition-all text-base-content">
     <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
 
@@ -41,4 +40,3 @@
 
     </div>
   </div>
-<% end %>

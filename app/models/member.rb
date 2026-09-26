@@ -103,8 +103,13 @@ class Member < ApplicationRecord
     end
   end
 
-  def valid_subscription_for(discipline)
-    active_subscriptions.for_discipline(discipline).first
+  # in memoria se gli abbonamenti (con prodotto e discipline) sono già caricati, come nel kiosk
+  def valid_subscription_for(discipline, date = Date.current)
+    return active_subscriptions.for_discipline(discipline).first unless subscriptions.loaded?
+
+    subscriptions
+      .select { it.kept? && it.start_date <= date && it.end_date >= date && it.product.disciplines.include?(discipline) }
+      .min_by(&:start_date)
   end
 
   def relevant_subscriptions(date = Date.current)

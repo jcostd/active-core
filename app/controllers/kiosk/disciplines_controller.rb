@@ -22,5 +22,8 @@ class Kiosk::DisciplinesController < Kiosk::BaseController
                          .without_recent_checkin_for(@discipline)
                          .distinct
                          .order(:first_name, :last_name)
+                         .preload(subscriptions: { product: :disciplines }) # preload: tutti gli abbonamenti, quota compresa
+                         .to_a
+    Subscription.preload_renewed(@pending_members.flat_map(&:subscriptions))
   end
 end

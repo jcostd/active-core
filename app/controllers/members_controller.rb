@@ -13,14 +13,15 @@ class MembersController < ApplicationController
         .apply_filters(filter_params)
         .includes(subscriptions: [ :product, :sales ])
     )
+    Subscription.preload_renewed(@members.flat_map(&:subscriptions))
   end
 
   def show
     @active_subscriptions = @member.subscriptions.kept
-                              .includes(:product, :access_logs)
+                              .includes(:product, :sales)
                               .select { |s| s.end_date >= Date.current }
                               .sort_by { |s| s.start_date || Date.current }
-    @recent_sales = @member.recent_sales
+    Subscription.preload_renewed(@active_subscriptions)
   end
 
   def new

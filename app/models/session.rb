@@ -12,7 +12,7 @@ class Session < ApplicationRecord
   def self.sweep = expired.delete_all
 
   def self.find_resumable(id)
-    joins(:user).merge(User.kept).find_by(id:)
+    joins(:user).merge(User.kept).includes(:user).find_by(id:)
   end
 
   def expired?(kiosk_request: false)

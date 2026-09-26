@@ -4,6 +4,7 @@ class Members::SubscriptionsController < ApplicationController
   def index
     query = @member.subscriptions.kept.includes(:product, :sales).order(end_date: :desc)
     @pagy, @subscriptions = pagy(query)
+    Subscription.preload_renewed(@subscriptions)
   end
 
   private

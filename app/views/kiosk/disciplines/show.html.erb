@@ -38,7 +38,9 @@
                  title: "Tutti presenti!",
                  message: "Hai smarcato tutti i soci previsti per questo corso." %>
     <% else %>
-      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { discipline: @discipline } %>
+      <%# collection cache: una sola lettura (read_multi) da Solid Cache per tutte le card %>
+      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { discipline: @discipline },
+                 cached: ->(member) { [ member, @discipline, AccessPolicy.new(member:, discipline: @discipline).evaluate!.status, Date.current ] } %>
     <% end %>
   </div>
 
@@ -54,7 +56,7 @@
       title: "Nessuno in sala.",
       message: "In attesa dei primi check-in..." %>
     <% else %>
-      <%= render partial: "kiosk/members/checked_in_card", collection: @today_accesses, as: :log %>
+      <%= render partial: "kiosk/members/checked_in_card", collection: @today_accesses, as: :log, cached: ->(log) { [ log, log.member ] } %>
     <% end %>
   </div>
 
