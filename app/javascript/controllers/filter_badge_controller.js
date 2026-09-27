@@ -1,39 +1,36 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Collegato a data-controller="filter-badge"
 export default class extends Controller {
-    remove(event) {
-	const key = event.params.key
-	const form = document.getElementById("filter-form")
-	if (!form || !key) return
+  remove(event) {
+    const key = event.params.key
+    const form = this.form
+    if (!form || !key) return
 
-	const input = form.querySelector(`[name="${key}"]`) || form.querySelector(`[name$="[${key}]"]`)
+    const input = form.querySelector(`[name="${key}"]`) || form.querySelector(`[name$="[${key}]"]`)
+    if (!input) return
 
-	if (input) {
-	    if (input.type === 'checkbox' || input.type === 'radio') {
-		input.checked = false
-	    } else {
-		input.value = ""
-	    }
-	    form.requestSubmit()
-	}
-    }
+    clear(input)
+    form.requestSubmit()
+  }
 
-    clearAll(event) {
-	event.preventDefault()
-	const form = document.getElementById("filter-form")
-	if (!form) return
+  clearAll(event) {
+    event.preventDefault()
+    const form = this.form
+    if (!form) return
 
-	const inputs = form.querySelectorAll('input:not([type="hidden"]), select:not([name="sort"]), textarea')
+    form.querySelectorAll('input:not([type="hidden"]), select:not([name="sort"]), textarea').forEach(clear)
+    form.requestSubmit()
+  }
 
-	inputs.forEach(input => {
-	    if (input.type === 'checkbox' || input.type === 'radio') {
-		input.checked = false
-	    } else {
-		input.value = ""
-	    }
-	})
+  get form() {
+    return document.getElementById("filter-form")
+  }
+}
 
-	form.requestSubmit()
-    }
+function clear(input) {
+  if (input.type === "checkbox" || input.type === "radio") {
+    input.checked = false
+  } else {
+    input.value = ""
+  }
 }

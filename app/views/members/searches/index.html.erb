@@ -1,4 +1,4 @@
-<turbo-frame id="<%= params[:frame_id] || "member_search_results" %>">
+<turbo-frame id="member_search_results">
   <% if @members.any? %>
     <ul class="menu flex-nowrap bg-base-100 w-full shadow-xl rounded-box border border-base-300 absolute z-50 mt-1 max-h-72 overflow-y-auto">
       <% @members.each do |member| %>

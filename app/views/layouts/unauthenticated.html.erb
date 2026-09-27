@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="it" data-theme="<%= current_theme %>">
   <head>
     <title><%= content_for(:title) || "Active Core" %></title>
 
@@ -22,8 +22,6 @@
   </head>
 
   <body
-    data-controller="theme-sync"
-    data-theme-sync-theme-value="<%= @theme %>"
     class="bg-base-200 antialiased text-base-content selection:bg-primary selection:text-primary-content"
   >
     <main class="min-h-screen flex items-center justify-center">
