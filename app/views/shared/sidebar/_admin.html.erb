@@ -72,6 +72,9 @@
           <% end %>
           <%= yield :report_actions if content_for?(:report_actions) %>
         </li>
+        <li>
+          <%= link_to "Dati dell'ASD", edit_gym_profile_path, data: { turbo_frame: "modal" } %>
+        </li>
       </ul>
     </details>
   </li>

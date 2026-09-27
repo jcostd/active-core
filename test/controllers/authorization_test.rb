@@ -39,7 +39,9 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "products index"     => ->(t) { t.get t.products_path },
     "sales index"        => ->(t) { t.get t.sales_path },
     "access logs index"  => ->(t) { t.get t.access_logs_path },
-    "users index"        => ->(t) { t.get t.users_path }
+    "users index"        => ->(t) { t.get t.users_path },
+    "gym profile edit"   => ->(t) { t.get t.edit_gym_profile_path },
+    "gym profile update" => ->(t) { t.patch t.gym_profile_path, params: { gym_profile: { name: "Presa" } } }
   }
 
   STAFF_ALLOWED.each do |name, action|

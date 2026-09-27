@@ -1,0 +1,60 @@
+<% content_for :title, "Dati dell'ASD" %>
+
+<%= form_with(model: @gym_profile, url: gym_profile_path, class: "flex flex-col gap-6") do |f| %>
+  <%= render "shared/form_errors", model: @gym_profile %>
+
+  <p class="text-sm text-base-content/70">Compaiono sulle ricevute e sui riepiloghi di pagamento.</p>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Associazione</legend>
+
+    <%= f.label :name, "Denominazione", class: "label" %>
+    <%= f.text_field :name, required: true, class: "input w-full", placeholder: "A.S.D. Nome Associazione" %>
+
+    <%= f.label :vat_number, "Codice fiscale / P.IVA", class: "label" %>
+    <%= f.text_field :vat_number, class: "input w-full font-mono", autocomplete: "off" %>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Sede</legend>
+
+    <%= f.label :address_line_1, "Indirizzo", class: "label" %>
+    <%= f.text_field :address_line_1, class: "input w-full", placeholder: "Via Roma 1" %>
+
+    <%= f.label :address_line_2, "Località", class: "label" %>
+    <%= f.text_field :address_line_2, class: "input w-full" %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <%= f.label :zip_code, "CAP", class: "label" %>
+        <%= f.text_field :zip_code, class: "input w-full", inputmode: "numeric" %>
+      </div>
+      <div class="sm:col-span-2">
+        <%= f.label :city, "Città", class: "label" %>
+        <%= f.text_field :city, class: "input w-full" %>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Contatti e pagamenti</legend>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :phone, "Telefono", class: "label" %>
+        <%= f.telephone_field :phone, class: "input w-full" %>
+      </div>
+      <div>
+        <%= f.label :email, "Email", class: "label" %>
+        <%= f.email_field :email, class: "input w-full" %>
+      </div>
+    </div>
+
+    <%= f.label :bank_iban, "IBAN", class: "label" %>
+    <%= f.text_field :bank_iban, class: "input w-full font-mono", autocomplete: "off" %>
+  </fieldset>
+
+  <div class="modal-action">
+    <%= f.submit "Salva", class: "btn btn-primary", data: { turbo_submits_with: "Salvataggio..." } %>
+  </div>
+<% end %>

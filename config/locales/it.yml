@@ -28,7 +28,15 @@ it:
         page_url: Pagina
         user: Utente
       gym_profile:
-        name: Nome
+        address_line_1: Indirizzo
+        address_line_2: Località
+        bank_iban: IBAN
+        city: Città
+        email: Email
+        name: Denominazione
+        phone: Telefono
+        vat_number: Codice fiscale / P.IVA
+        zip_code: CAP
       member:
         address: Indirizzo
         birth_date: Data di nascita
