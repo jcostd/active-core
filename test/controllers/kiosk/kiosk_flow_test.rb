@@ -109,6 +109,19 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)}']"
   end
 
+  test "kiosk search hides fiscal code and full birth date" do
+    get kiosk_discipline_member_searches_path(@yoga, query: "Ali")
+
+    assert_no_match @alice.fiscal_code, response.body
+    assert_no_match I18n.l(@alice.birth_date), response.body
+    assert_match "Nato/a nel #{@alice.birth_date.year}", response.body
+  end
+
+  test "kiosk search box does not suggest searching by fiscal code" do
+    get kiosk_discipline_path(@yoga)
+    assert_select "input[placeholder='Cerca nome o cognome...']"
+  end
+
   test "cards show the real access outcome" do
     sell!(member: @alice, product: @course, user: users(:admin), start_date: Date.current - 5, end_date: Date.current + 30)
     Subscription.create!(member: members(:bob), product: @course, start_date: Date.current - 5, end_date: Date.current + 30) # senza quota

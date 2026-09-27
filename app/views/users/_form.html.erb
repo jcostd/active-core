@@ -40,11 +40,11 @@
 
       <div>
         <%= f.label :role, "Ruolo", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.select :role,
-            User.roles.keys.map { |r| [r.humanize, r] },
-            {},
-            class: "select w-full",
-            disabled: !current_user.admin? %>
+        <% if user.kiosk? %>
+          <p class="label whitespace-normal">Utente fisso dell'iPad: registra solo gli ingressi, non si archivia e non cambia ruolo.</p>
+        <% else %>
+          <%= f.select :role, user_role_options, {}, class: "select w-full", disabled: !current_user.admin? %>
+        <% end %>
       </div>
     </div>
 

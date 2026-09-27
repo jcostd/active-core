@@ -40,6 +40,62 @@ class UserTest < ActiveSupport::TestCase
     assert user.save
   end
 
+  test "kiosk user cannot be archived, not even by an admin" do
+    kiosk = users(:kiosk)
+
+    assert_not kiosk.archivable_by?(users(:admin))
+    assert_raises(ActiveRecord::RecordNotSaved) { kiosk.discard! }
+    assert kiosk.reload.kept?
+  end
+
+  test "only an admin archives, and never themselves" do
+    assert users(:staff).archivable_by?(users(:admin))
+    assert_not users(:staff).archivable_by?(users(:staff_two))
+    assert_not users(:admin).archivable_by?(users(:admin))
+  end
+
+  test "kiosk user keeps its role" do
+    kiosk = users(:kiosk)
+    kiosk.role = :admin
+    assert_not kiosk.valid?
+    assert_includes kiosk.errors[:role], "non può essere cambiato: l'utente kiosk è unico e fisso"
+  end
+
+  test "nobody else becomes kiosk" do
+    @user.role = :kiosk
+    assert_not @user.valid?
+    assert_includes @user.errors[:role], "non può essere cambiato: l'utente kiosk è unico e fisso"
+
+    second = User.new(username: "kiosk2", first_name: "A", last_name: "B", email_address: "k2@system.local",
+                      password: "password", role: :kiosk)
+    assert_not second.valid?
+  end
+
+  test "the kiosk user can be created when missing" do
+    users(:kiosk).update_column(:discarded_at, Time.current)
+    kiosk = User.new(username: "kiosk2", first_name: "Kiosk", last_name: "Accessi", email_address: "k2@system.local",
+                     password: "password", role: :kiosk)
+    assert kiosk.valid?
+  end
+
+  test "kiosk user can change name and password" do
+    kiosk = users(:kiosk)
+    assert kiosk.update(first_name: "iPad", password: "nuovapass", password_confirmation: "nuovapass")
+    assert kiosk.authenticate("nuovapass")
+  end
+
+  test "an unknown role is a validation error, not an exception" do
+    @user.role = "superuser"
+    assert_not @user.valid?
+    assert @user.errors[:role].any?
+  end
+
+  test "operators are staff and admins, not the kiosk" do
+    assert_includes User.operators, users(:staff)
+    assert_includes User.operators, users(:admin)
+    assert_not_includes User.operators, users(:kiosk)
+  end
+
   test "username format validation" do
     @user.username = "bad name!" # Spazi e punti esclamativi vietati
     assert_not @user.valid?

@@ -14,9 +14,7 @@
       <li class="list-row items-center">
         <div class="opacity-60 font-medium">Ruolo</div>
         <div class="list-col-grow text-right">
-          <span class="badge <%= @user.admin? ? 'badge-primary' : 'badge-ghost' %> badge-sm">
-            <%= display_value(@user.role.humanize) %>
-          </span>
+          <%= user_role_badge(@user) %>
         </div>
       </li>
       <li class="list-row items-center">

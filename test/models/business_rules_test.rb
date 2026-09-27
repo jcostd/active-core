@@ -34,12 +34,12 @@ class BusinessRulesTest < ActiveSupport::TestCase
   end
 
   test "kiosk sessions last 30 days" do
-    session = users(:staff).sessions.create!(kiosk: true)
+    session = users(:kiosk).sessions.create!
     travel 29.days
-    assert_not session.expired?(kiosk_request: true)
+    assert_not session.expired?
 
     travel 2.days
-    assert session.expired?(kiosk_request: true)
+    assert session.expired?
   end
 
   test "double check-in is blocked for 10 minutes" do

@@ -16,7 +16,7 @@
 <% content_for :page_search_and_filters do %>
   <%= render layout: "shared/filter/form",
              locals: { url: users_path, frame: "users_list", placeholder: "Cerca nome, email...", drawer_title: "Filtri Utenti" } do |form| %>
-    <%= filter_select form, :role, [ [ "Staff", "staff" ], [ "Amministratore", "admin" ] ], label: "Ruolo", blank: "Tutti i ruoli" %>
+    <%= filter_select form, :role, [ [ "Staff", "staff" ], [ "Amministratore", "admin" ], [ "Kiosk", "kiosk" ] ], label: "Ruolo", blank: "Tutti i ruoli" %>
   <% end %>
 <% end %>
 

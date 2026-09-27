@@ -209,6 +209,38 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_match "ricevuta_#{@sale.id}_Bianchi.pdf", response.headers["Content-Disposition"]
   end
 
+  test "voided sale has no printable receipt" do
+    sign_in_as(@admin)
+    @sale.discard!
+
+    get sale_path(@sale, format: :pdf)
+    assert_redirected_to sale_path(@sale)
+    assert_not response.body.start_with?("%PDF")
+
+    follow_redirect!
+    assert_select ".alert", text: /ricevuta non è più stampabile/
+  end
+
+  test "voided sale page still shows the sale as cancelled, without print button" do
+    sign_in_as(@admin)
+    @sale.discard!
+
+    get sale_path(@sale)
+    assert_response :success
+    assert_match "ANNULLATA", response.body
+    assert_select "a[href='#{sale_path(@sale, format: :pdf)}']", count: 0
+  end
+
+  test "a restored sale is printable again" do
+    sign_in_as(@admin)
+    @sale.discard!
+    @sale.undiscard!
+
+    get sale_path(@sale, format: :pdf)
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+  end
+
   test "admin sales list with filters" do
     sign_in_as(@admin)
 
@@ -218,6 +250,14 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
     get sales_path(payment_method: "bank_transfer")
     assert_no_match "Bob Bianchi", response.body
+  end
+
+  test "operator filter lists people, not the kiosk" do
+    sign_in_as(@admin)
+    get sales_path
+
+    assert_select "select[name=operator_id] option[value='#{@staff.id}']"
+    assert_select "select[name=operator_id] option[value='#{users(:kiosk).id}']", count: 0
   end
 
   # --- DATE PER LO STAFF ---

@@ -20,6 +20,7 @@ class User < ApplicationRecord
 
   has_secure_password
   has_many :sessions, dependent: :destroy
+  before_discard :keep_kiosk
   after_discard :terminate_all_sessions
 
   has_many :sales, dependent: :restrict_with_error
@@ -29,7 +30,11 @@ class User < ApplicationRecord
            foreign_key: "checkin_by_user_id",
            dependent: :restrict_with_error
 
-  enum :role, { staff: 0, admin: 1 }, default: :staff
+  # kiosk: l'utente fisso dell'iPad, vede solo il kiosk
+  enum :role, { staff: 0, admin: 1, kiosk: 2 }, default: :staff, validate: true
+  ASSIGNABLE_ROLES = %w[staff admin].freeze
+
+  scope :operators, -> { where.not(role: :kiosk) }
 
   normalizes :username, with: ->(u) { u.strip.downcase }
   validates :username, presence: true,
@@ -42,6 +47,11 @@ class User < ApplicationRecord
   # has_secure_password ignora una password vuota: nel reset va pretesa
   validates :password, presence: true, on: :password_reset
   validate :keep_an_admin, on: :update
+  validate :kiosk_role_is_fixed
+
+  def archivable_by?(user)
+    user.admin? && user != self && !kiosk? && kept?
+  end
 
   private
     def keep_an_admin
@@ -49,6 +59,18 @@ class User < ApplicationRecord
       return if User.kept.admin.where.not(id:).exists?
 
       errors.add(:role, "non può essere cambiato: serve almeno un amministratore")
+    end
+
+    # unico e fisso: nessuno diventa kiosk e il kiosk non cambia ruolo
+    def kiosk_role_is_fixed
+      return unless will_save_change_to_role?
+      return unless role_in_database == "kiosk" || (kiosk? && User.kept.kiosk.where.not(id:).exists?)
+
+      errors.add(:role, "non può essere cambiato: l'utente kiosk è unico e fisso")
+    end
+
+    def keep_kiosk
+      throw :abort if kiosk?
     end
 
     def terminate_all_sessions

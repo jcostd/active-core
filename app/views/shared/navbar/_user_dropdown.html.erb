@@ -9,7 +9,7 @@
 
   <li class="menu-title flex flex-col items-start gap-0.5 mb-2">
     <span class="text-[0.65rem] uppercase tracking-wider"><%= User.human_attribute_name(:role) %></span>
-    <span class="font-semibold text-sm text-base-content"><%= current_user&.role&.humanize %></span>
+    <span class="font-semibold text-sm text-base-content"><%= user_role_label(current_user) if current_user %></span>
   </li>
 
   <li>

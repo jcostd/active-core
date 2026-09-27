@@ -22,7 +22,7 @@
     <%= filter_select form, :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Qualsiasi" %>
     <%= filter_select form, :accounting_category, [ [ "Istituzionale", "institutional" ], [ "Associativo", "associative" ] ],
                       label: "Categoria Contabile", blank: "Qualsiasi" %>
-    <%= filter_select form, :operator_id, User.kept.order(:username).pluck(:username, :id), label: "Operatore", blank: "Tutti gli operatori" %>
+    <%= filter_select form, :operator_id, User.kept.operators.order(:username).pluck(:username, :id), label: "Operatore", blank: "Tutti gli operatori" %>
   <% end %>
 <% end %>
 

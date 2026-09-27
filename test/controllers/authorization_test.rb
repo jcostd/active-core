@@ -66,6 +66,76 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # l'utente kiosk non vede nulla fuori dal kiosk, nemmeno ciò che è concesso allo staff
+  STAFF_ALLOWED.merge(ADMIN_ONLY).except("kiosk").merge(
+    "sale receipt"   => ->(t) { t.get t.sale_path(t.sell!(member: t.members(:alice), product: t.products(:annual_membership)), format: :pdf) },
+    "sale create"    => ->(t) { t.post t.sales_path, params: { sale: { member_id: t.members(:alice).id, product_id: t.products(:annual_membership).id } } },
+    "member search"  => ->(t) { t.get t.members_searches_path(query: "Alice") },
+    "user edit"      => ->(t) { t.get t.edit_user_path(t.users(:kiosk)) },
+    "theme update"   => ->(t) { t.patch t.preferences_theme_path, params: { theme: "dark" } },
+    "feedback new"   => ->(t) { t.get t.new_feedback_path }
+  ).each do |name, action|
+    test "kiosk user is confined away from #{name}" do
+      sign_in_as(users(:kiosk))
+      action.(self)
+      assert_redirected_to kiosk_root_path
+    end
+  end
+
+  test "kiosk user denied actions leave data untouched" do
+    sign_in_as(users(:kiosk))
+
+    assert_no_difference -> { Sale.count } do
+      post sales_path, params: { sale: { member_id: @member.id, product_id: products(:annual_membership).id } }
+    end
+    delete member_path(@member)
+    patch member_path(@member), params: { member: { first_name: "Hacked" } }
+
+    assert @member.reload.kept?
+    assert_equal "Alice", @member.first_name
+  end
+
+  test "kiosk user uses the whole kiosk" do
+    sign_in_as(users(:kiosk))
+    link!(@product, @discipline)
+
+    get kiosk_root_path
+    assert_response :success
+    get kiosk_discipline_path(@discipline)
+    assert_response :success
+    get kiosk_discipline_member_searches_path(@discipline, query: "Ali")
+    assert_response :success
+
+    assert_difference -> { AccessLog.count } do
+      post kiosk_discipline_access_logs_path(@discipline, member_id: @member.id)
+    end
+    assert_redirected_to kiosk_discipline_path(@discipline)
+    assert_equal users(:kiosk), AccessLog.last.checkin_by_user
+  end
+
+  test "kiosk user can sign out" do
+    sign_in_as(users(:kiosk))
+    session = Current.session
+
+    delete session_path
+    assert_redirected_to new_session_path
+    assert_not Session.exists?(session.id)
+  end
+
+  test "kiosk user lands on the kiosk after login, whatever was requested" do
+    get members_path
+    post session_path, params: { username: "kiosk", password: "password" }
+
+    assert_redirected_to kiosk_root_url
+  end
+
+  test "staff still lands where they were going after login" do
+    get members_path
+    post session_path, params: { username: "staff", password: "password" }
+
+    assert_redirected_to members_url
+  end
+
   test "staff update of member is allowed" do
     sign_in_as(@staff)
     patch member_path(@member), params: { member: { phone: "3339998877" } }

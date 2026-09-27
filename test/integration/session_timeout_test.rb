@@ -35,18 +35,29 @@ class SessionTimeoutTest < ActionDispatch::IntegrationTest
     assert_equal members_url, session[:return_to_after_authenticating]
   end
 
-  test "kiosk is exempt from the idle timeout" do
-    get kiosk_root_path
-    assert @session.reload.kiosk?
+  test "kiosk user is exempt from the idle timeout" do
+    sign_in_as(users(:kiosk))
 
     travel Session::IDLE_TIMEOUT * 5
     get kiosk_root_path
     assert_response :success
   end
 
-  test "idle kiosk session cannot reach the admin UI" do
+  test "staff using the kiosk keeps the idle timeout" do
     get kiosk_root_path
+    assert_response :success
+
     travel Session::IDLE_TIMEOUT + 1.minute
+    get kiosk_root_path
+    assert_redirected_to new_session_path
+  end
+
+  test "idle session cannot be revived by opening the kiosk" do
+    travel Session::IDLE_TIMEOUT + 1.minute
+
+    get kiosk_root_path
+    assert_redirected_to new_session_path
+    assert_not Session.exists?(@session.id)
 
     get members_path
     assert_redirected_to new_session_path

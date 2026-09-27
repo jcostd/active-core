@@ -3,6 +3,7 @@ class SalesController < ApplicationController
 
   before_action :require_admin, only: :index
   before_action :set_sale, only: [ :show, :destroy ]
+  before_action :refuse_voided_receipt, only: :show, if: -> { request.format.pdf? }
 
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
 
@@ -66,6 +67,11 @@ class SalesController < ApplicationController
   private
     def set_sale
       @sale = Sale.find(params[:id])
+    end
+
+    # una ricevuta annullata non deve poter circolare come valida
+    def refuse_voided_receipt
+      redirect_to sale_path(@sale), alert: "Pagamento annullato: la ricevuta non è più stampabile." if @sale.discarded?
     end
 
     def draft(sale)

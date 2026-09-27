@@ -20,12 +20,19 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
   end
 
   test "accepts an idle kiosk session" do
-    @session.update_columns(kiosk: true)
-    cookies.signed[:session_id] = @session.id
+    kiosk = users(:kiosk).sessions.create!
+    cookies.signed[:session_id] = kiosk.id
     travel Session::IDLE_TIMEOUT + 1.minute
 
     connect
-    assert_equal users(:staff), connection.current_user
+    assert_equal users(:kiosk), connection.current_user
+  end
+
+  test "rejects a kiosk session unused for the kiosk timeout" do
+    kiosk = users(:kiosk).sessions.create!
+    cookies.signed[:session_id] = kiosk.id
+    travel Session::KIOSK_TIMEOUT + 1.day
+    assert_reject_connection { connect }
   end
 
   test "rejects a discarded user" do

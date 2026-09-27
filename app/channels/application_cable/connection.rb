@@ -9,7 +9,7 @@ module ApplicationCable
     private
       def set_current_user
         session = Session.find_resumable(cookies.signed[:session_id])
-        return if session.nil? || session.expired?(kiosk_request: session.kiosk?)
+        return if session.nil? || session.expired?
 
         self.current_user = session.user
       end

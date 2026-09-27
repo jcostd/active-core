@@ -29,9 +29,7 @@
     @<%= user.username %>
   </div>
 
-  <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-sm font-bold uppercase text-[10px]">
-    <%= user.role %>
-  </div>
+  <%= user_role_badge(user) %>
 <% end %>
 
 <% content_for :record_actions do %>
@@ -48,7 +46,7 @@
       <% end %>
     </li>
 
-    <% if current_user.admin? && user != current_user %>
+    <% if user.archivable_by?(current_user) %>
       <li>
 	<%= link_to user_path(user),
 		    class: "text-error hover:bg-error/10 hover:text-error",

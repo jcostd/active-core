@@ -27,11 +27,6 @@ FOREIGN KEY ("product_id")
 CREATE INDEX "index_product_disciplines_on_discipline_id" ON "product_disciplines" ("discipline_id");
 CREATE UNIQUE INDEX "index_product_disciplines_on_product_id_and_discipline_id" ON "product_disciplines" ("product_id", "discipline_id");
 CREATE INDEX "index_product_disciplines_on_product_id" ON "product_disciplines" ("product_id");
-CREATE TABLE IF NOT EXISTS "sessions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "ip_address" varchar, "updated_at" datetime(6) NOT NULL, "user_agent" varchar, "user_id" integer NOT NULL, "kiosk" boolean DEFAULT FALSE NOT NULL /*application='ActiveCore'*/, CONSTRAINT "fk_rails_758836b4f0"
-FOREIGN KEY ("user_id")
-  REFERENCES "users" ("id")
-);
-CREATE INDEX "index_sessions_on_user_id" ON "sessions" ("user_id");
 CREATE TABLE IF NOT EXISTS "schema_migrations" ("version" varchar NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS "ar_internal_metadata" ("key" varchar NOT NULL PRIMARY KEY, "value" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar NOT NULL, "first_name" varchar NOT NULL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "password_digest" varchar NOT NULL, "preferences" json DEFAULT '{}', "role" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "username" varchar NOT NULL);
@@ -74,7 +69,6 @@ CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acd
 CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sessions_on_updated_at" ON "sessions" ("updated_at") /*application='ActiveCore'*/;
 CREATE TABLE IF NOT EXISTS "access_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "checkin_by_user_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "entered_at" datetime(6) NOT NULL, "member_id" integer NOT NULL, "subscription_id" integer, "updated_at" datetime(6) NOT NULL, "discipline_id" integer, "status" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_df50081f1b"
 FOREIGN KEY ("subscription_id")
   REFERENCES "subscriptions" ("id")
@@ -129,7 +123,15 @@ CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
   INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
   VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
 END;
+CREATE TABLE IF NOT EXISTS "sessions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "ip_address" varchar, "updated_at" datetime(6) NOT NULL, "user_agent" varchar, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_758836b4f0"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+);
+CREATE INDEX "index_sessions_on_user_id" ON "sessions" ("user_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_sessions_on_updated_at" ON "sessions" ("updated_at") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260927100100'),
+('20260927100000'),
 ('20260926134753'),
 ('20260926133915'),
 ('20260926130432'),

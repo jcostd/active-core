@@ -3,6 +3,7 @@ require "test_helper"
 class User::FilterableTest < ActiveSupport::TestCase
   test "filters by role" do
     assert_equal [ users(:admin) ], User.apply_filters(role: "admin").to_a
+    assert_equal [ users(:kiosk) ], User.apply_filters(role: "kiosk").to_a
     assert_equal [ users(:staff), users(:staff_two) ].sort_by(&:id), User.apply_filters(role: "staff").sort_by(&:id)
   end
 

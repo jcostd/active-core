@@ -6,7 +6,7 @@ class Session < ApplicationRecord
   belongs_to :user
 
   scope :expired, -> {
-    where(kiosk: false, updated_at: ...IDLE_TIMEOUT.ago).or(where(updated_at: ...KIOSK_TIMEOUT.ago))
+    where(updated_at: ...IDLE_TIMEOUT.ago).where.not(user: User.kiosk).or(where(updated_at: ...KIOSK_TIMEOUT.ago))
   }
 
   def self.sweep = expired.delete_all
@@ -15,14 +15,13 @@ class Session < ApplicationRecord
     joins(:user).merge(User.kept).includes(:user).find_by(id:)
   end
 
-  def expired?(kiosk_request: false)
-    updated_at < (kiosk_request ? KIOSK_TIMEOUT : IDLE_TIMEOUT).ago
-  end
+  # l'iPad del kiosk resta collegato, tutti gli altri escono dopo un'ora di inattività
+  def timeout = user.kiosk? ? KIOSK_TIMEOUT : IDLE_TIMEOUT
+
+  def expired? = updated_at < timeout.ago
 
   # al massimo una scrittura ogni ACTIVITY_INTERVAL
-  def record_activity!(kiosk_request: false)
-    return if updated_at > ACTIVITY_INTERVAL.ago && (kiosk? || !kiosk_request)
-
-    update_columns(updated_at: Time.current, kiosk: kiosk? || kiosk_request)
+  def record_activity!
+    update_columns(updated_at: Time.current) unless updated_at > ACTIVITY_INTERVAL.ago
   end
 end

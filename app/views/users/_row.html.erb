@@ -19,9 +19,7 @@
       <% if user.discarded? %>
         <%= ui_badge("Archiviato") %>
       <% else %>
-        <div class="badge <%= user.admin? ? 'badge-primary' : 'badge-neutral' %> badge-xs font-bold uppercase text-[9px] opacity-80">
-          <%= user.role %>
-        </div>
+        <%= user_role_badge(user, size: "badge-xs") %>
       <% end %>
     </div>
 
@@ -38,7 +36,7 @@
     <div class="flex items-center gap-1 shrink-0">
       <%= ui_row_edit_button(edit_user_path(user)) %>
 
-      <% if current_user.admin? && user != current_user %>
+      <% if user.archivable_by?(current_user) %>
         <%= ui_row_delete_button(user, confirm: "Sei sicuro di voler archiviare questo utente?") %>
       <% end %>
     </div>

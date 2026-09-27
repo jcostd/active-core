@@ -2,6 +2,7 @@ class SessionsController < ApplicationController
   layout "unauthenticated"
 
   allow_unauthenticated_access only: %i[ new create ]
+  skip_before_action :confine_kiosk_user, only: :destroy
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Troppi tentativi, riprova più tardi." }
 
   def new

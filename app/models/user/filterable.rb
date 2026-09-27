@@ -37,6 +37,7 @@ module User::Filterable
       scope = case params[:role]
       when "admin" then scope.with_role(:admin)
       when "staff" then scope.with_role(:staff)
+      when "kiosk" then scope.with_role(:kiosk)
       else scope
       end
 

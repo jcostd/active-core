@@ -83,6 +83,74 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_equal "staff@asd.it", @staff.reload.email_address
   end
 
+  test "admin cannot archive the kiosk user" do
+    sign_in_as(@admin)
+
+    delete user_path(users(:kiosk))
+
+    assert users(:kiosk).reload.kept?
+    assert_equal "Impossibile archiviare utente.", flash[:alert]
+  end
+
+  test "users list offers no archive button for the kiosk user nor for oneself" do
+    sign_in_as(@admin)
+    get users_path
+
+    assert_select "a[data-turbo-method=delete][href='#{user_path(users(:kiosk))}']", count: 0
+    assert_select "a[data-turbo-method=delete][href='#{user_path(@admin)}']", count: 0
+    assert_select "a[data-turbo-method=delete][href='#{user_path(@staff)}']"
+  end
+
+  test "kiosk user page has no archive action and shows its role" do
+    sign_in_as(@admin)
+    get user_path(users(:kiosk))
+
+    assert_select "a", text: /Archivia Utente/, count: 0
+    assert_select ".badge", text: "Kiosk"
+  end
+
+  test "kiosk edit form has no role select" do
+    sign_in_as(@admin)
+    get edit_user_path(users(:kiosk))
+
+    assert_select "select[name='user[role]']", count: 0
+    assert_match "Utente fisso dell'iPad", response.body
+  end
+
+  test "role select offers only staff and admin" do
+    sign_in_as(@admin)
+    get edit_user_path(@staff)
+
+    assert_select "select[name='user[role]'] option", count: 2
+    assert_select "select[name='user[role]'] option[value=kiosk]", count: 0
+  end
+
+  test "admin cannot turn a user into the kiosk" do
+    sign_in_as(@admin)
+
+    patch user_path(@staff), params: { user: { role: "kiosk" } }
+
+    assert_response :unprocessable_entity
+    assert @staff.reload.staff?
+  end
+
+  test "admin cannot change the kiosk role" do
+    sign_in_as(@admin)
+
+    patch user_path(users(:kiosk)), params: { user: { role: "admin" } }
+
+    assert_response :unprocessable_entity
+    assert users(:kiosk).reload.kiosk?
+  end
+
+  test "admin sets the kiosk password" do
+    sign_in_as(@admin)
+
+    patch user_path(users(:kiosk)), params: { user: { password: "ipadsala", password_confirmation: "ipadsala" } }
+
+    assert users(:kiosk).reload.authenticate("ipadsala")
+  end
+
   test "admin can edit another user role" do
     sign_in_as(@admin)
 

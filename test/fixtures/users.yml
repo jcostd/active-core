@@ -23,3 +23,11 @@ staff_two:
   first_name: Giulia
   last_name: Collega
   role: 0 # staff
+
+kiosk:
+  email_address: kiosk@system.local
+  password_digest: <%= password_digest %>
+  username: kiosk
+  first_name: Kiosk
+  last_name: Accessi
+  role: 2 # kiosk
