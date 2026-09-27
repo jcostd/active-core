@@ -38,6 +38,17 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
     assert_equal few, many, "N+1 nel kiosk: #{few} query con 2 soci, #{many} con 10"
   end
 
+  test "discipline members page does not grow with members" do
+    sign_in_as(users(:staff))
+    enroll(2)
+    few = queries_for(discipline_members_path(@yoga))
+
+    enroll(8)
+    many = queries_for(discipline_members_path(@yoga))
+
+    assert_equal few, many, "N+1 negli iscritti: #{few} query con 2 soci, #{many} con 10"
+  end
+
   test "member subscriptions page does not grow with rows" do
     sign_in_as(users(:staff))
     member = members(:alice)

@@ -27,12 +27,4 @@ class Discipline < ApplicationRecord
 
   normalizes :name, with: ->(name) { ProperCase.title(name) }
   validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
-
-  def recent_subscriptions
-    subscriptions
-      .kept
-      .joins(:member).merge(Member.kept)
-      .where(subscriptions: { end_date: 30.days.ago.to_date.. })
-      .includes(:member, :product)
-  end
 end

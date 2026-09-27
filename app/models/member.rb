@@ -102,6 +102,13 @@ class Member < ApplicationRecord
       .min_by(&:start_date)
   end
 
+  # abbonamenti della disciplina che toccano il periodo; in memoria: chi li mostra li precarica
+  def enrollments_in(discipline, during:)
+    subscriptions
+      .select { it.kept? && it.start_date <= during.last && it.end_date >= during.first && it.product.disciplines.include?(discipline) }
+      .sort_by(&:start_date)
+  end
+
   def relevant_subscriptions(date = Date.current)
     subs = subscriptions.loaded? ? subscriptions.select(&:kept?) : subscriptions.kept.to_a
 

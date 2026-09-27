@@ -15,7 +15,6 @@
 
 class Subscription < ApplicationRecord
   include SoftDeletable, Monetizable
-  include Subscription::Filterable
 
   attr_accessor :reference_date
 
@@ -38,12 +37,9 @@ class Subscription < ApplicationRecord
 
   after_discard :discard_sales
 
-  scope :active,   -> { where(subscriptions: { start_date: ..Date.current, end_date: Date.current.. }) }
-  scope :expired,  -> { where(subscriptions: { end_date: ...Date.current }) }
-  scope :upcoming, -> { where(subscriptions: { start_date: (Date.current + 1.day).. }) }
-
   scope :active_at, ->(date) { kept.where(subscriptions: { start_date: ..date, end_date: date.. }) }
   scope :memberships, -> { joins(:product).merge(Product.associative) }
+  scope :overlapping, ->(period) { where(subscriptions: { start_date: ..period.last.to_date, end_date: period.first.to_date.. }) }
 
   # rinnovato: stesso socio, un altro abbonamento che parte e finisce dopo questo,
   # nella stessa disciplina (o stesso prodotto, o entrambe quote associative)

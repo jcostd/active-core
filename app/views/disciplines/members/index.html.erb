@@ -1,37 +1,49 @@
 <%= render "disciplines/context", discipline: @discipline %>
 
-<div class="items-center mb-6 mt-6">
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-6">
   <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("group", classes: "size-6 opacity-50") %> Registro Iscritti
+    <%= icon("group", classes: "size-6 opacity-50") %> Iscritti di <%= l(@month, format: "%B %Y") %>
   </h2>
+
+  <div class="join">
+    <%= link_to discipline_members_path(@discipline, request.query_parameters.except("page").merge(month: @month.prev_month.strftime("%Y-%m"))),
+                class: "btn btn-sm join-item", title: "Mese precedente" do %>
+      <%= icon("arrow_left") %>
+    <% end %>
+    <%= link_to "Questo mese", discipline_members_path(@discipline, request.query_parameters.except("month", "page")), class: "btn btn-sm join-item" %>
+    <%= link_to discipline_members_path(@discipline, request.query_parameters.except("page").merge(month: @month.next_month.strftime("%Y-%m"))),
+                class: "btn btn-sm join-item", title: "Mese successivo" do %>
+      <%= icon("arrow_right") %>
+    <% end %>
+  </div>
 </div>
 
-<%# --- FORM DI RICERCA E FILTRI --- %>
 <%= render layout: "shared/filter/form",
            locals: { url: discipline_members_path(@discipline), frame: "discipline_members_list", placeholder: "Cerca iscritto...",
-                     drawer_title: "Filtri Iscritti", default_sort: "recent",
-                     sort_options: [ [ "Scadenza: Imminenti", "expiring_asc" ], [ "Scadenza: Lontane", "expiring_desc" ], [ "Più recenti", "recent" ] ] } do |form| %>
-  <%= filter_select form, :product_id, @products.pluck(:name, :id), label: "Corso", blank: "Tutti i Corsi" %>
-  <%= filter_select form, :state, [ [ "Attive", "active" ], [ "Scadute", "expired" ], [ "Future", "upcoming" ] ], label: "Stato Iscrizione al Corso", blank: "Tutti gli stati" %>
+                     drawer_title: "Filtri Iscritti", default_sort: "name_asc",
+                     sort_options: [ [ "Nome: A-Z", "name_asc" ], [ "Nome: Z-A", "name_desc" ] ] } do |form| %>
+  <%= hidden_field_tag :month, params[:month] %>
+  <%= filter_select form, :product_id, @products.pluck(:name, :id), label: "Prodotto", blank: "Tutti i prodotti" %>
   <%= filter_select form, :membership_status, member_membership_filters, label: "Tesseramento", blank: "Qualsiasi" %>
   <%= filter_select form, :med_cert, member_med_cert_filters, label: "Certificato Medico", blank: "Qualsiasi" %>
 <% end %>
 
 <%= turbo_frame_tag "discipline_members_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:product_id, :sort, :state, :membership_status, :med_cert] %>
+  <%= render "shared/filter/active", filter_keys: [:product_id, :membership_status, :med_cert] %>
 
   <div class="mt-6">
     <% if @pagy.count == 0 %>
       <%= render "shared/empty_state",
                  icon_name: "filter_off",
-                 title: "Nessun socio trovato",
-                 message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
+                 title: "Nessun iscritto",
+                 message: "Nessun socio ha un abbonamento di questa disciplina in #{l(@month, format: "%B %Y")} con questi filtri." %>
     <% else %>
-
       <%= filtered_results_counter(@pagy) %>
 
-      <ul id="subscriptions" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-        <%= render partial: "disciplines/members/row", collection: @subscriptions, as: :subscription %>
+      <ul id="discipline_members" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+        <% @members.each do |member| %>
+          <%= render "disciplines/members/row", member:, enrollments: @enrollments.fetch(member), presences: @presences.fetch(member.id, 0) %>
+        <% end %>
       </ul>
 
       <%= render "shared/pagination" %>

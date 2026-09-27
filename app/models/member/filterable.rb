@@ -15,6 +15,13 @@ module Member::Filterable
       where.not(id: Subscription.memberships.kept.select(:member_id))
     }
 
+    # iscritti a una disciplina in un periodo: un abbonamento non annullato che lo tocca (pagina Iscritti e kiosk)
+    scope :enrolled_in, ->(discipline, during:, product_id: nil) {
+      enrollments = Subscription.kept.for_discipline(discipline).overlapping(during)
+      enrollments = enrollments.where(product_id:) if product_id.present?
+      where(id: enrollments.select(:member_id))
+    }
+
     scope :without_recent_checkin_for, ->(discipline) {
       where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
     }

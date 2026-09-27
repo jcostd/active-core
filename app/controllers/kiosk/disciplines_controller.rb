@@ -1,4 +1,7 @@
 class Kiosk::DisciplinesController < Kiosk::BaseController
+  # soci proposti all'appello: iscritti da due mesi fa a fine del mese prossimo, anche se da regolarizzare
+  KIOSK_WINDOW = -> { 2.months.ago.to_date.beginning_of_month..1.month.from_now.to_date.end_of_month }
+
   def index
     @disciplines = Discipline.kept.order(:name)
   end
@@ -13,14 +16,8 @@ class Kiosk::DisciplinesController < Kiosk::BaseController
                         .order(entered_at: :desc)
 
     @pending_members = Member.kept
-                         .joins(:subscriptions)
-                         .merge(Subscription.kept.for_discipline(@discipline))
-                         .where(subscriptions: {
-                                  end_date: 2.months.ago.beginning_of_month..,
-                                  start_date: ..1.month.from_now.end_of_month
-                                })
+                         .enrolled_in(@discipline, during: KIOSK_WINDOW.call)
                          .without_recent_checkin_for(@discipline)
-                         .distinct
                          .order(:first_name, :last_name)
                          .preload(subscriptions: { product: :disciplines }) # preload: tutti gli abbonamenti, quota compresa
                          .to_a

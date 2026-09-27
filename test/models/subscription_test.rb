@@ -81,12 +81,14 @@ class SubscriptionTest < ActiveSupport::TestCase
       start_date: today + 1.month, end_date: today + 2.months
     )
 
-    assert_includes Subscription.active, active
-    assert_not_includes Subscription.active, expired
-    assert_not_includes Subscription.active, upcoming
+    assert_equal [ active ], Subscription.active_at(today).where(id: [ active, expired, upcoming ]).to_a
 
-    assert_includes Subscription.expired, expired
-    assert_includes Subscription.upcoming, upcoming
+    this_month = today.all_month
+    assert_includes Subscription.overlapping(this_month), active
+    assert_not_includes Subscription.overlapping(today..today), upcoming
+    assert_includes Subscription.overlapping(today..(today + 2.months)), upcoming
+    assert_includes Subscription.overlapping((expired.end_date)..today), expired, "i bordi contano"
+    assert_not_includes Subscription.overlapping((expired.end_date + 1)..today), expired
   end
 
   test "admin override: prevents Duration calculator from modifying explicitly provided end_dates" do
