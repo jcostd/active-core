@@ -30,9 +30,31 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
           start_date: Date.current.next_month.beginning_of_month)
 
     get reports_path
-    cash = Sale.kept.where(payment_method: :cash, sold_on: Date.current.all_month).sum(:amount_cents) / 100.0
-    assert_in_delta cash, controller.instance_variable_get(:@monthly_total)
-    assert_operator cash, :>=, 10.0
+    cash = Sale.kept.where(payment_method: :cash, sold_on: Date.current.all_month).sum(:amount_cents)
+    assert_equal cash, controller.instance_variable_get(:@monthly_total_cents)
+    assert_operator cash, :>=, 1000
+  end
+
+  test "a backdated sale shows on its day as registered later" do
+    yesterday = Date.current - 1
+    sell!(member: @member, product: products(:yoga_monthly), user: users(:admin), amount: 7, agreed_price: 100, sold_on: yesterday)
+
+    get report_path("daily_cash", date: yesterday.iso8601)
+    assert_select "h2", text: "Registrate in seguito"
+    assert_match "7,00", response.body
+
+    get reports_path(month: yesterday.strftime("%Y-%m"))
+    assert_match "Registrate in seguito", response.body
+    assert_equal 700, controller.instance_variable_get(:@monthly_total_cents)
+  end
+
+  test "daily detail has no late section when every sale was registered on its day" do
+    sell!(member: @member, product: products(:yoga_monthly), amount: 10, agreed_price: 100)
+
+    get report_path("daily_cash", date: Date.current.iso8601)
+    assert_select "h2", text: "Registrate in seguito", count: 0
+    assert_select "h2", text: "Mattina"
+    assert_select "h2", text: "Pomeriggio"
   end
 
   test "invalid month falls back to the current month" do

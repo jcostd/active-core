@@ -13,96 +13,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+# incasso in contanti di un giorno contabile, diviso nei turni di mattina e pomeriggio
 class DailyCash
   SPLIT_HOUR = 14
+
   attr_reader :date
 
-  # sales: pagamenti già caricati (evita query), altrimenti li legge dal database
+  def self.for(date, sales: nil) = new(date, sales:)
+
+  # sales: i pagamenti in contanti del giorno già caricati, per non rifare la query
   def initialize(date = Date.current, sales: nil)
     @date = date
-    @preloaded_sales = sales
+    @sales = sales&.sort_by(&:created_at)
   end
 
-  def self.current
-    new(Date.current)
+  def sales
+    @sales ||= Sale.kept.where(sold_on: date, payment_method: :cash).order(:created_at).to_a
   end
 
-  def self.for(date, sales: nil)
-    new(date, sales:)
-  end
+  def morning_sales   = registered_on_the_day.select { it.created_at < split_time }
+  def afternoon_sales = registered_on_the_day.select { it.created_at >= split_time }
 
-  # --- INTERFACCIA PUBBLICA ---
+  # del giorno ma registrate un altro giorno (date retrodatate dall'admin): nel totale, in nessun turno
+  def late_sales = sales.reject { registered_on_the_day?(it) }
 
-  def morning_total
-    to_currency(morning_cents)
-  end
+  def morning_cents   = morning_sales.sum(&:amount_cents)
+  def afternoon_cents = afternoon_sales.sum(&:amount_cents)
+  def late_cents      = late_sales.sum(&:amount_cents)
+  def total_cents     = sales.sum(&:amount_cents)
 
-  def afternoon_total
-    to_currency(afternoon_cents)
-  end
-
-  def total
-    to_currency(total_cents)
-  end
-
-  def count
-    return @preloaded_sales.size if @preloaded_sales
-
-    base_scope.count
-  end
-
-  def empty?
-    count.zero?
-  end
-
-  def morning_sales
-    return filter_sales_in_memory { |s| s.created_at < split_time } if @preloaded_sales
-    base_scope.where("created_at < ?", split_time).order(:created_at)
-  end
-
-  def afternoon_sales
-    return filter_sales_in_memory { |s| s.created_at >= split_time } if @preloaded_sales
-    base_scope.where("created_at >= ?", split_time).order(:created_at)
-  end
-
-  # --- LOGICA DI AGGREGAZIONE MIGLIORATA ---
-
-  def morning_cents
-    if @preloaded_sales
-      return @preloaded_sales.select { |s| s.created_at < split_time }.sum(&:amount_cents)
-    end
-
-    @morning_cents ||= base_scope.where("created_at < ?", split_time).sum(:amount_cents)
-  end
-
-  def afternoon_cents
-    if @preloaded_sales
-      return @preloaded_sales.select { |s| s.created_at >= split_time }.sum(&:amount_cents)
-    end
-
-    @afternoon_cents ||= base_scope.where("created_at >= ?", split_time).sum(:amount_cents)
-  end
-
-  def total_cents
-    morning_cents + afternoon_cents
-  end
+  def count  = sales.size
+  def empty? = sales.empty?
 
   private
+    def registered_on_the_day
+      @registered_on_the_day ||= sales.select { registered_on_the_day?(it) }
+    end
 
-  def base_scope
-    Sale.kept.where(sold_on: @date, payment_method: :cash)
-  end
+    def registered_on_the_day?(sale)
+      sale.created_at.in_time_zone.to_date == date
+    end
 
-  def split_time
-    @split_time ||= @date.in_time_zone.change(hour: SPLIT_HOUR, min: 0, sec: 0)
-  end
-
-  def to_currency(cents)
-    return 0.0 unless cents
-    cents / 100.0
-  end
-
-  def filter_sales_in_memory(&block)
-    @preloaded_sales.select(&block).sort_by(&:created_at)
-  end
+    def split_time
+      @split_time ||= date.in_time_zone.change(hour: SPLIT_HOUR)
+    end
 end

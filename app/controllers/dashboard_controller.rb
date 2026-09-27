@@ -1,6 +1,6 @@
 class DashboardController < ApplicationController
   def index
-    @daily_cash = DailyCash.for(Date.current, sales: Sale.kept.where(sold_on: Date.current, payment_method: :cash).to_a)
+    @daily_cash = DailyCash.for(Date.current)
 
     @today_accesses_count = AccessLog.today.count
 

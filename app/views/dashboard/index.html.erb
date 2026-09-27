@@ -22,13 +22,13 @@
   <div class="stat">
     <div class="stat-figure text-success/50"><%= icon("sunny", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Mattina</div>
-    <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.morning_total) %></div>
+    <div class="stat-value text-xl md:text-2xl"><%= format_cents(@daily_cash.morning_cents) %></div>
   </div>
 
   <div class="stat">
     <div class="stat-figure text-success/50"><%= icon("moon", classes: "size-8") %></div>
     <div class="stat-title text-[0.65rem] font-bold uppercase tracking-widest opacity-60">Cash Pomeriggio</div>
-    <div class="stat-value text-xl md:text-2xl"><%= format_money(@daily_cash.afternoon_total) %></div>
+    <div class="stat-value text-xl md:text-2xl"><%= format_cents(@daily_cash.afternoon_cents) %></div>
   </div>
 
   <div class="stat">

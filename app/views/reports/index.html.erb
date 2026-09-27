@@ -1,6 +1,6 @@
 <% content_for :page_title, "Report Mensile" %>
 
-<% content_for :page_counter, "#{format_money(@monthly_total)} incassati" %>
+<% content_for :page_counter, "#{format_cents(@monthly_total_cents)} incassati" %>
 
 <% content_for :page_search_and_filters do %>
   <%= form_with url: reports_path,
