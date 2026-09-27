@@ -25,7 +25,7 @@
     <% end %>
 
   <% elsif [:expired, :expiring_soon].include?(status.key) %>
-    <%= link_to new_sale_path(member_id: subscription.member_id, renew_subscription_id: subscription.id),
+    <%= link_to renew_sale_path(subscription),
                 class: "ml-0.5 p-0.5 -mr-1.5 rounded-full hover:bg-current/20 text-current transition-colors focus:outline-none focus:ring-1 focus:ring-current",
                 data: { turbo_frame: "modal" }, title: "Rinnova al volo" do %>
       <%= icon("reset", classes: "size-4") %>

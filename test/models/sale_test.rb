@@ -592,7 +592,7 @@ class SaleTest < ActiveSupport::TestCase
   end
 
   test "staff can only move the start forward" do
-    proposed = Subscription.proposed_start_date(@member, @prod_inst)
+    proposed = @member.next_period_for(@prod_inst).start_date
 
     earlier = Sale.new(default_sale_params.deep_merge(subscription_attributes: { start_date: proposed - 1 }))
     assert_not earlier.valid?
@@ -603,7 +603,7 @@ class SaleTest < ActiveSupport::TestCase
   end
 
   test "admin can start earlier than proposed" do
-    proposed = Subscription.proposed_start_date(@member, @prod_inst)
+    proposed = @member.next_period_for(@prod_inst).start_date
     sale = Sale.new(default_sale_params.merge(user: users(:admin)).deep_merge(subscription_attributes: { start_date: proposed - 40 }))
     assert sale.valid?, sale.errors.full_messages.to_sentence
   end

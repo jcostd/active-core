@@ -68,8 +68,8 @@ class BusinessRulesTest < ActiveSupport::TestCase
     bob = members(:bob)
     Subscription.create!(member: bob, product: quota, start_date: Date.new(2024, 9, 1), end_date: Date.new(2025, 8, 31))
 
-    assert_equal Date.new(2025, 9, 1), bob.suggested_start_date_for(quota, Date.new(2025, 10, 1)), "30 giorni: continuità"
-    assert_equal Date.new(2025, 10, 2), bob.suggested_start_date_for(quota, Date.new(2025, 10, 2)), "31 giorni: si riparte"
+    assert_equal Date.new(2025, 9, 1), bob.next_period_for(quota, from: Date.new(2025, 10, 1)).start_date, "30 giorni: continuità"
+    assert_equal Date.new(2025, 10, 2), bob.next_period_for(quota, from: Date.new(2025, 10, 2)).start_date, "31 giorni: si riparte"
   end
 
   test "cash is split at 14:00" do
@@ -108,7 +108,7 @@ class BusinessRulesTest < ActiveSupport::TestCase
 
   test "staff may start exactly on the proposed date, not a day earlier" do
     course = Product.create!(name: "Corso 45 giorni", price_cents: 1000, duration_days: 45)
-    proposed = Subscription.proposed_start_date(@member, course)
+    proposed = @member.next_period_for(course).start_date
     build = ->(start) {
       Sale.new(member: @member, product: course, user: users(:staff), sold_on: Date.current,
                subscription_attributes: { member: @member, product: course, start_date: start, end_date: start + 44 })

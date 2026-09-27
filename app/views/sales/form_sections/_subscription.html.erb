@@ -26,7 +26,7 @@
           <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza (Modificabile)
           </label>
           <%= sub_f.date_field :start_date,
-                min: (Subscription.proposed_start_date(sale.member, sale.product) unless current_user.admin? || sale.member.nil? || sale.product.nil?),
+                min: (sale.member.next_period_for(sale.product).start_date unless current_user.admin? || sale.member.nil? || sale.product.nil?),
                 class: "input w-full", data: { action: "change->autosubmit#submit" } %>
         </fieldset>
 

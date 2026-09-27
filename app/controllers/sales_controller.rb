@@ -75,7 +75,7 @@ class SalesController < ApplicationController
     end
 
     def draft(sale)
-      context = params.permit(:member_id, :renew_subscription_id, :installment_for_subscription_id,
+      context = params.permit(:member_id, :installment_for_subscription_id,
                               :previous_member_id, :previous_product_id).to_h.symbolize_keys
 
       Sale::Draft.new(sale, **context, override_end_date: current_user.admin? && params[:override_end_date] == "1").sale

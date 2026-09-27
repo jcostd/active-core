@@ -146,9 +146,32 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@staff)
     old = @sale.subscription
 
-    get new_sale_path(member_id: @member.id, renew_subscription_id: old.id)
+    get renew_path_for(old)
     assert_response :success
     assert_select "input[name='sale[subscription_attributes][start_date]'][value='#{(old.end_date + 1).iso8601}']"
+    assert_select "select[name='sale[product_id]'] option[selected][value='#{old.product_id}']"
+    assert_select "input[name='sale[member_id]'][value='#{old.member_id}']"
+  end
+
+  test "renewal of an annual course expired within the grace period continues without a gap" do
+    sign_in_as(@staff)
+    annual = link!(Product.create!(name: "Yoga Annuale", price_cents: 30000, duration_days: 365), disciplines(:yoga))
+    old = Subscription.create!(member: @member, product: annual, start_date: Date.current - 375, end_date: Date.current - 11)
+
+    get renew_path_for(old)
+    assert_select "input[name='sale[subscription_attributes][start_date]'][value='#{(old.end_date + 1).iso8601}']"
+  end
+
+  test "renewing and selling the same product from scratch propose the same dates" do
+    sign_in_as(@staff)
+    old = @sale.subscription
+
+    get renew_path_for(old)
+    renewal = css_select("input[name='sale[subscription_attributes][start_date]']").first["value"]
+    get new_sale_path(sale: { member_id: @member.id, product_id: old.product_id })
+    fresh = css_select("input[name='sale[subscription_attributes][start_date]']").first["value"]
+
+    assert_equal renewal, fresh
   end
 
   test "installment form shows paid and remaining amounts" do
@@ -269,7 +292,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
     get new_sale_path(sale: { member_id: alice.id, product_id: @course.id })
     assert_select "input[name='sale[sold_on]'][readonly]"
-    assert_select "input[name='sale[subscription_attributes][start_date]'][min='#{Subscription.proposed_start_date(alice, @course).iso8601}']"
+    assert_select "input[name='sale[subscription_attributes][start_date]'][min='#{alice.next_period_for(@course).start_date.iso8601}']"
   end
 
   test "admin form keeps dates editable" do
@@ -317,4 +340,9 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
                                                        subscription_attributes: { end_date: forced.iso8601 } })
     assert_select "input[name='sale[subscription_attributes][end_date]'][value='#{forced.iso8601}']", count: 0
   end
+
+  private
+    def renew_path_for(subscription)
+      new_sale_path(sale: { member_id: subscription.member_id, product_id: subscription.product_id })
+    end
 end

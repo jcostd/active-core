@@ -19,7 +19,7 @@ module Sale::StaffLimits
     def staff_start_date
       return unless subscription&.new_record? && subscription.start_date && member && product
 
-      earliest = Subscription.proposed_start_date(member, product)
+      earliest = member.next_period_for(product).start_date
       errors.add(:subscription, "può iniziare al più presto il #{I18n.l(earliest)}") if subscription.start_date < earliest
     end
 

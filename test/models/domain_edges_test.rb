@@ -11,9 +11,22 @@ class DomainEdgesTest < ActiveSupport::TestCase
     assert_equal "2026/2027", SportYear.new(Date.new(2026, 9, 1)).to_s
   end
 
-  test "membership sold in august ends that august" do
+  test "membership sold in august covers the next sport year too" do
     d = Duration.for(products(:annual_membership), Date.new(2026, 8, 20))
-    assert_equal Date.new(2026, 8, 31), d.end_date
+    assert_equal Date.new(2027, 8, 31), d.end_date
+  end
+
+  test "membership sold on august first or september first" do
+    assert_equal Date.new(2027, 8, 31), Duration.for(products(:annual_membership), Date.new(2026, 8, 1)).end_date
+    assert_equal Date.new(2027, 8, 31), Duration.for(products(:annual_membership), Date.new(2026, 9, 1)).end_date
+  end
+
+  test "membership sold in july still ends that august" do
+    assert_equal Date.new(2026, 8, 31), Duration.for(products(:annual_membership), Date.new(2026, 7, 31)).end_date
+  end
+
+  test "courses sold in august are not extended" do
+    assert_equal Date.new(2026, 8, 31), Duration.for(products(:yoga_monthly), Date.new(2026, 8, 20)).end_date
   end
 
   test "monthly course in february handles leap years" do

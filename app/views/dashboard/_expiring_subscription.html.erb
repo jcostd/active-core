@@ -8,7 +8,7 @@
     </div>
   </div>
 
-  <%= link_to new_sale_path(member_id: sub.member_id, renew_subscription_id: sub.id),
+  <%= link_to renew_sale_path(sub),
 	      data: { turbo_frame: "modal" },
 	      class: "btn btn-sm btn-outline" do %>
     Rinnova

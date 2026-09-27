@@ -78,11 +78,16 @@ module SubscriptionsHelper
     return unless [ :expired, :expiring_soon ].include?(status.key.to_sym)
     return if subscription.renewed?
 
-    link_to new_sale_path(member_id: subscription.member_id, renew_subscription_id: subscription.id),
+    link_to renew_sale_path(subscription),
             class: "btn btn-square btn-sm btn-ghost text-info",
             data: { turbo_frame: "modal" }, title: "Rinnova Abbonamento" do
       icon("reset", classes: "size-5")
     end
+  end
+
+  # rinnovare è vendere di nuovo lo stesso prodotto: le date le propone il POS
+  def renew_sale_path(subscription)
+    new_sale_path(sale: { member_id: subscription.member_id, product_id: subscription.product_id })
   end
 
   def subscription_archive_action(subscription)

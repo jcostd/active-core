@@ -36,6 +36,12 @@ class Product < ApplicationRecord
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validate :terms_fixed_once_sold, on: :update
 
+  # prodotti che si rinnovano a vicenda: sé stesso, quelli con una disciplina in comune e, per una quota, tutte le quote
+  def same_line
+    line = Product.where(id:).or(Product.where(id: ProductDiscipline.where(discipline_id: product_disciplines.select(:discipline_id)).select(:product_id)))
+    associative? ? line.or(Product.associative) : line
+  end
+
   # categoria e durata decidono date e validità degli abbonamenti già venduti: dopo la prima vendita non cambiano
   def terms_locked?
     persisted? && subscriptions.exists?

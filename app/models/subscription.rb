@@ -81,11 +81,6 @@ class Subscription < ApplicationRecord
     joins(product: :disciplines).where(disciplines: { id: discipline.id })
   }
 
-  # inizio proposto dal POS: continuità col precedente, poi allineamento del prodotto
-  def self.proposed_start_date(member, product, date = Date.current)
-    Duration.for(product, member.suggested_start_date_for(product, date)).start_date
-  end
-
   def status
     @status ||= SubscriptionStatus.new(self)
   end
@@ -165,14 +160,12 @@ class Subscription < ApplicationRecord
 
       return if end_date.present?
 
-      if start_date.blank?
-        ref_date = self.reference_date || Array(sales).map(&:sold_on).compact.first || Date.current
-        self.start_date = member.suggested_start_date_for(product, ref_date)
+      period = if start_date
+        Duration.for(product, start_date)
+      else
+        member.next_period_for(product, from: reference_date || Array(sales).filter_map(&:sold_on).first || Date.current)
       end
-
-      duration        = Duration.for(product, start_date)
-      self.start_date = duration.start_date
-      self.end_date   = duration.end_date
+      self.start_date, self.end_date = period.start_date, period.end_date
     end
 
     def set_default_agreed_price

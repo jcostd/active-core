@@ -43,7 +43,7 @@ class SubscriptionsHelperTest < ActionView::TestCase
     expiring = Struct.new(:key).new(:expiring_soon)
     active   = Struct.new(:key).new(:active)
 
-    assert_match "renew_subscription_id=#{@sub.id}", subscription_renew_action(@sub, expiring)
+    assert_match CGI.escape("sale[product_id]") + "=#{@sub.product_id}", subscription_renew_action(@sub, expiring)
     assert_nil subscription_renew_action(@sub, active)
   end
 

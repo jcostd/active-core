@@ -33,6 +33,11 @@ class SportYear
     "#{@year}/#{@year + 1}"
   end
 
+  def next = SportYear.new(end_date + 1)
+
+  # agosto chiude l'anno: una quota venduta ora deve valere anche per il successivo
+  def last_month?(date = @date) = date.month == 8
+
   def self.current
     new(Date.current)
   end

@@ -22,8 +22,10 @@ Duration = Data.define(:start_date, :end_date) do
     product.associative? ? associative(date) : institutional(product, date)
   end
 
+  # da agosto la quota copre anche l'anno sportivo successivo: per un solo mese sarebbe uno spreco
   private_class_method def self.associative(date)
-    { start_date: date, end_date: SportYear.end_date_for(date) }
+    year = SportYear.new(date)
+    { start_date: date, end_date: (year.last_month? ? year.next : year).end_date }
   end
 
   # mesi e semestri restano nell'anno sportivo; trimestri e anno a scorrimento no

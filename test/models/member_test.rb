@@ -53,30 +53,83 @@ class MemberTest < ActiveSupport::TestCase
 
   # --- RINNOVI E VALIDITÀ ---
 
-  test "suggested start continues after the last subscription within the grace period" do
+  test "next period continues after the last subscription within the grace period" do
     alice = members(:alice)
     quota = products(:annual_membership)
     Subscription.create!(member: alice, product: quota, start_date: Date.new(2025, 9, 1), end_date: Date.new(2026, 8, 31))
 
-    assert_equal Date.new(2026, 9, 1), alice.suggested_start_date_for(quota, Date.new(2026, 9, 20))
-    assert_equal Date.new(2026, 9, 1), alice.suggested_start_date_for(quota, Date.new(2026, 8, 10)), "rinnovo anticipato"
+    assert_equal Date.new(2026, 9, 1), alice.next_period_for(quota, from: Date.new(2026, 9, 20)).start_date
+    assert_equal Date.new(2026, 9, 1), alice.next_period_for(quota, from: Date.new(2026, 8, 10)).start_date, "rinnovo anticipato"
   end
 
-  test "suggested start resets to the reference date after the grace period" do
+  test "next period restarts from the given day after the grace period" do
     alice = members(:alice)
     quota = products(:annual_membership)
     Subscription.create!(member: alice, product: quota, start_date: Date.new(2024, 9, 1), end_date: Date.new(2025, 8, 31))
 
-    reference = Date.new(2025, 8, 31) + Member::RENEWAL_GRACE_PERIOD + 2
-    assert_equal reference, alice.suggested_start_date_for(quota, reference)
+    from = Date.new(2025, 8, 31) + Member::RENEWAL_GRACE_PERIOD + 2
+    assert_equal from, alice.next_period_for(quota, from:).start_date
   end
 
-  test "suggested start ignores discarded subscriptions" do
+  test "next period ignores discarded subscriptions" do
     alice = members(:alice)
     quota = products(:annual_membership)
     Subscription.create!(member: alice, product: quota, start_date: Date.new(2025, 9, 1), end_date: Date.new(2026, 8, 31)).discard!
 
-    assert_equal Date.new(2026, 9, 20), alice.suggested_start_date_for(quota, Date.new(2026, 9, 20))
+    assert_equal Date.new(2026, 9, 20), alice.next_period_for(quota, from: Date.new(2026, 9, 20)).start_date
+  end
+
+  test "next period continues within the same discipline, even changing product" do
+    alice = members(:alice)
+    monthly   = link!(products(:yoga_monthly), disciplines(:yoga))
+    quarterly = link!(Product.create!(name: "Yoga Trimestrale", price_cents: 12000, duration_days: 90), disciplines(:yoga))
+    Subscription.create!(member: alice, product: monthly, start_date: Date.new(2026, 9, 1), end_date: Date.new(2026, 9, 30))
+
+    period = alice.next_period_for(quarterly, from: Date.new(2026, 10, 15))
+    assert_equal [ Date.new(2026, 10, 1), Date.new(2026, 12, 31) ], [ period.start_date, period.end_date ]
+  end
+
+  test "next period does not continue across disciplines" do
+    alice = members(:alice)
+    boxe = link!(Product.create!(name: "Boxe Annuale", price_cents: 30000, duration_days: 365),
+                 Discipline.create!(name: "Boxe"))
+    yoga = link!(Product.create!(name: "Yoga Annuale", price_cents: 30000, duration_days: 365), disciplines(:yoga))
+    Subscription.create!(member: alice, product: boxe, start_date: Date.new(2025, 9, 10), end_date: Date.new(2026, 9, 9))
+
+    assert_equal Date.new(2026, 9, 20), alice.next_period_for(yoga, from: Date.new(2026, 9, 20)).start_date
+    assert_equal Date.new(2026, 9, 10), alice.next_period_for(boxe, from: Date.new(2026, 9, 20)).start_date
+  end
+
+  test "a course does not continue a membership and vice versa" do
+    alice = members(:alice)
+    Subscription.create!(member: alice, product: products(:annual_membership), start_date: Date.new(2025, 9, 1), end_date: Date.new(2026, 8, 31))
+
+    assert_equal Date.new(2026, 9, 1), alice.next_period_for(products(:yoga_monthly), from: Date.new(2026, 9, 20)).start_date,
+                 "il mensile si allinea al mese, non alla quota"
+    assert_equal Date.new(2026, 9, 20), alice.next_period_for(link!(Product.create!(name: "Yoga Annuale", price_cents: 1, duration_days: 365), disciplines(:yoga)),
+                                                              from: Date.new(2026, 9, 20)).start_date
+  end
+
+  test "any membership product continues any other membership" do
+    alice = members(:alice)
+    Subscription.create!(member: alice, product: products(:annual_membership), start_date: Date.new(2025, 9, 1), end_date: Date.new(2026, 8, 31))
+    reduced = Product.create!(name: "Quota Ridotta", price_cents: 1000, duration_days: 365, accounting_category: :associative)
+
+    assert_equal Date.new(2026, 9, 1), alice.next_period_for(reduced, from: Date.new(2026, 9, 10)).start_date
+  end
+
+  test "next period queues after an already bought future subscription" do
+    alice = members(:alice)
+    course = products(:yoga_monthly)
+    Subscription.create!(member: alice, product: course, start_date: Date.new(2026, 9, 1), end_date: Date.new(2026, 9, 30))
+    Subscription.create!(member: alice, product: course, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 31))
+
+    assert_equal Date.new(2026, 11, 1), alice.next_period_for(course, from: Date.new(2026, 9, 15)).start_date
+  end
+
+  test "august membership lasts until the end of the next sport year" do
+    period = members(:bob).next_period_for(products(:annual_membership), from: Date.new(2026, 8, 20))
+    assert_equal [ Date.new(2026, 8, 20), Date.new(2027, 8, 31) ], [ period.start_date, period.end_date ]
   end
 
   test "membership_valid? agrees whether subscriptions are loaded or not" do

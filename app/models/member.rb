@@ -53,18 +53,15 @@ class Member < ApplicationRecord
     errors.add(:fiscal_code, "non è valido: controlla lettere, cifre e carattere finale") unless FiscalCode.valid?(fiscal_code)
   end
 
-  def suggested_start_date_for(product, reference_date = Date.current, last_sub: nil)
-    reference_date = reference_date.to_date
-    last_sub     ||= subscriptions.kept
-                       .where(product:)
-                       .order(subscriptions: { end_date: :desc })
-                       .first
+  # l'unica risposta a "da quando parte il prossimo abbonamento a product?": dal giorno dopo l'ultimo
+  # della stessa linea se non è scaduto da più di RENEWAL_GRACE_PERIOD giorni, altrimenti da from;
+  # poi il prodotto allinea le date (mese solare, anno sportivo...)
+  def next_period_for(product, from: Date.current)
+    from = from.to_date
+    previous_end = subscriptions.kept.where(product: product.same_line).maximum(:end_date)
+    continues = previous_end && (from - previous_end.next_day).to_i <= RENEWAL_GRACE_PERIOD
 
-    return reference_date unless last_sub && last_sub.end_date
-
-    continuity_date = last_sub.end_date.next_day
-    gap_days        = (reference_date - continuity_date).to_i
-    gap_days <= RENEWAL_GRACE_PERIOD ? continuity_date : reference_date
+    Duration.for(product, continues ? previous_end.next_day : from)
   end
 
   def medical_certificate_valid?(date = Date.current)

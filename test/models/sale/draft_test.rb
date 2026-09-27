@@ -26,21 +26,23 @@ class Sale::DraftTest < ActiveSupport::TestCase
     assert_equal @member.id, sale.member_id
   end
 
-  test "renewal starts the day after the old subscription" do
+  test "a sale of the same product starts the day after the old subscription" do
     old = Subscription.create!(member: @member, product: @course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
 
-    sale = build(renew_subscription_id: old.id)
+    sale = build(sale: { member_id: @member.id, product_id: @course.id })
 
-    assert_equal @course.id, sale.product_id
-    assert_equal @member.id, sale.member_id
     assert_equal old.end_date + 1, sale.subscription.start_date
   end
 
-  test "renewal of an expired subscription starts from today" do
+  test "after the grace period a sale starts from today" do
     old = Subscription.create!(member: @member, product: @course, start_date: 3.months.ago.beginning_of_month.to_date, end_date: 3.months.ago.end_of_month.to_date)
 
-    sale = build(renew_subscription_id: old.id)
+    sale = build(sale: { member_id: @member.id, product_id: @course.id })
     assert_equal Date.current.beginning_of_month, sale.subscription.start_date
+  end
+
+  test "the renew context is gone: an unknown key is rejected" do
+    assert_raises(ArgumentError) { Sale::Draft.new(Sale.new, renew_subscription_id: 1) }
   end
 
   test "installment reuses the subscription and proposes the remaining due" do
@@ -101,7 +103,7 @@ class Sale::DraftTest < ActiveSupport::TestCase
     sale = build(sale: { member_id: @member.id, product_id: @course.id, subscription_attributes: { start_date: stale_start.iso8601 } },
                  previous_product_id: quota.id, previous_member_id: @member.id)
 
-    assert_equal Subscription.proposed_start_date(@member, @course), sale.subscription.start_date
+    assert_equal @member.next_period_for(@course).start_date, sale.subscription.start_date
   end
 
   test "end date is recomputed unless overridden" do
@@ -110,9 +112,9 @@ class Sale::DraftTest < ActiveSupport::TestCase
     assert_not_equal finish, sale.subscription.end_date
   end
 
-  test "renewal of a far future subscription snaps to month start" do
+  test "continuation of a monthly course lasts the whole next month" do
     old = Subscription.create!(member: @member, product: @course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
-    sale = build(renew_subscription_id: old.id)
+    sale = build(sale: { member_id: @member.id, product_id: @course.id })
     assert_equal old.end_date + 1, sale.subscription.start_date
     assert_equal (old.end_date + 1).end_of_month, sale.subscription.end_date
   end
