@@ -12,25 +12,42 @@ class SubscriptionsHelperTest < ActionView::TestCase
   def current_user = @current_user || users(:staff)
 
   test "every subscription status has a style" do
-    %i[pending_payment expired future expiring_soon active].each do |key|
+    %i[expired future expiring_soon active].each do |key|
       status = Struct.new(:key, :label).new(key, "x")
       assert subscription_status_badge(status).present?, key
     end
   end
 
-  test "status badge shows the italian label with literal classes" do
-    html = subscription_status_badge(@sub.status)
-    assert_match "Da Saldare", html
-    assert_match "badge-error", html
-    assert_match 'class="p-2 rounded-box bg-error/10 text-error"', subscription_status_icon(@sub.status)
+  test "status badge shows the period with literal classes, never the payment" do
+    @sub.update_columns(start_date: Date.current - 1, end_date: Date.current + 20)
+    html = subscription_status_badge(@sub.reload.status)
+    assert_match "Attivo", html
+    assert_match "badge-success", html
+    assert_no_match "saldare", html
+    assert_match 'class="p-2 rounded-box bg-success/10 text-success"', subscription_status_icon(@sub.status)
   end
 
-  test "payment badge" do
-    assert_match "Da saldare", subscription_payment_badge(@sub, @sub.amount_due)
-    assert_match "Saldato", subscription_payment_badge(@sub, 0)
+  test "payment badge shows what is due while running" do
+    @sub.update_columns(start_date: Date.current - 1, end_date: Date.current + 20)
+    html = subscription_payment_badge(@sub.reload)
+    assert_match "Da saldare #{format_cents(@sub.amount_due)}", html
+    assert_match "badge-warning", html
+  end
 
-    @sub.agreed_price_cents = 0
-    assert_nil subscription_payment_badge(@sub, 0)
+  test "payment badge calls an expired debt insoluto" do
+    @sub.update_columns(start_date: Date.current - 60, end_date: Date.current - 30)
+    html = subscription_payment_badge(@sub.reload)
+    assert_match "Insoluto #{format_cents(@sub.amount_due)}", html
+    assert_match "badge-error", html
+  end
+
+  test "payment badge for paid and free subscriptions" do
+    @sub.update_columns(agreed_price_cents: 1000)
+    assert_match "Saldato", subscription_payment_badge(@sub.reload)
+    assert_no_match "€", subscription_payment_badge(@sub)
+
+    @sub.update_columns(agreed_price_cents: 0)
+    assert_nil subscription_payment_badge(@sub.reload)
   end
 
   test "installment action only when something is due" do

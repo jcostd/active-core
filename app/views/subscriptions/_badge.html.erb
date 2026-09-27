@@ -1,2 +1,3 @@
 <%# locals: (subscription:) %>
 <%= subscription_status_badge(subscription.status) %>
+<%= subscription_payment_badge(subscription) unless subscription.fully_paid? %>

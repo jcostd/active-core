@@ -29,6 +29,7 @@ class Subscription < ApplicationRecord
   validates :start_date, :end_date, presence: true
   validates :agreed_price_cents, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validate :end_date_after_start_date
+  validate :agreed_price_covers_payments, on: :update, if: :will_save_change_to_agreed_price_cents?
 
   before_validation :apply_business_rules,     on: :create
   before_validation :set_default_agreed_price, on: :create
@@ -188,6 +189,14 @@ class Subscription < ApplicationRecord
            .exists?
         errors.add(:base, "Già un abbonamento per '#{product.name}' in queste date.")
       end
+    end
+
+    # abbuono: il prezzo si abbassa per chiudere un debito, mai sotto quanto già incassato
+    def agreed_price_covers_payments
+      return unless agreed_price_cents && agreed_price_cents < amount_paid
+
+      errors.add(:agreed_price, "non può essere inferiore a quanto già incassato " \
+                                "(#{ActiveSupport::NumberHelper.number_to_currency(amount_paid / 100.0)})")
     end
 
     def end_date_after_start_date

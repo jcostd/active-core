@@ -19,10 +19,29 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
     assert_equal [ :active, "Attivo" ], [ s.key, s.label ]
   end
 
-  test "pending payment wins over everything" do
+  test "the period ignores payments" do
     s = status_for(start_date: Date.current - 1, end_date: Date.current + 20, paid: false)
-    assert_equal :pending_payment, s.key
-    assert_equal "Da Saldare", s.label
+    assert_equal [ :active, "Attivo" ], [ s.key, s.label ]
+  end
+
+  test "unpaid while running is due" do
+    s = status_for(start_date: Date.current - 1, end_date: Date.current + 20, paid: false)
+    assert_equal [ :due, "Da saldare" ], [ s.payment_key, s.payment_label ]
+  end
+
+  test "unpaid and expired is expired with an overdue debt, not due forever" do
+    s = status_for(start_date: Date.current - 40, end_date: Date.current - 1, paid: false)
+    assert_equal :expired, s.key
+    assert_equal [ :overdue, "Insoluto" ], [ s.payment_key, s.payment_label ]
+  end
+
+  test "unpaid future subscription is due" do
+    assert_equal :due, status_for(start_date: Date.current + 3, end_date: Date.current + 30, paid: false).payment_key
+  end
+
+  test "paid is paid in every period" do
+    assert_equal :paid, status_for(start_date: Date.current - 40, end_date: Date.current - 1).payment_key
+    assert_equal :paid, status_for(start_date: Date.current, end_date: Date.current + 20).payment_key
   end
 
   test "expired by date" do
@@ -47,10 +66,16 @@ class SubscriptionStatusTest < ActiveSupport::TestCase
   end
 
   test "every key has an italian label" do
-    %i[pending_payment expired future expiring_soon active].each do |key|
+    %i[expired future expiring_soon active].each do |key|
       s = SubscriptionStatus.new(nil)
       s.define_singleton_method(:key) { key }
       assert s.label.present?, key
+    end
+
+    %i[paid due overdue].each do |key|
+      s = SubscriptionStatus.new(nil)
+      s.define_singleton_method(:payment_key) { key }
+      assert s.payment_label.present?, key
     end
   end
 end

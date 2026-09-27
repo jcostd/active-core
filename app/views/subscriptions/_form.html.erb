@@ -44,6 +44,21 @@
     </div>
   </fieldset>
 
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
+      <%= icon("payments", classes: "size-4") %> Prezzo Concordato
+    </legend>
+
+    <label class="input w-full">
+      <%= icon("euro_symbol", classes: "size-4 opacity-50") %>
+      <%= f.text_field :agreed_price, value: number_with_precision(subscription.agreed_price, precision: 2, separator: ",", delimiter: ""),
+                                      inputmode: "decimal", autocomplete: "off", class: "grow" %>
+    </label>
+    <p class="label whitespace-normal">
+      Già incassati <%= format_cents(subscription.amount_paid) %>. Abbassarlo chiude il debito residuo (abbuono): non restituisce denaro.
+    </p>
+  </fieldset>
+
   <!-- Begin Actions -->
   <div class="modal-action">
     <%= f.submit "Salva",

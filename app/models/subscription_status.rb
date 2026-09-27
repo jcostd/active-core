@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+# due dimensioni distinte: il periodo (key) e il pagamento (payment_key).
+# Uno scaduto non saldato è "Scaduto" con un insoluto, non "Da saldare" per sempre.
 class SubscriptionStatus
   attr_reader :subscription
 
@@ -21,9 +23,7 @@ class SubscriptionStatus
   end
 
   def key
-    if !subscription.fully_paid?
-      :pending_payment
-    elsif subscription.expired?
+    if subscription.expired?
       :expired
     elsif subscription.future?
       :future
@@ -36,11 +36,26 @@ class SubscriptionStatus
 
   def label
     case key
-    when :pending_payment then "Da Saldare"
-    when :expired         then "Scaduto"
-    when :future          then "Futuro"
-    when :expiring_soon   then "In Scadenza"
-    when :active          then "Attivo"
+    when :expired       then "Scaduto"
+    when :future        then "Futuro"
+    when :expiring_soon then "In Scadenza"
+    when :active        then "Attivo"
+    end
+  end
+
+  def payment_key
+    if subscription.fully_paid?
+      :paid
+    else
+      subscription.expired? ? :overdue : :due
+    end
+  end
+
+  def payment_label
+    case payment_key
+    when :paid    then "Saldato"
+    when :due     then "Da saldare"
+    when :overdue then "Insoluto"
     end
   end
 end

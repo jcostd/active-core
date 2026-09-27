@@ -1,12 +1,13 @@
 module SubscriptionsHelper
   # unica fonte di icone e colori; classi scritte per intero perché Tailwind le trovi
   SUBSCRIPTION_STATUS_STYLES = {
-    pending_payment: { icon: "payments",               badge: "badge-error",   tint: "bg-error/10 text-error" },
     expired:         { icon: "history",                badge: "badge-neutral", tint: "bg-neutral/10 text-neutral" },
     future:          { icon: "calendar_today",         badge: "badge-info",    tint: "bg-info/10 text-info" },
     expiring_soon:   { icon: "notification_important", badge: "badge-warning", tint: "bg-warning/10 text-warning" },
     active:          { icon: "success",                badge: "badge-success", tint: "bg-success/10 text-success" }
   }.freeze
+
+  SUBSCRIPTION_PAYMENT_STYLES = { paid: "badge-success", due: "badge-warning", overdue: "badge-error" }.freeze
 
   def subscription_status_style(status)
     SUBSCRIPTION_STATUS_STYLES.fetch(status.key)
@@ -32,14 +33,13 @@ module SubscriptionsHelper
     content_tag(:li, id: dom_id(subscription), class: classes, &block)
   end
 
-  def subscription_payment_badge(subscription, amount_due)
+  # "Da saldare 20,00 €", "Insoluto 20,00 €" o "Saldato"; niente per ciò che è gratuito
+  def subscription_payment_badge(subscription)
     return if subscription.agreed_price_cents.to_i <= 0
 
-    if amount_due > 0
-      content_tag(:span, "Da saldare", class: "badge badge-sm badge-soft badge-warning")
-    else
-      content_tag(:span, "Saldato", class: "badge badge-sm badge-soft badge-success")
-    end
+    status = subscription.status
+    text = [ status.payment_label, (format_cents(subscription.amount_due) unless status.payment_key == :paid) ].compact.join(" ")
+    tag.span text, class: [ "badge badge-sm badge-soft", SUBSCRIPTION_PAYMENT_STYLES.fetch(status.payment_key) ]
   end
 
   def subscription_days_left_indicator(subscription, status)

@@ -1,14 +1,16 @@
 <%# locals: (subscription:) %>
 <% status = subscription.status %>
+<% due = !subscription.fully_paid? %>
 
-<div class="badge badge-soft gap-1.5 font-semibold <%= subscription_status_style(status)[:badge] %>">
+<div class="badge badge-soft gap-1.5 font-semibold <%= due ? SubscriptionsHelper::SUBSCRIPTION_PAYMENT_STYLES.fetch(status.payment_key) : subscription_status_style(status)[:badge] %>"
+     title="<%= [ status.label, (status.payment_label if due) ].compact.join(" · ") %>">
 
   <span class="truncate max-w-[120px]" title="<%= subscription.product.name %>">
     <%= subscription.product.name %>
   </span>
 
   <span class="flex items-center gap-1 opacity-90">
-    <% if status.key == :pending_payment %>
+    <% if due %>
       -<%= format_cents(subscription.amount_due) %>
     <% elsif subscription.days_left %>
       <%= subscription.days_left %>gg
@@ -17,7 +19,7 @@
     <% end %>
   </span>
 
-  <% if status.key == :pending_payment %>
+  <% if due %>
     <%= link_to new_sale_path(member_id: subscription.member_id, installment_for_subscription_id: subscription.id),
                 class: "ml-0.5 p-0.5 -mr-1.5 rounded-full hover:bg-current/20 text-current transition-colors focus:outline-none focus:ring-1 focus:ring-current",
                 data: { turbo_frame: "modal" }, title: "Incassa Rata" do %>
