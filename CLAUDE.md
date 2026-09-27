@@ -17,7 +17,7 @@ bin/ci                 # full CI suite: setup, rubocop, bundler-audit, importmap
 bin/rails test                                  # run all Minitest tests
 bin/rails test test/models/subscription_test.rb                 # run one file
 bin/rails test test/models/subscription_test.rb:20              # run one test at that line
-bin/rails test:system  # Capybara/Selenium system tests
+bin/rails test:system  # Capybara/Selenium system tests (SYSTEM_BROWSER=headless_firefox where Chrome is missing)
 bin/rubocop             # lint (Omakase style, rubocop-rails-omakase)
 bin/rubocop -A          # autocorrect
 bin/brakeman --no-pager # static security analysis
@@ -54,7 +54,7 @@ Database is SQLite with `schema_format: :sql` for the primary db (`db/structure.
 - `FtsSearchable` — `search_text(query)` joins against a SQLite FTS5 shadow table (`#{table}_fts`) for full-text search (used by `Member`).
 - `Refreshable` — Turbo Stream broadcasting (`broadcasts_refreshes` + broadcast to the plural collection channel) for live UI updates.
 - `Personable`, `HasAddress`, `Avatarable` — shared field normalization/validation for person-like and addressable records.
-- Per-model `Filterable` concerns (e.g. `Member::Filterable`, `Subscription::Filterable`) hold query scopes and an `apply_filters(params)` class method; controllers delegate filtering/sorting to these rather than building scopes inline.
+- Per-model `Filterable` concerns (e.g. `Member::Filterable`, `Sale::Filterable`) hold query scopes and an `apply_filters(params)` class method; controllers delegate filtering/sorting to these rather than building scopes inline. Filter scopes return nil (= `all`) when their param is blank or unknown, so `apply_filters` is a plain chain; ordering goes through `Sortable` + a `SORTS` hash per model (first entry = default).
 
 ### Controllers
 
