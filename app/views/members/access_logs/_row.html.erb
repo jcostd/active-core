@@ -2,25 +2,20 @@
 
 <li id="<%= dom_id(log) %>" class="list-row group hover:bg-base-200/50 transition-colors">
 
-  <%# -- Colonna 1: Icona Entrata Dinamica -- %>
   <div class="shrink-0 self-start sm:self-center mt-1 sm:mt-0">
     <%= access_log_status_icon(log) %>
   </div>
 
-  <%# -- Colonna 2: Dettagli Accesso -- %>
   <div class="flex flex-col gap-1 min-w-0 grow">
 
-    <%# Nome Attività / Disciplina %>
     <div class="font-bold truncate text-base leading-none">
       <%= access_log_activity_name(log) %>
     </div>
 
-    <%# Data, Ora e Info Abbonamento %>
     <div class="text-[11px] font-medium opacity-70 flex flex-wrap items-center gap-1.5 mt-0.5">
       <%= icon("clock", classes: "size-3") %>
       <span class="font-mono font-bold"><%= format_datetime(log.entered_at, format: "%d/%m/%Y %H:%M") %></span>
 
-      <%# Se c'è un abbonamento collegato, lo mostriamo per contesto %>
       <% if log.subscription.present? %>
         <span class="opacity-50 mx-1">&bull;</span>
         <%= icon("card_membership", classes: "size-3 opacity-70") %>
@@ -32,7 +27,6 @@
 
   </div>
 
-  <%# -- Colonna 3: Stato Dinamico -- %>
   <div class="shrink-0 self-start sm:self-center">
     <%= access_log_status_badge(log) %>
   </div>

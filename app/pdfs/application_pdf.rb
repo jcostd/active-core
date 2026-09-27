@@ -2,7 +2,6 @@ class ApplicationPdf < Prawn::Document
   include ActionView::Helpers::NumberHelper
   include ActionView::Helpers::TranslationHelper
 
-  # --- PALETTE COLORI & COSTANTI (Invariate) ---
   COLOR_PRIMARY       = "333333"
   COLOR_SECONDARY     = "777777"
   COLOR_ACCENT        = "000000"

@@ -4,7 +4,6 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
-  <%# --- COLONNA SINISTRA: CREDENZIALI --- %>
   <div class="lg:col-span-1">
     <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
       <%= icon("badge", classes: "size-4") %> Credenziali
@@ -32,10 +31,8 @@
     </ul>
   </div>
 
-  <%# --- COLONNA DESTRA: OPERATIVITÀ --- %>
   <div class="lg:col-span-2 flex flex-col gap-8">
 
-    <%# STATISTICHE %>
     <div>
       <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
         <%= icon("monitoring", classes: "size-4") %> Performance
@@ -49,7 +46,6 @@
       </div>
     </div>
 
-    <%# AUDIT LOG %>
     <div>
       <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
         <%= icon("fingerprint", classes: "size-4") %> Audit Log

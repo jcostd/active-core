@@ -1,7 +1,6 @@
 <div class="drawer-side z-50">
   <label for="main-drawer" aria-label="Close menu" class="drawer-overlay"></label>
 
-  <%# Sidebar integrata: bg-base-200 (o trasparente per fondersi col body) senza bordi laterali %>
   <aside class="bg-base-200 text-base-content flex flex-col min-h-screen w-72">
 
     <div class="flex h-16 shrink-0 items-center gap-3 px-6">
@@ -9,7 +8,6 @@
       <span class="text-xl font-bold tracking-tight">ActiveCore</span>
     </div>
 
-    <%# CORPO CENTRALE %>
     <nav class="flex-1 overflow-y-auto w-full px-2 py-4">
       <% if current_user.admin? %>
         <%= render "shared/sidebar/admin" %>
@@ -18,7 +16,6 @@
       <% end %>
     </nav>
 
-    <%# FOOTER: Fuso dolcemente, senza bordi netti %>
     <div class="shrink-0 p-4 mb-2">
       <%= link_to new_feedback_path(current_page: request.original_url),
             class: "btn btn-ghost btn-sm w-full justify-start gap-3 text-base-content/70",

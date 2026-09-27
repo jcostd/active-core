@@ -1,14 +1,12 @@
 <%= turbo_stream_from @member %>
 <%= render "members/context", member: @member %>
 
-<%# --- HEADER SEZIONE --- %>
 <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
   <h2 class="text-xl font-bold flex items-center gap-2">
     <%= icon("card_membership", classes: "size-6 opacity-50") %> Storico Abbonamenti
   </h2>
 </div>
 
-<%# --- LISTA ABBONAMENTI --- %>
 <div id="member_subscriptions_list">
   <% if @subscriptions.empty? %>
     <%= render "shared/empty_state",

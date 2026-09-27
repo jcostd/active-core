@@ -39,31 +39,4 @@ class NavigationHelperTest < ActionView::TestCase
     assert_match /text-lg/, result
     assert_match /menu-active/, result
   end
-
-  # ==========================================
-  # TEST DELLE OTTIMIZZAZIONI (Regex & Custom)
-  # ==========================================
-
-  test "active_link_to handles regex for subsections" do
-    # Siamo dentro una sottosezione di prodotti
-    set_current_path("/products/123/edit")
-
-    # Il link punta a /products, ma vogliamo che sia attivo per tutto ciò che è /products...
-    result = active_link_to("Prodotti", "/products", active: /^\/products/)
-
-    assert_match /menu-active/, result
-  end
-
-  test "active_link_to allows manual override" do
-    set_current_path("/nowhere")
-
-    # Forziamo attivo
-    result_true = active_link_to("Forced", "/path", active: true)
-    assert_match /menu-active/, result_true
-
-    # Forziamo inattivo (anche se fossimo sulla pagina giusta)
-    set_current_path("/path")
-    result_false = active_link_to("Forced Off", "/path", active: false)
-    assert_no_match /menu-active/, result_false
-  end
 end

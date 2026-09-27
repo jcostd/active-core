@@ -1,7 +1,6 @@
 <%= form_with(model: user, class: "flex flex-col gap-8 py-2") do |f| %>
   <%= render "shared/form_errors", model: user %>
 
-  <%# --- SEZIONE 1: IDENTITÀ --- %>
   <fieldset class="fieldset">
     <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
       <%= icon("badge", classes: "size-6 opacity-40") %> Identità
@@ -26,7 +25,6 @@
     </div>
   </fieldset>
 
-  <%# --- SEZIONE 2: ACCESSO & SICUREZZA --- %>
   <fieldset class="fieldset">
     <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
       <%= icon("fingerprint", classes: "size-6 opacity-40") %> Accesso & Sicurezza

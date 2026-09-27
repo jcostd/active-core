@@ -21,7 +21,6 @@
     <%= f.fields_for :subscription do |sub_f| %>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        <%# COLONNA SINISTRA %>
         <fieldset class="fieldset">
           <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza (Modificabile)
           </label>
@@ -30,7 +29,6 @@
                 class: "input w-full", data: { action: "change->autosubmit#submit" } %>
         </fieldset>
 
-        <%# COLONNA DESTRA %>
         <fieldset class="fieldset">
           <% if current_user.admin? %>
             <% override_active = params[:override_end_date] == "1" %>

@@ -21,7 +21,6 @@
 
   <body class="bg-base-200 text-base-content min-h-screen flex flex-col overscroll-none selection:bg-primary selection:text-primary-content">
 
-    <%# NAVBAR NATIVA DAISYUI %>
     <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50 px-4 md:px-8">
       <div class="navbar-start gap-4">
         <div class="text-primary">
@@ -43,12 +42,10 @@
       </div>
     </div>
 
-    <%# CONTENITORE PRINCIPALE %>
     <main class="flex-grow p-4 md:p-8 container mx-auto w-full flex flex-col gap-8">
       <%= yield %>
     </main>
 
-    <%# TOAST NATIVO DAISYUI PER I FLASH (iPad friendly, non copre bottoni in basso) %>
     <div id="flash-container" class="toast toast-end toast-bottom z-[100]">
       <%= render "shared/flash" %>
     </div>

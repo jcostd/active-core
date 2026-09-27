@@ -1,5 +1,4 @@
 class PaymentReceiptPdf < ApplicationPdf
-  # --- COSTANTI DI IMPAGINAZIONE ---
   # MODIFICA SPAZI: Allargo la destra, stringo la sinistra per non sovrapporre
   HEADER_RIGHT_WIDTH   = 240  # Era 180 (Più spazio per il numero lungo)
   HEADER_RIGHT_X       = 300  # Era 350 (Spostato a sx per farci stare i 240pt)
@@ -23,7 +22,6 @@ class PaymentReceiptPdf < ApplicationPdf
   end
 
   def header_section
-    # --- DESTRA (Dati Ricevuta) ---
     float do
       bounding_box([ HEADER_RIGHT_X, cursor ], width: HEADER_RIGHT_WIDTH) do
         # MODIFICA LOGICA:
@@ -42,7 +40,6 @@ class PaymentReceiptPdf < ApplicationPdf
       end
     end
 
-    # --- SINISTRA (Dati Palestra) ---
     span(HEADER_LEFT_WIDTH, position: :left) do
       text @gym_profile.name, size: FONT_SIZE_XL, style: :bold, color: COLOR_PRIMARY
       text "Associazione Sportiva Dilettantistica", size: FONT_SIZE_S, color: COLOR_SECONDARY

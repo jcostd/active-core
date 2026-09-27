@@ -12,7 +12,6 @@
       <%= link_to sale.member.full_name, sale.member, class: "block hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary rounded-box" %>
     </div>
     <div class="text-[10px] text-base-content/60 uppercase tracking-wide truncate">
-      <%# Mostriamo il nome del prodotto se è un abbonamento, altrimenti una dicitura generica %>
       <%= sale.subscription&.product&.name || 'Vendita / Quota' %>
     </div>
   </div>

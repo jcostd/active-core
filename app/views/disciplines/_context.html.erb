@@ -5,13 +5,13 @@
     </li>
 
     <li>
-      <%= active_link_to discipline_path(discipline), active: :exclusive do %>
+      <%= active_link_to discipline_path(discipline) do %>
         <%= icon("badge") %> Panoramica
       <% end %>
     </li>
 
     <li>
-      <%= active_link_to discipline_members_path(discipline), active: :exclusive do %>
+      <%= active_link_to discipline_members_path(discipline) do %>
         <%= icon("group") %> Iscritti
       <% end %>
     </li>

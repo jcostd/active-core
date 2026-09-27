@@ -1,16 +1,11 @@
-<%# app/views/sales/show.html.erb %>
 <%= turbo_stream_from @sale %>
 
-<%# --- HEADER CONTEXT --- %>
 <%= render "sales/context", sale: @sale %>
 
-<%# --- CONTENUTO PRINCIPALE --- %>
 <div class="w-full max-w-6xl mx-auto mt-6 space-y-8">
 
-  <%# --- 1. IN EVIDENZA: statistiche (componente stats di DaisyUI) --- %>
   <div class="stats stats-vertical md:stats-horizontal w-full bg-base-100 shadow-sm border border-base-200">
 
-    <%# Stat 1: Prodotto %>
     <div class="stat">
       <div class="stat-figure text-base-content/30">
         <%= transaction_status_indicator(@sale) %>
@@ -28,7 +23,6 @@
       </div>
     </div>
 
-    <%# Stat 2: Importo %>
     <div class="stat md:w-1/3 border-t md:border-t-0 md:border-l border-base-200">
       <div class="stat-figure text-primary/30">
         <%= payment_method_icon(@sale.payment_method, classes: "size-8") %>
@@ -41,13 +35,10 @@
 
   </div>
 
-  <%# --- 2. DETTAGLI: elenco (componente list di DaisyUI) --- %>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-    <%# COLONNA SINISTRA %>
     <div class="space-y-6">
 
-      <%# Riferimenti %>
       <div>
         <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Riferimenti Documento</h2>
         <ul class="list bg-base-100 rounded-box shadow-sm border border-base-200 w-full text-sm">
@@ -66,7 +57,6 @@
         </ul>
       </div>
 
-      <%# Note %>
       <% if @sale.notes.present? %>
         <div>
           <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Note Transazione</h2>
@@ -80,12 +70,10 @@
 
     </div>
 
-    <%# COLONNA DESTRA %>
     <div>
       <h2 class="px-4 text-xs font-bold uppercase opacity-50 mb-2">Soggetti Coinvolti</h2>
       <ul class="list bg-base-100 rounded-box shadow-sm border border-base-200 w-full">
 
-        <%# Acquirente %>
         <li class="list-row items-center gap-4 py-4">
           <div class="shrink-0">
             <%= ui_avatar(@sale.member, size: "size-10") %>
@@ -98,7 +86,6 @@
           </div>
         </li>
 
-        <%# Operatore %>
         <li class="list-row items-center gap-4 py-4">
           <div class="shrink-0">
             <%= ui_avatar(@sale.user, size: "size-10") %>

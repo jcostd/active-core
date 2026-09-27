@@ -1,76 +1,31 @@
 module FormatHelper
-  # ==========================================
-  # VISUALIZZAZIONE GENERICA
-  # ==========================================
-
   def display_value(value, placeholder: "—")
-    if value.blank?
-      return tag.span(placeholder, class: "text-base-content/40 font-mono text-sm select-none")
-    end
+    return tag.span(placeholder, class: "text-base-content/40 font-mono text-sm select-none") if value.blank?
+
     block_given? ? yield(value) : value
   end
 
-  # ==========================================
-  # DATE E ORARI
-  # ==========================================
+  def format_date(date, format: :default) = date ? l(date.to_date, format:) : display_value(nil)
 
-  def format_date(date, format: :default)
-    return display_value(nil) if date.nil?
-
-    l(date.to_date, format: format)
-  end
-
-  def format_datetime(datetime, format: :default)
-    return display_value(nil) if datetime.nil?
-
-    l(datetime, format: format)
-  end
+  def format_datetime(datetime, format: :default) = datetime ? l(datetime, format:) : display_value(nil)
 
   def format_time_ago(datetime)
-    return display_value(nil) if datetime.nil?
+    return display_value(nil) unless datetime
 
-    tag.span(title: l(datetime, format: :long)) do
-      time_ago_in_words(datetime)
-    end
+    tag.span time_ago_in_words(datetime), title: l(datetime, format: :long)
   end
 
-  # ==========================================
-  # IMPORTI E NUMERI
-  # ==========================================
-  def format_money(amount, currency: "EUR")
-    return display_value(nil) if amount.nil?
+  def format_money(amount) = amount ? number_to_currency(amount, unit: "€", format: "%n %u") : display_value(nil)
 
-    number_to_currency(amount, unit: currency == "EUR" ? "€" : currency, format: "%n %u")
-  end
-
-  # Usa questo quando hai la colonna raw dal DB (es. sales.sum(:amount_cents))
-  # Input: 1050 -> "10,50 €"
-  def format_cents(cents, currency: "EUR")
-    return display_value(nil) if cents.nil?
-
-    format_money(cents / 100.0, currency: currency)
-  end
-
-  # ==========================================
-  # CONTATTI E TESTI
-  # ==========================================
+  # importi salvati in centesimi: 1050 -> "10,50 €"
+  def format_cents(cents) = cents ? format_money(cents / 100.0) : display_value(nil)
 
   def format_phone(phone)
     return display_value(nil) if phone.blank?
-    if defined?(Phonelib)
-      parsed = Phonelib.parse(phone)
-      return parsed.full_international if parsed.valid?
-    end
-    phone
+
+    parsed = Phonelib.parse(phone)
+    parsed.valid? ? parsed.full_international : phone
   end
 
-  def format_email(email)
-    display_value(email) do |e|
-      link_to(e, "mailto:#{e}", class: "link link-hover")
-    end
-  end
-
-  # ==========================================
-  # BOOLEANI
-  # ==========================================
+  def format_email(email) = display_value(email) { link_to(it, "mailto:#{it}", class: "link link-hover") }
 end

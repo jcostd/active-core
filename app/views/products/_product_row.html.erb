@@ -30,17 +30,14 @@
 
   <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-6 shrink-0 mr-2">
 
-    <%# Categoria %>
     <div class="text-xs font-medium">
       <%= product_category_badge(product) %>
     </div>
 
-    <%# Durata %>
     <div class="font-mono text-sm opacity-60 tabular-nums">
       <%= display_value(product.duration_days) %> gg
     </div>
 
-    <%# Prezzo %>
     <div class="font-mono font-bold text-lg tabular-nums text-right min-w-[4rem]">
       <%= format_money(product.price) %>
     </div>

@@ -1,13 +1,11 @@
 <%= form_with(model: discipline, class: "space-y-6") do |f| %>
   <%= render "shared/form_errors", model: discipline %>
 
-  <%# --- SEZIONE 1: INFO GENERALI --- %>
   <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
     <legend class="fieldset-legend">
       <%= icon("fitness_center", size: 14) %> Info Disciplina
     </legend>
 
-    <%# NOME %>
     <div>
       <%= f.label :name, "Nome Disciplina", class: "label" %>
 
@@ -18,13 +16,11 @@
     </div>
   </fieldset>
 
-  <%# --- SEZIONE 2: REGOLE DI ACCESSO --- %>
   <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
     <legend class="fieldset-legend">
       <%= icon("shield", size: 14) %> Regole di Accesso
     </legend>
 
-    <%# INTERRUTTORE CERTIFICATO %>
     <div
       class="tooltip"
       data-tip="Se attivo, il sistema bloccherà l'ingresso
@@ -38,7 +34,6 @@
 
     <div class="divider my-2 opacity-50"></div>
 
-    <%# INTERRUTTORE QUOTA ASSOCIATIVA %>
     <div
       class="tooltip"
       data-tip="Se attivo, verificherà che l'utente abbia
@@ -50,7 +45,6 @@
     </div>
   </fieldset>
 
-  <!-- Begin Actions -->
   <div class="modal-action">
     <%= f.submit "Salva",
     class: "btn btn-primary px-4",
@@ -58,6 +52,5 @@
       turbo_submits_with: 'Salvataggio...'
     } %>
   </div>
-  <!-- End Actions -->
 
 <% end %>

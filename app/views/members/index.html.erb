@@ -26,7 +26,6 @@
 <%= turbo_frame_tag "members_list" do %>
   <%= render "shared/filter/active", filter_keys: [:membership_status, :med_cert] %>
 
-  <%# --- INIZIO LISTA --- %>
   <div class="mt-6">
     <% if @members.empty? %>
       <%= render "shared/empty_state",

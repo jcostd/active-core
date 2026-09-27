@@ -1,13 +1,11 @@
 <% content_for :page_title, "Dettaglio Incassi - #{l(@date, format: :short)}" %>
 
-<%# --- Header Navigazione --- %>
 <div class="mb-2">
   <%= link_to reports_path(month: @date.strftime("%Y-%m")), class: "btn btn-ghost btn-sm gap-2 pl-0" do %>
     <%= icon("arrow_left") %> Torna a <%= l(@date, format: "%B %Y") %>
   <% end %>
 </div>
 
-<%# --- Intestazione Report --- %>
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b-2 border-base-200 pb-4">
   <div>
     <h1 class="text-3xl font-bold tracking-tight">Dettaglio Incassi</h1>
@@ -16,7 +14,6 @@
     </div>
   </div>
 
-  <%# Totale netto in evidenza subito in alto %>
   <div class="text-right">
     <div class="text-xs font-bold uppercase tracking-widest opacity-50 mb-1">Totale Giornata</div>
     <div class="text-4xl font-mono font-bold text-primary"><%= format_cents(@daily_cash.total_cents) %></div>

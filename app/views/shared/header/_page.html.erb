@@ -1,6 +1,5 @@
 <header class="space-y-4 pb-4">
 
-  <%# ====== RIGA 1: Titolo + Contatore + Azioni ====== %>
   <div class="flex items-start justify-between gap-3">
     <div class="flex flex-col gap-1 min-w-0 flex-1">
       <h1 class="text-2xl sm:text-3xl font-bold leading-tight">
@@ -18,7 +17,6 @@
     <% end %>
   </div>
 
-  <%# ====== RIGA 2: Ricerca + Filtri ====== %>
   <% if content_for?(:page_search_and_filters) %>
     <div id="page_search_bar_<%= controller_name %>" class="w-full">
       <%= yield :page_search_and_filters %>
