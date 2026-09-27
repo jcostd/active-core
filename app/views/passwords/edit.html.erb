@@ -1,21 +1,25 @@
-<div class="mx-auto md:w-2/3 w-full">
-  <% if alert = flash[:alert] %>
-    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
-  <% end %>
-
-  <h1 class="font-bold text-4xl">Imposta una nuova password</h1>
-
-  <%= form_with url: password_path(params[:token]), method: :put, class: "contents" do |form| %>
-    <div class="my-5">
-      <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Nuova password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-solid focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
+<div class="hero min-h-screen bg-base-100">
+  <div class="hero-content flex-col lg:flex-row-reverse gap-12">
+    <div class="text-center lg:text-left">
+      <h1 class="text-5xl font-bold">Nuova password</h1>
+      <p class="py-6">Scegline una di almeno 4 caratteri e ripetila per conferma.</p>
     </div>
 
-    <div class="my-5">
-      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Ripeti la nuova password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-solid focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
+    <%= form_with url: password_path(params[:token]), method: :put, class: "contents" do |form| %>
+      <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-md border p-4">
+        <legend class="fieldset-legend">Reimposta password</legend>
 
-    <div class="inline">
-      <%= form.submit "Salva", class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
-    </div>
-  <% end %>
+        <%= form.label :password, "Nuova password", class: "label" %>
+        <%= form.password_field :password, required: true, autofocus: true, autocomplete: "new-password",
+                                           minlength: 4, maxlength: 72, class: "input w-full" %>
+
+        <%= form.label :password_confirmation, "Ripeti la password", class: "label" %>
+        <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password",
+                                                        minlength: 4, maxlength: 72, class: "input w-full" %>
+
+        <%= form.submit "Salva", class: "btn btn-neutral mt-4" %>
+        <%= link_to "Torna all'accesso", new_session_path, class: "link link-hover text-center mt-2" %>
+      </fieldset>
+    <% end %>
+  </div>
 </div>

@@ -224,6 +224,7 @@ class SaleTest < ActiveSupport::TestCase
 
   test "smart renewal: manual start date snaps to month start for calendar products" do
     manual_date = Date.new(2025, 1, 15)
+    grant_membership_to(@member, start_date: manual_date)
     sale_params = default_sale_params.merge(user: users(:admin))
     sale_params[:subscription_attributes][:start_date] = manual_date
 
@@ -239,6 +240,7 @@ class SaleTest < ActiveSupport::TestCase
   test "admin override: explicitly providing both dates completely bypasses calculation" do
     start_override = Date.new(2025, 1, 15)
     end_override = Date.new(2025, 3, 10)
+    grant_membership_to(@member, start_date: start_override)
 
     sale_params = default_sale_params.merge(user: users(:admin))
     sale_params[:subscription_attributes][:start_date] = start_override
@@ -492,6 +494,7 @@ class SaleTest < ActiveSupport::TestCase
   end
 
   def create_sale_with_smart_subscription
+    grant_membership_to(@member) # le date fisse (2025) possono cadere fuori da quelle del setup con TEST_NOW
     Sale.create!(default_sale_params)
   end
 

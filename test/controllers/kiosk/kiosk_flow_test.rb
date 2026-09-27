@@ -39,7 +39,51 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_equal "Check-in registrato per Alice", flash[:success]
 
     post kiosk_discipline_access_logs_path(@yoga, member_id: members(:bob).id)
-    assert_match "Check-in FORZATO per Bob", flash[:error]
+    assert_equal "Check-in registrato per Bob, da regolarizzare: Quota Associativa scaduta o mancante. " \
+                 "Nessun abbonamento attivo per 'Yoga'.", flash[:error]
+  end
+
+  test "missing course with a valid membership names only the course" do
+    post kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)
+
+    assert_equal "Check-in registrato per Alice, da regolarizzare: Nessun abbonamento attivo per 'Yoga'.", flash[:error]
+    assert AccessLog.last.error?
+  end
+
+  test "expiring subscription warning does not mention the certificate" do
+    sell!(member: @alice, product: @course, user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 3)
+    post kiosk_discipline_access_logs_path(@yoga, member_id: @alice.id)
+
+    assert_equal "Check-in registrato per Alice: Abbonamento in scadenza tra 3 giorni.", flash[:info]
+    assert_nil flash[:success]
+  end
+
+  test "expired certificate warning names the certificate" do
+    bob = members(:bob)
+    grant_membership_to(bob)
+    sell!(member: bob, product: @course, user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 30)
+    post kiosk_discipline_access_logs_path(@yoga, member_id: bob.id)
+
+    assert_equal "Check-in registrato per Bob: Certificato Medico scaduto o mancante.", flash[:info]
+  end
+
+  test "certificate and expiry warnings are both shown" do
+    bob = members(:bob)
+    grant_membership_to(bob)
+    sell!(member: bob, product: @course, user: users(:admin), start_date: Date.current - 20, end_date: Date.current)
+    post kiosk_discipline_access_logs_path(@yoga, member_id: bob.id)
+
+    assert_equal "Check-in registrato per Bob: Certificato Medico scaduto o mancante. Abbonamento in scadenza oggi.", flash[:info]
+  end
+
+  test "warning check-in shows as an info toast" do
+    bob = members(:bob)
+    grant_membership_to(bob)
+    sell!(member: bob, product: @course, user: users(:admin), start_date: Date.current - 20, end_date: Date.current + 30)
+    post kiosk_discipline_access_logs_path(@yoga, member_id: bob.id)
+    follow_redirect!
+
+    assert_select ".alert.alert-info", text: /Certificato Medico scaduto/
   end
 
   test "double tap shows an error and records nothing" do

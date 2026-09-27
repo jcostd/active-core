@@ -52,6 +52,14 @@ class AccessPolicyTest < ActiveSupport::TestCase
 
 
 
+  test "subscription ending today or tomorrow says so" do
+    sub = sell_course_to(@alice, end_date: Date.current)
+    assert_includes policy(@alice).warnings, "Abbonamento in scadenza oggi."
+
+    sub.update!(end_date: Date.current + 1)
+    assert_includes policy(@alice.reload).warnings, "Abbonamento in scadenza domani."
+  end
+
   test "no warnings are evaluated when there are errors" do
     p = policy(@bob)
     assert_equal :error, p.status

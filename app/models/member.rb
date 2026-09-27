@@ -29,10 +29,6 @@ class Member < ApplicationRecord
   has_many :access_logs,   dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 
-  has_many :active_subscriptions,
-           -> { active_at(Date.current).order(subscriptions: { start_date: :asc }) },
-           class_name: "Subscription"
-
   has_many :recent_sales,
            -> { order(sales: { created_at: :desc }).limit(5) },
            class_name: "Sale"
@@ -105,7 +101,9 @@ class Member < ApplicationRecord
 
   # in memoria se gli abbonamenti (con prodotto e discipline) sono già caricati, come nel kiosk
   def valid_subscription_for(discipline, date = Date.current)
-    return active_subscriptions.for_discipline(discipline).first unless subscriptions.loaded?
+    unless subscriptions.loaded?
+      return subscriptions.active_at(date).for_discipline(discipline).order(subscriptions: { start_date: :asc }).first
+    end
 
     subscriptions
       .select { it.kept? && it.start_date <= date && it.end_date >= date && it.product.disciplines.include?(discipline) }

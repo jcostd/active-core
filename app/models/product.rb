@@ -29,9 +29,9 @@ class Product < ApplicationRecord
           associative:   "associative"
         }, default: :institutional, validate: true
 
-  normalizes :name, with: ->(n) { n.squish.titleize }
+  normalizes :name, with: ->(name) { ProperCase.title(name) }
 
-  validates :name, presence: true, uniqueness: { conditions: -> { kept } }
+  validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
   validates :duration_days, numericality: { greater_than: 0, only_integer: true }
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
 end

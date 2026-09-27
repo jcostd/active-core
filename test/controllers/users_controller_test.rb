@@ -53,6 +53,36 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "admin creating a user with a taken email gets the form back" do
+    sign_in_as(@admin)
+
+    assert_no_difference -> { User.count } do
+      post users_path, params: { user: { first_name: "Nuovo", last_name: "Utente", username: "nuovo",
+                                         email_address: "STAFF@asd.it", password: "password", password_confirmation: "password" } }
+    end
+    assert_response :unprocessable_entity
+    assert_match "Email è già presente", response.body
+  end
+
+  test "admin creating a user without email gets the form back" do
+    sign_in_as(@admin)
+
+    assert_no_difference -> { User.count } do
+      post users_path, params: { user: { first_name: "Nuovo", last_name: "Utente", username: "nuovo",
+                                         email_address: "", password: "password", password_confirmation: "password" } }
+    end
+    assert_response :unprocessable_entity
+  end
+
+  test "staff cannot steal a colleague email" do
+    sign_in_as(@staff)
+
+    patch user_path(@staff), params: { user: { email_address: "staff2@asd.it" } }
+
+    assert_response :unprocessable_entity
+    assert_equal "staff@asd.it", @staff.reload.email_address
+  end
+
   test "admin can edit another user role" do
     sign_in_as(@admin)
 

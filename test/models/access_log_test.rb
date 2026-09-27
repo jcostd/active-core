@@ -80,6 +80,23 @@ class AccessLogTest < ActiveSupport::TestCase
   end
 
 
+  test "outcome notes explain the evaluated check-in" do
+    log = AccessLog.create!(member: members(:bob), discipline: disciplines(:yoga), checkin_by_user: @staff)
+
+    assert log.error?
+    assert_includes log.outcome_notes, "Quota Associativa scaduta o mancante."
+    assert_empty AccessLog.find(log.id).outcome_notes
+  end
+
+  test "outcome notes are empty for a clean check-in" do
+    link!(@product, disciplines(:yoga))
+    @subscription.update!(start_date: Date.current - 1, end_date: Date.current + 30) # lontano dalla scadenza, qualunque sia oggi
+    log = AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: @staff)
+
+    assert log.ok?
+    assert_empty log.outcome_notes
+  end
+
   test "double tap within the timeout is rejected" do
     first = AccessLog.create!(member: members(:alice), discipline: disciplines(:yoga), checkin_by_user: users(:staff))
     again = AccessLog.new(member: members(:alice), discipline: disciplines(:yoga), checkin_by_user: users(:staff))

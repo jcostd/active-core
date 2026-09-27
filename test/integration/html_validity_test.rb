@@ -26,7 +26,10 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "report" => ->(t) { t.reports_path },
     "registro accessi" => ->(t) { t.access_logs_path },
     "utenti" => ->(t) { t.users_path },
-    "kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) }
+    "kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) },
+    "accesso" => ->(t) { t.new_session_path },
+    "recupero password" => ->(t) { t.new_password_path },
+    "nuova password" => ->(t) { t.edit_password_path(t.users(:staff).password_reset_token) }
   }
 
   PAGES.each do |name, path|

@@ -44,6 +44,13 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
                  [ member.first_name, member.last_name, member.fiscal_code, member.email_address ]
   end
 
+  test "create keeps apostrophes and mixed case in names" do
+    post members_path, params: { member: VALID.merge(first_name: "ANNA-MARIA", last_name: "dell'orto", address: "via xx settembre 4/b") }
+
+    member = Member.last
+    assert_equal [ "Anna-Maria", "Dell'Orto", "Via XX Settembre 4/B" ], [ member.first_name, member.last_name, member.address ]
+  end
+
   test "create with errors re-renders in italian" do
     assert_no_difference -> { Member.count } do
       post members_path, params: { member: VALID.merge(fiscal_code: "corto", first_name: "") }

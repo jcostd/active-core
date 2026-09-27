@@ -12,6 +12,18 @@ class DisciplineTest < ActiveSupport::TestCase
     assert_equal "Karate Kid", discipline.name
   end
 
+  test "name keeps acronyms and brand casing" do
+    assert_equal "MMA", Discipline.new(name: "MMA").name
+    assert_equal "CrossFit", Discipline.new(name: "CrossFit").name
+    assert_equal "Kick-Boxing", Discipline.new(name: "kick-boxing").name
+  end
+
+  test "name uniqueness ignores case" do
+    duplicate = Discipline.new(name: "YOGA")
+    assert_not duplicate.valid?
+    assert_includes duplicate.errors[:name], "è già presente"
+  end
+
   test "name uniqueness enforces scope" do
     # Provo a creare un altro "Yoga" attivo -> Errore
     duplicate = Discipline.new(name: "Yoga")

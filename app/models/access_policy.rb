@@ -58,9 +58,14 @@ class AccessPolicy
         @warnings << "Certificato Medico scaduto o mancante."
       end
 
-      if subscription_expiring_soon?
-        days_left = (subscription.end_date - Date.current).to_i
-        @warnings << "Abbonamento in scadenza tra #{days_left} giorni."
+      @warnings << "Abbonamento in scadenza #{expiry_in_words}." if subscription_expiring_soon?
+    end
+
+    def expiry_in_words
+      case days_left = subscription.days_left
+      when 0 then "oggi"
+      when 1 then "domani"
+      else "tra #{days_left} giorni"
       end
     end
 

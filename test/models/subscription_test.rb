@@ -18,6 +18,7 @@ class SubscriptionTest < ActiveSupport::TestCase
   test "automatically calculates dates based on sale date (Institutional Snap)" do
     # Scenario: Vendita fatta il 20 Gennaio
     sale_date = Date.new(2025, 1, 20)
+    grant_membership_to(@member, start_date: sale_date)
 
     sale = Sale.create!(
       member: @member,

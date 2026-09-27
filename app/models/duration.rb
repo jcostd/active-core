@@ -14,14 +14,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 Duration = Data.define(:start_date, :end_date) do
-  CALENDAR_DURATIONS = {
-    30  => 1,
-    90  => 3,
-    180 => 6,
-    365 => 12,
-    366 => 12
-  }.freeze
-
   def self.for(product, preference_date = Date.current)
     new(**calculate(product, preference_date.to_date))
   end
@@ -34,13 +26,14 @@ Duration = Data.define(:start_date, :end_date) do
     { start_date: date, end_date: SportYear.end_date_for(date) }
   end
 
+  # mesi e semestri restano nell'anno sportivo; trimestri e anno a scorrimento no
   private_class_method def self.institutional(product, date)
     case product.duration_days
-    when 365, 366 then rolling_annual(date)
+    when 30       then calendar_aligned(date, 1)
     when 90       then calendar_aligned(date, 3, enforce_sport_year: false)
-    else
-      months = CALENDAR_DURATIONS[product.duration_days]
-      months ? calendar_aligned(date, months) : days_pure(product, date)
+    when 180      then calendar_aligned(date, 6)
+    when 365, 366 then rolling_annual(date)
+    else               days_pure(product.duration_days, date)
     end
   end
 
@@ -57,11 +50,7 @@ Duration = Data.define(:start_date, :end_date) do
     { start_date:, end_date: }
   end
 
-  private_class_method def self.days_pure(product, date, enforce_sport_year: true)
-    theoretical_end = date.advance(days: product.duration_days).yesterday
-    end_date        = enforce_sport_year ?
-                        [ theoretical_end, SportYear.end_date_for(date) ].min :
-                        theoretical_end
-    { start_date: date, end_date: }
+  private_class_method def self.days_pure(days, date)
+    { start_date: date, end_date: [ date.advance(days: days).yesterday, SportYear.end_date_for(date) ].min }
   end
 end

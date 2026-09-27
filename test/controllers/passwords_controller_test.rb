@@ -29,6 +29,23 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   test "edit" do
     get edit_password_path(@user.password_reset_token)
     assert_response :success
+    assert_select "form[action^='/passwords/'] fieldset" do # il token cambia a ogni generazione
+      assert_select "input[type=password][name=password][minlength='4']"
+      assert_select "input[type=password][name=password_confirmation][minlength='4']"
+    end
+  end
+
+  test "an error after a failed reset is shown once" do
+    token = @user.password_reset_token
+    put password_path(token), params: { password: "newpass", password_confirmation: "other" }
+    follow_redirect!
+
+    assert_select ".alert", text: /non coincide/, count: 1
+  end
+
+  test "new offers a way back to sign in" do
+    get new_password_path
+    assert_select "a[href='#{new_session_path}']"
   end
 
   test "edit with invalid password reset token" do
@@ -52,12 +69,53 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   test "update with non matching passwords" do
     token = @user.password_reset_token
     assert_no_changes -> { @user.reload.password_digest } do
-      put password_path(token), params: { password: "no", password_confirmation: "match" }
+      put password_path(token), params: { password: "newpass", password_confirmation: "other" }
       assert_redirected_to edit_password_path(token)
     end
 
     follow_redirect!
-    assert_notice "non coincidono"
+    assert_notice "Conferma password non coincide con Password"
+  end
+
+  test "update with a blank password changes nothing and keeps sessions" do
+    token = @user.password_reset_token
+    session = @user.sessions.create!
+
+    assert_no_changes -> { @user.reload.password_digest } do
+      put password_path(token), params: { password: "", password_confirmation: "" }
+      assert_redirected_to edit_password_path(token)
+    end
+    assert Session.exists?(session.id)
+
+    follow_redirect!
+    assert_notice "Password non può essere lasciato in bianco"
+  end
+
+  test "update without password params changes nothing" do
+    token = @user.password_reset_token
+
+    assert_no_changes -> { @user.reload.password_digest } do
+      put password_path(token)
+      assert_redirected_to edit_password_path(token)
+    end
+  end
+
+  test "update with a too short password tells why" do
+    token = @user.password_reset_token
+
+    put password_path(token), params: { password: "abc", password_confirmation: "abc" }
+
+    follow_redirect!
+    assert_notice "troppo corto"
+    assert_no_match "coincide", response.body
+  end
+
+  test "update logs out every session of the user" do
+    session = @user.sessions.create!
+
+    put password_path(@user.password_reset_token), params: { password: "newpass", password_confirmation: "newpass" }
+
+    assert_not Session.exists?(session.id)
   end
 
   test "create for a discarded user sends no mail" do

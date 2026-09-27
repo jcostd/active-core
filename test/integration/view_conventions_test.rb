@@ -18,6 +18,12 @@ class ViewConventionsTest < ActiveSupport::TestCase
     assert_empty offenders
   end
 
+  test "colors come from the daisyUI theme, not the raw Tailwind palette" do
+    palette = /\b(?:bg|text|border|outline|ring)-(?:red|blue|gray|green|yellow|slate|zinc|stone)-\d{2,3}\b/
+    offenders = VIEWS.select { File.read(it).match?(palette) }
+    assert_empty offenders, "usare i colori semantici del tema (error, primary, base-content...)"
+  end
+
   test "no daisyUI 4 classes" do
     old = %w[input-bordered select-bordered textarea-bordered form-control label-text btn-group card-bordered]
     offenders = VIEWS.select { |file| old.any? { File.read(file).include?(it) } }

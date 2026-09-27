@@ -38,6 +38,11 @@ class AccessLog < ApplicationRecord
   scope :today,            -> { where(access_logs: { entered_at: Time.current.all_day }) }
   scope :recent_for_kiosk, -> { where("access_logs.entered_at >= ?", KIOSK_COOLDOWN.ago) }
 
+  # motivi dell'esito, solo per il check-in appena valutato
+  def outcome_notes
+    @policy ? [ *@policy.errors.full_messages, *@policy.warnings ] : []
+  end
+
   private
     def set_defaults
       self.entered_at ||= Time.current
@@ -46,9 +51,9 @@ class AccessLog < ApplicationRecord
     def evaluate_access_policy
       return unless member && discipline
 
-      policy = AccessPolicy.new(member: member, discipline: discipline).evaluate!
-      self.status       = policy.status
-      self.subscription = policy.subscription
+      @policy = AccessPolicy.new(member: member, discipline: discipline).evaluate!
+      self.status       = @policy.status
+      self.subscription = @policy.subscription
     end
 
     def prevent_double_tap

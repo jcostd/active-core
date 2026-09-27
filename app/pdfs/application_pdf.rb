@@ -31,8 +31,17 @@ class ApplicationPdf < Prawn::Document
     setup_fonts
   end
 
+  FONTS_DIR = Rails.root.join("vendor/fonts")
+
+  # ttf al posto dei font integrati: questi coprono solo Windows-1252 (niente Ș, Ł, ...)
   def setup_fonts
-    font "Helvetica"
+    font_families.update("LiberationSans" => {
+      normal:      FONTS_DIR.join("LiberationSans-Regular.ttf").to_s,
+      bold:        FONTS_DIR.join("LiberationSans-Bold.ttf").to_s,
+      italic:      FONTS_DIR.join("LiberationSans-Italic.ttf").to_s,
+      bold_italic: FONTS_DIR.join("LiberationSans-BoldItalic.ttf").to_s
+    })
+    font "LiberationSans"
     default_leading 3
   end
 

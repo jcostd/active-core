@@ -51,6 +51,33 @@ class PaymentReceiptPdfTest < ActiveSupport::TestCase
     assert_no_match "Rinominato", text
   end
 
+  test "renders names outside windows-1252" do
+    @member.update_columns(first_name: "Ștefan", last_name: "Łukasiewicz")
+    sale = sell!(member: @member.reload, product: products(:yoga_monthly))
+
+    assert PaymentReceiptPdf.new(sale).render.start_with?("%PDF")
+    assert_match "Ștefan Łukasiewicz", printed_for(sale)
+  end
+
+  test "renders product and gym names outside windows-1252" do
+    GymProfile.current.update!(name: "ASD Șoimii", address_line_1: "Ulica Łódzka 1")
+    sale = sell!(member: @member, product: products(:yoga_monthly))
+    sale.update_columns(product_name_snapshot: "Joga Ćwiczenia")
+
+    text = printed_for(sale.reload)
+    assert_match "ASD Șoimii", text
+    assert_match "Joga Ćwiczenia", text
+  end
+
+  test "renders every text style with the embedded font" do
+    @member.update_columns(fiscal_code: nil)
+    pdf = PaymentReceiptPdf.new(sell!(member: @member.reload, product: products(:yoga_monthly)))
+
+    assert_equal "LiberationSans", pdf.font.family
+    assert_match "C.F. Non disponibile", pdf.printed.join("\n")
+    assert pdf.render.start_with?("%PDF")
+  end
+
   test "shows subscription validity and amount" do
     sale = sell!(member: @member, product: products(:yoga_monthly), amount: 20)
     sub = sale.subscription

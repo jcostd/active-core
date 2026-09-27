@@ -16,6 +16,18 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal "Abbonamento Open", product.name
   end
 
+  test "name keeps acronyms and roman numerals" do
+    assert_equal "Corso MMA II Livello", Product.new(name: "corso MMA ii livello").name
+    assert_equal "Pilates_id", Product.new(name: "pilates_id").name
+  end
+
+  test "name uniqueness ignores case" do
+    duplicate = @product.dup
+    duplicate.name = @product.name.upcase
+    assert_not duplicate.valid?
+    assert_includes duplicate.errors[:name], "è già presente"
+  end
+
   test "price validation" do
     @product.price_cents = -500
     assert_not @product.valid?

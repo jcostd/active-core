@@ -19,6 +19,27 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "mariorossi", user.username
   end
 
+  test "email is required" do
+    @user.email_address = "  "
+    assert_not @user.valid?
+    assert_includes @user.errors[:email_address], "non può essere lasciato in bianco"
+  end
+
+  test "email must be unique among active users, ignoring case" do
+    user = User.new(username: "nuovo", first_name: "A", last_name: "B", password: "password",
+                    email_address: " STAFF@asd.it ")
+    assert_not user.valid?
+    assert_includes user.errors[:email_address], "è già presente"
+    assert_nothing_raised { assert_not user.save }
+  end
+
+  test "email of a discarded user can be reused" do
+    users(:staff_two).discard!
+    user = User.new(username: "nuovo", first_name: "A", last_name: "B", password: "password",
+                    email_address: "staff2@asd.it")
+    assert user.save
+  end
+
   test "username format validation" do
     @user.username = "bad name!" # Spazi e punti esclamativi vietati
     assert_not @user.valid?

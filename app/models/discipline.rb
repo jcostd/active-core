@@ -25,8 +25,8 @@ class Discipline < ApplicationRecord
 
   has_many :access_logs, dependent: :nullify
 
-  normalizes :name, with: ->(n) { n.squish.titleize }
-  validates :name, presence: true, uniqueness: { conditions: -> { kept } }
+  normalizes :name, with: ->(name) { ProperCase.title(name) }
+  validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
 
   def recent_subscriptions
     subscriptions

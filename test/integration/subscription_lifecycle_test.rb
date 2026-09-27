@@ -62,6 +62,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
 
   test "The August 31st Wall (Institutional Snap)" do
     travel_to Date.new(2025, 8, 15) do
+      grant_membership_to(@member)
       sale = Sale.create!(
         member: @member, user: @user, product: @monthly_course,
         sold_on: Date.current,
