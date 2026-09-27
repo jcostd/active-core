@@ -20,9 +20,9 @@ class SmallHelpersTest < ActionView::TestCase
 
   test "member badges" do
     grant_membership_to(members(:alice))
-    assert_match "Tessera Attiva", member_status_badges(members(:alice))
+    assert_match "Quota valida", member_status_badges(members(:alice))
     html = member_status_badges(members(:bob))
-    assert_match "Tessera Scaduta", html
+    assert_match "Quota scaduta", html
     assert_match "Cert. Medico", html
   end
 

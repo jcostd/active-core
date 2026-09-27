@@ -17,7 +17,7 @@
             <div>
               <div class="font-bold">Certificato Medico</div>
               <div class="text-xs opacity-70">
-                <%= discipline.requires_medical_certificate? ? "<span class='text-error font-medium'>Richiesto per l'ingresso</span>".html_safe : "Non richiesto" %>
+                <%= discipline.requires_medical_certificate? ? tag.span("Richiesto per l'ingresso", class: "text-error font-medium") : "Non richiesto" %>
               </div>
             </div>
           </li>
@@ -29,7 +29,7 @@
             <div>
               <div class="font-bold">Tesseramento</div>
               <div class="text-xs opacity-70">
-                <%= discipline.requires_membership? ? "<span class='text-info font-medium'>Quota annuale obbligatoria</span>".html_safe : "Accesso libero" %>
+                <%= discipline.requires_membership? ? tag.span("Quota annuale obbligatoria", class: "text-info font-medium") : "Accesso libero" %>
               </div>
             </div>
           </li>

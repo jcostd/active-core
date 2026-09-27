@@ -47,11 +47,8 @@ class DisciplinesController < ApplicationController
   end
 
   def destroy
-    if @discipline.discard!
-      turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina archiviata."
-    else
-      turbo_refresh_or_redirect_to disciplines_path, alert: "Impossibile archiviare."
-    end
+    @discipline.discard!
+    turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina archiviata."
   end
 
   private

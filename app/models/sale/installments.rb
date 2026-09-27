@@ -30,13 +30,13 @@ module Sale::Installments
       subscription.reference_date ||= sold_on
     end
 
-    # rata: residuo dovuto; nuova vendita: prezzo concordato
     def default_amount
-      self.amount_cents ||= installment? ? subscription.amount_due : subscription&.agreed_price_cents || product&.price_cents
+      self.amount_cents ||= amount_due
     end
 
+    # rata: residuo dovuto; nuova vendita: prezzo concordato
     def amount_due
-      installment? ? subscription.amount_due : subscription.agreed_price_cents || product&.price_cents
+      installment? ? subscription.amount_due : subscription&.agreed_price_cents || product&.price_cents
     end
 
     def subscription_matches_sale

@@ -25,7 +25,6 @@ module SubscriptionsHelper
     tag.div icon(style[:icon]), class: [ "p-2 rounded-box", style[:tint] ]
   end
 
-  # Wrapper per gestire le classi CSS condizionali (es. grigio se scaduto)
   def subscription_row_wrapper(subscription, status, &block)
     classes = [ "list-row", "hover:bg-base-200/50", "transition-colors" ]
     classes << "opacity-60 grayscale" if status.key.to_sym == :expired
@@ -45,10 +44,9 @@ module SubscriptionsHelper
   def subscription_days_left_indicator(subscription, status)
     return if status.key.to_sym == :expired
 
-    days = (subscription.end_date - Date.current).to_i
     safe_join([
       content_tag(:span, "|", class: "opacity-30 mx-0.5"),
-      content_tag(:span, "#{days} gg rimasti", class: "font-mono")
+      content_tag(:span, "#{subscription.days_left} gg rimasti", class: "font-mono")
     ])
   end
 

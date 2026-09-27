@@ -47,11 +47,12 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    if @user.archivable_by?(current_user) && @user.discard!
-      turbo_refresh_or_redirect_to users_path, status: :see_other, notice: "Utente archiviato."
-    else
-      turbo_refresh_or_redirect_to users_path, status: :see_other, alert: "Impossibile archiviare utente."
+    unless @user.archivable_by?(current_user)
+      return turbo_refresh_or_redirect_to users_path, status: :see_other, alert: "Impossibile archiviare utente."
     end
+
+    @user.discard!
+    turbo_refresh_or_redirect_to users_path, status: :see_other, notice: "Utente archiviato."
   end
 
   private

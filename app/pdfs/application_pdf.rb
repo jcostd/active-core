@@ -26,7 +26,6 @@ class ApplicationPdf < Prawn::Document
       info: { Creator: "ActiveCore", Producer: "Prawn" }
     }
     super(default_options.merge(options))
-    @view = ActionController::Base.new.view_context
     setup_fonts
   end
 
@@ -44,9 +43,8 @@ class ApplicationPdf < Prawn::Document
     default_leading 3
   end
 
-  def format_currency(amount)
-    val = amount.is_a?(Integer) ? amount / 100.0 : amount
-    @view.number_to_currency(val, locale: :it)
+  def format_cents(cents)
+    number_to_currency(cents / 100.0, locale: :it)
   end
 
   def draw_divider

@@ -49,11 +49,8 @@ class MembersController < ApplicationController
   end
 
   def destroy
-    if @member.discard!
-      turbo_refresh_or_redirect_to members_path, status: :see_other, notice: "Socio archiviato correttamente."
-    else
-      redirect_to members_path, status: :see_other, alert: "Impossibile archiviare il socio."
-    end
+    @member.discard!
+    turbo_refresh_or_redirect_to members_path, status: :see_other, notice: "Socio archiviato correttamente."
   end
 
   private

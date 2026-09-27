@@ -30,7 +30,7 @@ class AccessLog < ApplicationRecord
   before_validation :set_defaults
   before_validation :evaluate_access_policy, on: :create
 
-  validates :member, :checkin_by_user, :entered_at, presence: true
+  validates :entered_at, presence: true
 
   validate :prevent_double_tap,            on: :create
   validate :subscription_belongs_to_member

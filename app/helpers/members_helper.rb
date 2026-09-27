@@ -18,14 +18,8 @@ module MembersHelper
   def member_status_badges(member)
     badges = []
 
-    # Badge Tessera
-    badges << ui_status_badge(
-      member.membership_valid?,
-      valid_text: "Tessera Attiva",
-      invalid_text: "Tessera Scaduta"
-    )
+    badges << ui_status_badge(member.membership_valid?, valid_text: "Quota valida", invalid_text: "Quota scaduta")
 
-    # Badge Certificato Medico
     unless member.medical_certificate_valid?
       badges << ui_status_badge(
         false,

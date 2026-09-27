@@ -21,6 +21,4 @@ class ProductDiscipline < ApplicationRecord
     scope: :discipline_id,
     message: "include già questa disciplina"
   }
-
-  validates :product, :discipline, presence: true
 end

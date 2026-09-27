@@ -24,5 +24,4 @@ class Feedback < ApplicationRecord
   }, default: :pending
 
   validates :message, presence: true
-  validates :user, presence: true
 end

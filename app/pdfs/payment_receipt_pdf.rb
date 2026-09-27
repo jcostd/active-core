@@ -110,8 +110,8 @@ class PaymentReceiptPdf < ApplicationPdf
 
     data = [
       [ "DESCRIZIONE", "IMPORTO" ],
-      [ description, format_currency(@sale.amount) ],
-      [ "TOTALE", format_currency(@sale.amount) ]
+      [ description, format_cents(@sale.amount_cents) ],
+      [ "TOTALE", format_cents(@sale.amount_cents) ]
     ]
 
     table(data, width: bounds.width) do

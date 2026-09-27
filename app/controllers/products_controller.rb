@@ -48,11 +48,8 @@ class ProductsController < ApplicationController
   end
 
   def destroy
-    if @product.discard!
-      turbo_refresh_or_redirect_to products_path, notice: "Prodotto archiviato."
-    else
-      redirect_to products_path, alert: "Impossibile archiviare."
-    end
+    @product.discard!
+    turbo_refresh_or_redirect_to products_path, notice: "Prodotto archiviato."
   end
 
   private
