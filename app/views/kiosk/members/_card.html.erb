@@ -1,5 +1,5 @@
-<%# locals: (member:, discipline:) %>
-<% policy = AccessPolicy.new(member:, discipline:).evaluate! %>
+<%# locals: (member:, policies:) %>
+<% policy = policies.fetch(member) %>
 <% style = kiosk_pending_style(policy) %>
 
   <div id="<%= dom_id(member, :pending) %>" class="card shadow-sm border transition-colors <%= style[:card] %>">
@@ -18,10 +18,9 @@
         </div>
       </div>
 
-      <%= button_to kiosk_discipline_access_logs_path(discipline),
+      <%= button_to kiosk_discipline_access_logs_path(policy.discipline),
                     params: { member_id: member.id },
-                    class: "btn btn-circle btn-lg shadow-md #{style[:button]}",
-                    data: { turbo: true } do %>
+                    class: "btn btn-circle btn-lg shadow-md #{style[:button]}" do %>
         <%= icon("check", classes: "size-8") %>
       <% end %>
 

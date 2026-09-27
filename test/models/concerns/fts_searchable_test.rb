@@ -15,6 +15,20 @@ class FtsSearchableTest < ActiveSupport::TestCase
     assert_equal [ members(:bob) ], Member.search_text("BNCBOB").to_a
   end
 
+  test "search limited to some columns ignores the others" do
+    name_only = %i[first_name last_name]
+
+    assert_equal [ members(:bob) ], Member.search_text("bob bianchi", columns: name_only).to_a
+    assert_empty Member.search_text("BNCBOB", columns: name_only)
+    assert_empty Member.search_text("bob@example", columns: name_only)
+    assert_empty Member.search_text("1990", columns: name_only)
+  end
+
+  test "column limited search still neutralises operators" do
+    assert_nothing_raised { Member.search_text(%q{"alice" OR * NEAR( -}, columns: %i[first_name last_name]).to_a }
+    assert_includes Member.search_text("ali", columns: %i[last_name first_name]), members(:alice)
+  end
+
   test "punctuation and fts operators are neutralised" do
     assert_nothing_raised { Member.search_text(%q{"alice" OR * NEAR( -}).to_a }
     assert_equal Member.count, Member.search_text("!!!").count

@@ -48,27 +48,6 @@ CREATE VIRTUAL TABLE members_fts USING fts5(
 /* members_fts(first_name,last_name,fiscal_code,email_address,phone,birth_date) */;
 CREATE TABLE _litestream_seq (id INTEGER PRIMARY KEY, seq INTEGER);
 CREATE TABLE _litestream_lock (id INTEGER);
-CREATE TABLE IF NOT EXISTS "sales" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "amount_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "member_id" integer NOT NULL, "notes" text, "payment_method" integer DEFAULT 0 NOT NULL, "product_id" integer NOT NULL, "product_name_snapshot" varchar NOT NULL, "receipt_code" varchar GENERATED ALWAYS AS (receipt_year || '-' || receipt_sequence || '-' || receipt_number) STORED, "receipt_number" integer, "receipt_sequence" varchar, "receipt_year" integer, "sold_on" date NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, "subscription_id" integer, CONSTRAINT "fk_rails_26eed2fa3b"
-FOREIGN KEY ("subscription_id")
-  REFERENCES "subscriptions" ("id")
-, CONSTRAINT "fk_rails_afd82832c8"
-FOREIGN KEY ("product_id")
-  REFERENCES "products" ("id")
-, CONSTRAINT "fk_rails_935e249f94"
-FOREIGN KEY ("member_id")
-  REFERENCES "members" ("id")
-, CONSTRAINT "fk_rails_8e94f16ccc"
-FOREIGN KEY ("user_id")
-  REFERENCES "users" ("id")
-);
-CREATE INDEX "index_sales_on_discarded_at" ON "sales" ("discarded_at") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_member_id" ON "sales" ("member_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_product_id" ON "sales" ("product_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_receipt_code" ON "sales" ("receipt_code") /*application='ActiveCore'*/;
-CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acdaf9" ON "sales" ("receipt_year", "receipt_sequence", "receipt_number") WHERE receipt_number IS NOT NULL /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
 CREATE TABLE IF NOT EXISTS "access_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "checkin_by_user_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "entered_at" datetime(6) NOT NULL, "member_id" integer NOT NULL, "subscription_id" integer, "updated_at" datetime(6) NOT NULL, "discipline_id" integer, "status" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_df50081f1b"
 FOREIGN KEY ("subscription_id")
   REFERENCES "subscriptions" ("id")
@@ -129,7 +108,29 @@ FOREIGN KEY ("user_id")
 );
 CREATE INDEX "index_sessions_on_user_id" ON "sessions" ("user_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sessions_on_updated_at" ON "sessions" ("updated_at") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "sales" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "amount_cents" integer NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "member_id" integer NOT NULL, "notes" text, "payment_method" integer NOT NULL, "product_id" integer NOT NULL, "product_name_snapshot" varchar NOT NULL, "receipt_code" varchar GENERATED ALWAYS AS (receipt_year || '-' || receipt_sequence || '-' || receipt_number) STORED, "receipt_number" integer, "receipt_sequence" varchar, "receipt_year" integer, "sold_on" date NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, "subscription_id" integer, CONSTRAINT "fk_rails_8e94f16ccc"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+, CONSTRAINT "fk_rails_935e249f94"
+FOREIGN KEY ("member_id")
+  REFERENCES "members" ("id")
+, CONSTRAINT "fk_rails_afd82832c8"
+FOREIGN KEY ("product_id")
+  REFERENCES "products" ("id")
+, CONSTRAINT "fk_rails_26eed2fa3b"
+FOREIGN KEY ("subscription_id")
+  REFERENCES "subscriptions" ("id")
+);
+CREATE INDEX "index_sales_on_discarded_at" ON "sales" ("discarded_at") /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_member_id" ON "sales" ("member_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_product_id" ON "sales" ("product_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_receipt_code" ON "sales" ("receipt_code") /*application='ActiveCore'*/;
+CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acdaf9" ON "sales" ("receipt_year", "receipt_sequence", "receipt_number") WHERE receipt_number IS NOT NULL /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260927120000'),
 ('20260927100100'),
 ('20260927100000'),
 ('20260926134753'),

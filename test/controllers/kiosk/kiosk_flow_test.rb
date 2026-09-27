@@ -117,6 +117,16 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_match "Nato/a nel #{@alice.birth_date.year}", response.body
   end
 
+  test "kiosk search finds members only by name" do
+    get kiosk_discipline_member_searches_path(@yoga, query: "Allevi")
+    assert_match @alice.full_name, response.body
+
+    [ @alice.fiscal_code.first(6), "alice@example", "3331234567" ].each do |query|
+      get kiosk_discipline_member_searches_path(@yoga, query:)
+      assert_no_match @alice.full_name, response.body, "il kiosk non deve trovare soci per #{query}"
+    end
+  end
+
   test "kiosk search box does not suggest searching by fiscal code" do
     get kiosk_discipline_path(@yoga)
     assert_select "input[placeholder='Cerca nome o cognome...']"

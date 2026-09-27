@@ -39,8 +39,8 @@
                  message: "Hai smarcato tutti i soci previsti per questo corso." %>
     <% else %>
       <%# collection cache: una sola lettura (read_multi) da Solid Cache per tutte le card %>
-      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { discipline: @discipline },
-                 cached: ->(member) { [ member, @discipline, AccessPolicy.new(member:, discipline: @discipline).evaluate!.status, Date.current ] } %>
+      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { policies: @policies },
+                 cached: ->(member) { [ member, @discipline, @policies[member].status, Date.current ] } %>
     <% end %>
   </div>
 

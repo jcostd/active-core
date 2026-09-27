@@ -25,5 +25,7 @@ class Kiosk::DisciplinesController < Kiosk::BaseController
                          .preload(subscriptions: { product: :disciplines }) # preload: tutti gli abbonamenti, quota compresa
                          .to_a
     Subscription.preload_renewed(@pending_members.flat_map(&:subscriptions))
+    # una valutazione per socio, usata sia dalla chiave di cache sia dalla card
+    @policies = @pending_members.index_with { AccessPolicy.new(member: it, discipline: @discipline).evaluate! }
   end
 end

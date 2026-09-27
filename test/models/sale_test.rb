@@ -31,6 +31,17 @@ class SaleTest < ActiveSupport::TestCase
 
   # --- TEST FISCALI E DI PAGAMENTO ---
 
+  test "payment method defaults to card in the model, never to an invalid database value" do
+    assert_nil Sale.columns_hash["payment_method"].default
+    assert_equal "credit_card", Sale.new.payment_method
+  end
+
+  test "unknown payment method is a validation error" do
+    sale = Sale.new(payment_method: "bitcoin")
+    assert_not sale.valid?
+    assert sale.errors[:payment_method].any?
+  end
+
   test "cash payment generates receipt number and year" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
