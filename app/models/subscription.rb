@@ -42,6 +42,7 @@ class Subscription < ApplicationRecord
   scope :upcoming, -> { where(subscriptions: { start_date: (Date.current + 1.day).. }) }
 
   scope :active_at, ->(date) { kept.where(subscriptions: { start_date: ..date, end_date: date.. }) }
+  scope :memberships, -> { joins(:product).merge(Product.associative) }
 
   # rinnovato: stesso socio, un altro abbonamento che parte e finisce dopo questo,
   # nella stessa disciplina (o stesso prodotto, o entrambe quote associative)

@@ -28,6 +28,24 @@ class ProductTest < ActiveSupport::TestCase
     assert_includes duplicate.errors[:name], "è già presente"
   end
 
+  test "a discarded subscription still locks the terms: it is history" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product).subscription.discard!
+
+    assert @product.terms_locked?
+    @product.duration_days = 90
+    assert_not @product.valid?
+  end
+
+  test "name and price stay editable after sales" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product)
+
+    assert @product.update(name: "Yoga Mattina", price: "50")
+  end
+
   test "price validation" do
     @product.price_cents = -500
     assert_not @product.valid?

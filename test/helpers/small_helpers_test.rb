@@ -31,10 +31,25 @@ class SmallHelpersTest < ActionView::TestCase
     assert_equal %w[valid expired missing], member_med_cert_filters.map(&:last)
   end
 
-  test "filter keys and values are humanized" do
-    assert_equal "Corso", humanize_filter_key(:product_id)
-    assert_equal "Yoga Mensile", humanize_filter_value(:product_id, products(:yoga_monthly).id)
-    assert_equal "Sconosciuto", humanize_filter_value(:product_id, 0)
-    assert_equal "Archiviati", humanize_filter_value(:state, "discarded")
+  test "active filter chips reuse the labels of their select" do
+    form_with(url: "/") do |form|
+      filter_select form, :membership_status, member_membership_filters, label: "Stato Tesseramento", blank: "Tutti"
+      filter_select form, :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte"
+      filter_select form, :product_id, [ [ "Yoga", [ [ "Yoga Mensile", products(:yoga_monthly).id ] ] ] ], label: "Prodotto", blank: "Tutti"
+    end
+
+    assert_equal "Stato Tesseramento", humanize_filter_key(:membership_status)
+    assert_equal "Quota scaduta", humanize_filter_value(:membership_status, "expired")
+    assert_equal "Valide", humanize_filter_value(:state, "active")
+    assert_equal "Annullate", humanize_filter_value("state", "discarded")
+    assert_equal "Yoga Mensile", humanize_filter_value(:product_id, products(:yoga_monthly).id.to_s)
+  end
+
+  test "filters without a select still get italian names" do
+    assert_equal "Ricerca", humanize_filter_key(:query)
+    assert_equal "mario", humanize_filter_value(:query, "mario")
+    assert_equal "Mese", humanize_filter_key(:month)
+    assert_equal "Agosto 2026", humanize_filter_value(:month, "2026-08")
+    assert_equal "boh", humanize_filter_value(:month, "boh")
   end
 end

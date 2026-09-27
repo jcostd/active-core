@@ -34,4 +34,19 @@ class Product < ApplicationRecord
   validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
   validates :duration_days, numericality: { greater_than: 0, only_integer: true }
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validate :terms_fixed_once_sold, on: :update
+
+  # categoria e durata decidono date e validità degli abbonamenti già venduti: dopo la prima vendita non cambiano
+  def terms_locked?
+    persisted? && subscriptions.exists?
+  end
+
+  private
+    def terms_fixed_once_sold
+      return unless terms_locked?
+
+      %i[accounting_category duration_days].select { will_save_change_to_attribute?(it) }.each do |attribute|
+        errors.add(attribute, "non può essere cambiata: il prodotto ha già abbonamenti venduti")
+      end
+    end
 end

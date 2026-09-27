@@ -80,18 +80,13 @@ class Member < ApplicationRecord
         s.end_date && s.end_date >= date
       end
     else
-      subscriptions.active_at(date)
-        .joins(:product)
-        .merge(Product.associative)
-        .exists?
+      subscriptions.memberships.active_at(date).exists?
     end
   end
 
   # fine della copertura associativa continua a partire da date (quote consecutive sommate)
   def membership_covered_until(date)
-    memberships = subscriptions.kept.joins(:product).merge(Product.associative)
-                               .where(subscriptions: { end_date: date.. })
-                               .order(:start_date)
+    memberships = subscriptions.memberships.kept.where(subscriptions: { end_date: date.. }).order(:start_date)
 
     memberships.reduce(nil) do |covered, membership|
       break covered if membership.start_date > (covered ? covered + 1 : date)

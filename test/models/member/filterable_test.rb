@@ -23,14 +23,49 @@ class Member::FilterableTest < ActiveSupport::TestCase
     assert_not_includes Member.with_active_membership, @alice.reload
   end
 
-  test "without active membership is the complement" do
-    assert_includes Member.without_active_membership, @bob
-    assert_not_includes Member.without_active_membership, @alice
+  test "expired membership means a past membership and none valid today" do
+    old = Subscription.create!(member: @bob, product: products(:annual_membership),
+                               start_date: Date.current - 400, end_date: Date.current - 40)
+
+    assert_includes Member.with_expired_membership, @bob
+    assert_not_includes Member.with_expired_membership, @alice
+    assert_not_includes Member.without_any_membership, @bob
+
+    old.discard!
+    assert_not_includes Member.with_expired_membership, @bob
   end
 
-  test "without any membership finds never-subscribed members" do
+  test "a member who never had a membership is not expired" do
     assert_includes Member.without_any_membership, @bob
+    assert_not_includes Member.with_expired_membership, @bob
     assert_not_includes Member.without_any_membership, @alice
+  end
+
+  test "courses and discarded memberships do not make a member tesserato" do
+    Subscription.create!(member: @bob, product: products(:yoga_monthly), start_date: Date.current - 5, end_date: Date.current + 5)
+    Subscription.create!(member: @bob, product: products(:annual_membership),
+                         start_date: Date.current - 100, end_date: Date.current + 100).discard!
+
+    assert_includes Member.without_any_membership, @bob
+    assert_not_includes Member.with_active_membership, @bob
+    assert_not_includes Member.with_expired_membership, @bob
+  end
+
+  test "active, expired and never are a partition of the members" do
+    Subscription.create!(member: members(:deleted), product: products(:annual_membership),
+                         start_date: Date.current - 400, end_date: Date.current - 40)
+    groups = [ Member.with_active_membership, Member.with_expired_membership, Member.without_any_membership ].map { it.ids.sort }
+
+    assert_equal Member.ids.sort, groups.flatten.sort
+    assert_equal groups.flatten.size, groups.flatten.uniq.size
+  end
+
+  test "apply_filters maps the three membership states" do
+    Subscription.create!(member: @bob, product: products(:annual_membership), start_date: Date.current - 400, end_date: Date.current - 40)
+
+    assert_equal [ @alice ], Member.apply_filters(membership_status: "active").to_a
+    assert_equal [ @bob ], Member.apply_filters(membership_status: "expired").to_a
+    assert_not_includes Member.apply_filters(membership_status: "missing"), @bob
   end
 
   test "medical certificate scopes" do

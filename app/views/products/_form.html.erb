@@ -33,7 +33,7 @@
       <%# Durata %>
       <div>
         <%= f.label :duration_days, "Durata (Giorni)", class: "label" %>
-        <%= f.number_field :duration_days, class: "input w-full", placeholder: "30" %>
+        <%= f.number_field :duration_days, class: "input w-full", placeholder: "30", disabled: product.terms_locked? %>
 
         <p class="label mt-1">
           30 = 1 Mese, 365 = 1 Anno
@@ -44,11 +44,14 @@
       <div>
         <%= f.label :accounting_category, class: "label" %>
         <%= f.select :accounting_category,
-            Product.accounting_categories.keys.map { |k| [k.titleize, k] },
-         {},
-         class: "select w-full" %>
+                     [ [ "Quota Istituzionale (corsi)", "institutional" ], [ "Quota Associativa", "associative" ] ],
+                     {}, class: "select w-full", disabled: product.terms_locked? %>
       </div>
     </div>
+
+    <% if product.terms_locked? %>
+      <p class="label whitespace-normal">Categoria e durata sono bloccate: il prodotto ha già abbonamenti venduti. Il prezzo vale per le prossime vendite.</p>
+    <% end %>
   </fieldset>
 
   <%# --- SEZIONE 2: ACCESSI E DISCIPLINE --- %>

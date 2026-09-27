@@ -2,22 +2,21 @@ module Member::Filterable
   extend ActiveSupport::Concern
 
   included do
+    # contano solo le quote associative non annullate: i corsi non tesserano
     scope :with_active_membership, -> {
-      joins(:subscriptions)
-        .merge(Subscription.active_at(Date.current).joins(:product).merge(Product.associative))
-        .distinct
+      where(id: Subscription.memberships.active_at(Date.current).select(:member_id))
     }
 
-    scope :without_active_membership, -> {
-      where.not(id: with_active_membership.select("members.id"))
+    scope :with_expired_membership, -> {
+      where(id: Subscription.memberships.kept.select(:member_id)).where.not(id: with_active_membership.select(:id))
+    }
+
+    scope :without_any_membership, -> {
+      where.not(id: Subscription.memberships.kept.select(:member_id))
     }
 
     scope :without_recent_checkin_for, ->(discipline) {
       where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
-    }
-
-    scope :without_any_membership, -> {
-      where.missing(:subscriptions)
     }
 
     scope :with_valid_med_cert, -> {
@@ -50,7 +49,7 @@ module Member::Filterable
 
       scope = case params[:membership_status]
       when "active"  then scope.with_active_membership
-      when "expired" then scope.without_active_membership
+      when "expired" then scope.with_expired_membership
       when "missing" then scope.without_any_membership
       else scope
       end

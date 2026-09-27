@@ -13,8 +13,8 @@
                      sort_options: [ [ "Scadenza: Imminenti", "expiring_asc" ], [ "Scadenza: Lontane", "expiring_desc" ], [ "Più recenti", "recent" ] ] } do |form| %>
   <%= filter_select form, :product_id, @products.pluck(:name, :id), label: "Corso", blank: "Tutti i Corsi" %>
   <%= filter_select form, :state, [ [ "Attive", "active" ], [ "Scadute", "expired" ], [ "Future", "upcoming" ] ], label: "Stato Iscrizione al Corso", blank: "Tutti gli stati" %>
-  <%= filter_select form, :membership_status, [ [ "Attivo", "active" ], [ "Scaduto", "expired" ], [ "Mancante", "missing" ] ], label: "Tesseramento", blank: "Qualsiasi" %>
-  <%= filter_select form, :med_cert, [ [ "Valido", "valid" ], [ "Scaduto", "expired" ], [ "Assente", "missing" ] ], label: "Certificato Medico", blank: "Qualsiasi" %>
+  <%= filter_select form, :membership_status, member_membership_filters, label: "Tesseramento", blank: "Qualsiasi" %>
+  <%= filter_select form, :med_cert, member_med_cert_filters, label: "Certificato Medico", blank: "Qualsiasi" %>
 <% end %>
 
 <%= turbo_frame_tag "discipline_members_list" do %>

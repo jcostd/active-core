@@ -1,9 +1,9 @@
 module MembersHelper
   def member_membership_filters
     [
-      [ "In Regola (Attivo)", "active" ],
-      [ "Scaduto", "expired" ],
-      [ "Mai Tesserato (Prospect)", "missing" ]
+      [ "Quota valida", "active" ],
+      [ "Quota scaduta", "expired" ],
+      [ "Mai tesserato", "missing" ]
     ]
   end
 

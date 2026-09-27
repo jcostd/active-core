@@ -13,6 +13,23 @@ class FilterFormsTest < ActionDispatch::IntegrationTest
     assert_select "#filter-form select[name=status] option", text: "Warning", count: 0
   end
 
+  test "active filter chips speak italian on every page" do
+    { members_path(membership_status: "expired") => "Quota scaduta",
+      sales_path(state: "active") => "Valide",
+      sales_path(state: "discarded", period: "last_month") => "Mese Scorso",
+      access_logs_path(status: "warning") => "Avviso",
+      users_path(role: "kiosk") => "Kiosk",
+      discipline_members_path(disciplines(:yoga), membership_status: "missing") => "Mai tesserato" }.each do |path, label|
+      get path
+      assert_select "[data-controller=filter-badge] .badge strong", text: label
+    end
+  end
+
+  test "sales state chip is not mislabelled" do
+    get sales_path(state: "active")
+    assert_select "[data-controller=filter-badge] .badge strong", text: "Archiviati", count: 0
+  end
+
   test "selected filter is kept after reload" do
     get members_path(med_cert: "expired")
     assert_select "select[name=med_cert] option[selected][value=expired]"

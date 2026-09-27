@@ -16,7 +16,7 @@
 <%= render "shared/header/page" %>
 
 <%= turbo_frame_tag "access_logs_list" do %>
-  <%= render "shared/filter/active", filter_keys: @keys %>
+  <%= render "shared/filter/active", filter_keys: [:status, :discipline_id] %>
 
   <div class="mt-6">
     <% if @access_logs.empty? %>

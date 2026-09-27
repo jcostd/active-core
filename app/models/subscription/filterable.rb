@@ -25,7 +25,7 @@ module Subscription::Filterable
 
       case status
       when "active"  then where(member_id: Member.with_active_membership.select(:id))
-      when "expired" then where(member_id: Member.without_active_membership.select(:id))
+      when "expired" then where(member_id: Member.with_expired_membership.select(:id))
       when "missing" then where(member_id: Member.without_any_membership.select(:id))
       else all
       end

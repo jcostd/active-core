@@ -40,6 +40,42 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
     assert products(:yoga_monthly).reload.discarded?
   end
 
+  test "category and duration are locked once the product is sold" do
+    grant_membership_to(members(:alice))
+    sell!(member: members(:alice), product: products(:yoga_monthly))
+
+    patch product_path(products(:yoga_monthly)), params: { product: { accounting_category: "associative", duration_days: 365 } }
+
+    assert_response :unprocessable_entity
+    product = products(:yoga_monthly).reload
+    assert product.institutional?
+    assert_equal 30, product.duration_days
+    assert_match "Categoria contabile non può essere cambiata", response.body
+    assert_match "Durata (giorni) non può essere cambiata", response.body
+  end
+
+  test "edit form disables locked terms and explains why" do
+    grant_membership_to(members(:alice))
+    sell!(member: members(:alice), product: products(:yoga_monthly))
+
+    get edit_product_path(products(:yoga_monthly))
+    assert_select "select[name='product[accounting_category]'][disabled]"
+    assert_select "input[name='product[duration_days]'][disabled]"
+    assert_match "Categoria e durata sono bloccate", response.body
+  end
+
+  test "unsold product keeps every field editable, with italian categories" do
+    get edit_product_path(products(:yoga_monthly))
+    assert_select "select[name='product[accounting_category]']:not([disabled])" do
+      assert_select "option", text: "Quota Associativa"
+      assert_select "option", text: "Quota Istituzionale (corsi)"
+    end
+    assert_no_match "Categoria e durata sono bloccate", response.body
+
+    patch product_path(products(:yoga_monthly)), params: { product: { duration_days: 90 } }
+    assert_equal 90, products(:yoga_monthly).reload.duration_days
+  end
+
   test "price change does not touch past sales" do
     member = members(:alice)
     grant_membership_to(member)
