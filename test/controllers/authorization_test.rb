@@ -40,6 +40,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "sales index"        => ->(t) { t.get t.sales_path },
     "access logs index"  => ->(t) { t.get t.access_logs_path },
     "users index"        => ->(t) { t.get t.users_path },
+    "gym profile show"   => ->(t) { t.get t.gym_profile_path },
     "gym profile edit"   => ->(t) { t.get t.edit_gym_profile_path },
     "gym profile update" => ->(t) { t.patch t.gym_profile_path, params: { gym_profile: { name: "Presa" } } }
   }

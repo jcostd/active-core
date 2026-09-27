@@ -31,7 +31,7 @@ Rails.application.routes.draw do
   resources :access_logs, only: [ :index, :destroy ]
 
   resources :reports, only: [ :index, :show ], param: :report_type
-  resource :gym_profile, only: [ :edit, :update ]
+  resource :gym_profile, only: [ :show, :edit, :update ]
   resources :feedbacks, only: [ :new, :create ]
 
   get "up" => "rails/health#show", as: :rails_health_check
