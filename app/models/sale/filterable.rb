@@ -1,77 +1,49 @@
 module Sale::Filterable
   extend ActiveSupport::Concern
 
+  SORTS = {
+    "sold_desc"    => { sold_on: :desc, created_at: :desc },
+    "created_desc" => { created_at: :desc },
+    "created_asc"  => { created_at: :asc },
+    "name_asc"     => { product_name_snapshot: :asc },
+    "name_desc"    => { product_name_snapshot: :desc }
+  }.freeze
+
+  PERIODS = {
+    "today"      => -> { Date.current..Date.current },
+    "this_month" => -> { Date.current.all_month },
+    "last_month" => -> { Date.current.last_month.all_month },
+    "this_year"  => -> { Date.current.all_year }
+  }.freeze
+
   included do
+    include Sortable
+
     scope :search_text, ->(query) {
-      return all if query.blank?
+      next if query.blank?
 
-      term = "%#{query}%"
-      joins(:member, :product).where(
-        "CAST(sales.receipt_number AS TEXT) LIKE :q " \
-        "OR members.first_name LIKE :q " \
-        "OR members.last_name LIKE :q " \
-        "OR products.name LIKE :q",
-        q: term
-      )
+      joins(:member).where("CAST(sales.receipt_number AS TEXT) LIKE :q OR members.first_name LIKE :q " \
+                           "OR members.last_name LIKE :q OR sales.product_name_snapshot LIKE :q",
+                           q: "%#{sanitize_sql_like(query)}%")
     }
 
-    scope :by_payment_method, ->(method) {
-      where(sales: { payment_method: method }) if method.present?
-    }
-
-    scope :by_product, ->(product_id) {
-      where(sales: { product_id: product_id }) if product_id.present?
-    }
-
-    # NUOVO: Filtro temporale rapido per le chiusure di cassa e bilanci
-    scope :by_period, ->(period) {
-      case period
-      when "today"      then where(sales: { sold_on: Date.current })
-      when "this_month" then where(sales: { sold_on: Date.current.all_month })
-      when "last_month" then where(sales: { sold_on: 1.month.ago.all_month })
-      when "this_year"  then where(sales: { sold_on: Date.current.all_year })
-      else all
-      end
-    }
-
-    scope :by_accounting_category, ->(category) {
-      joins(:product).where(products: { accounting_category: category }) if category.present?
-    }
-
-    scope :by_operator, ->(user_id) {
-      where(sales: { user_id: user_id }) if user_id.present?
-    }
-
-    scope :sorted_by, ->(param, has_query: false) {
-      case param
-      when "name_asc"     then joins(:product).order(products: { name: :asc })
-      when "name_desc"    then joins(:product).order(products: { name: :desc })
-      when "created_asc"  then order(sales: { created_at: :asc })
-      when "created_desc" then order(sales: { created_at: :desc })
-      else
-        if param.blank?
-          order(sales: { sold_on: :desc, created_at: :desc })
-        else
-          has_query ? all : order(sales: { updated_at: :desc })
-        end
-      end
-    }
+    scope :by_payment_method,      ->(method)  { where(payment_method: method) if method.in?(payment_methods.keys) }
+    scope :by_product,             ->(id)      { where(product_id: id) if id.present? }
+    scope :by_period,              ->(period)  { where(sold_on: PERIODS[period].call) if PERIODS.key?(period) }
+    scope :by_operator,            ->(user_id) { where(user_id:) if user_id.present? }
+    scope :by_accounting_category, ->(category) { where(receipt_sequence: category) if category.present? }
   end
 
   class_methods do
     def apply_filters(params = {})
-      scope = params[:state] == "discarded" ? discarded : kept
-
-      has_query = params[:query].present?
-      scope = scope.search_text(params[:query]) if has_query
-
-      scope = scope.by_payment_method(params[:payment_method])
-                   .by_product(params[:product_id])
-                   .by_period(params[:period])
-                   .by_accounting_category(params[:accounting_category])
-                   .by_operator(params[:operator_id])
-
-      scope.sorted_by(params[:sort], has_query: has_query)
+      (params[:state] == "discarded" ? discarded : kept)
+        .search_text(params[:query])
+        .by_payment_method(params[:payment_method])
+        .by_product(params[:product_id])
+        .by_period(params[:period])
+        .by_accounting_category(params[:accounting_category])
+        .by_operator(params[:operator_id])
+        .sorted_by(params[:sort])
     end
   end
 end

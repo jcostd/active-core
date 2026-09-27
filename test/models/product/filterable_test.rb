@@ -14,8 +14,12 @@ class Product::FilterableTest < ActiveSupport::TestCase
     assert_equal Product.kept.count, Product.apply_filters(accounting_category: "bogus").count
   end
 
-  test "sorts by price" do
-    assert_equal products(:annual_membership), Product.apply_filters(sort: "price_asc").first
-    assert_equal products(:yoga_monthly), Product.apply_filters(sort: "price_desc").first
+  test "sorts by name, newest first by default" do
+    assert_equal products(:annual_membership), Product.apply_filters(sort: "name_asc").first
+    assert_equal products(:yoga_monthly), Product.apply_filters(sort: "name_desc").first
+
+    newest = Product.create!(name: "Nuovo", price_cents: 1, duration_days: 30)
+    assert_equal newest, Product.apply_filters({}).first
+    assert_equal newest, Product.apply_filters(sort: "'; DROP TABLE products; --").first
   end
 end

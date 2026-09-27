@@ -24,6 +24,15 @@ class ViewConventionsTest < ActiveSupport::TestCase
     assert_empty offenders, "usare i colori semantici del tema (error, primary, base-content...)"
   end
 
+  test "every sort offered by a page is known to its model" do
+    default = %w[created_desc created_asc name_asc name_desc]
+
+    [ Member, User, Product, Discipline, Sale ].each do |model|
+      assert_empty default - model::SORTS.keys, "#{model} non conosce un ordinamento predefinito"
+    end
+    assert_empty %w[date_desc date_asc] - AccessLog::SORTS.keys
+  end
+
   test "no daisyUI 4 classes" do
     old = %w[input-bordered select-bordered textarea-bordered form-control label-text btn-group card-bordered]
     offenders = VIEWS.select { |file| old.any? { File.read(file).include?(it) } }
