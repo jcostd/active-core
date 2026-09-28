@@ -8,7 +8,6 @@ class SalesController < ApplicationController
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
 
   def index
-    @total_active_sales = Sale.kept.count
     @pagy, @sales = pagy(
       Sale
         .apply_filters(filter_params)

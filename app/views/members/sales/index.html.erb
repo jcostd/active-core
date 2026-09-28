@@ -1,49 +1,21 @@
 <%= turbo_stream_from @member, "sales" %>
 <%= render "members/context", member: @member %>
 
-<div class="flex justify-between items-center gap-4 mb-6 mt-6">
-  <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("receipt", classes: "size-6 opacity-50") %> Storico Acquisti
-  </h2>
-
-  <div class="text-right">
-    <div class="text-xs uppercase tracking-widest opacity-60">
-      Totale speso
-    </div>
-    <div class="text-lg font-semibold text-primary">
-      <%= format_cents(@total_amount_cents) %>
-    </div>
-  </div>
-</div>
+<%= render "shared/section_header", title: "Storico acquisti", icon_name: "receipt",
+           aside: tag.div(safe_join([ tag.div("Totale speso", class: "text-xs uppercase opacity-60"), tag.div(format_cents(@total_amount_cents), class: "text-lg font-semibold text-primary") ]), class: "text-right") %>
 
 <%= render layout: "shared/filter/form",
            locals: { url: member_sales_path(@member), frame: "member_sales_list", placeholder: "Cerca prodotto, codice ricevuta...",
                      drawer_title: "Filtri Acquisti",
-                     sort_options: [ [ "Più recenti", "created_desc" ], [ "Meno recenti", "created_asc" ], [ "Prodotto (A-Z)", "name_asc" ], [ "Prodotto (Z-A)", "name_desc" ] ] } do |form| %>
-  <%= filter_select form, :product_id, grouped_product_options, label: "Prodotto", blank: "Tutti i prodotti" %>
-  <%= filter_select form, :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Tutti i metodi" %>
-  <%= filter_select form, :state, state_filters, label: "Stato in Archivio", blank: "Mostra solo Attivi" %>
+                     sort_options: [ [ "Più recenti", "created_desc" ], [ "Meno recenti", "created_asc" ], [ "Prodotto (A-Z)", "name_asc" ], [ "Prodotto (Z-A)", "name_desc" ] ] } do %>
+  <%= filter_select :product_id, grouped_product_options, label: "Prodotto", blank: "Tutti i prodotti" %>
+  <%= filter_select :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Tutti i metodi" %>
+  <%= filter_select :state, state_filters, label: "Stato in Archivio", blank: "Mostra solo Attivi" %>
 <% end %>
 
-<%= turbo_frame_tag "member_sales_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:product_id, :payment_method, :state] %>
-
-  <div class="mt-6">
-    <% if @pagy.count == 0 %>
-      <%= render "shared/empty_state",
-                 icon_name: "receipt",
-                 title: "Nessun acquisto trovato",
-                 message: "Prova a cambiare i criteri di ricerca o rimuovere i filtri." %>
-    <% else %>
-
-      <%= filtered_results_counter(@pagy) %>
-
-      <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-        <%= render partial: "members/sales/row", collection: @sales, as: :sale,
-                 cached: ->(sale) { [ sale, sale.reversible_by?(current_user) ] } %>
-      </ul>
-
-      <%= render "shared/pagination" %>
-    <% end %>
-  </div>
+<%= render layout: "shared/list", locals: { frame: "member_sales_list", records: @sales, icon_name: "receipt", empty: "Nessun acquisto trovato",
+                                            filter_keys: %i[product_id payment_method state] } do %>
+  <ul class="list panel">
+    <%= render partial: "members/sales/row", collection: @sales, as: :sale, cached: ->(sale) { [ sale, sale.reversible_by?(current_user) ] } %>
+  </ul>
 <% end %>

@@ -7,7 +7,6 @@ class ProductsController < ApplicationController
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    @total_active_products = Product.kept.count
     @pagy, @products = pagy(
       Product
         .apply_filters(filter_params)

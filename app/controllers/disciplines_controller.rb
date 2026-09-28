@@ -7,7 +7,6 @@ class DisciplinesController < ApplicationController
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    @total_active_disciplines = Discipline.kept.count
     @pagy, @disciplines = pagy(
       Discipline
         .apply_filters(filter_params)

@@ -7,7 +7,6 @@ class MembersController < ApplicationController
   layout "modal", only: [ :new, :edit ]
 
   def index
-    @total_active_members = Member.kept.count
     @pagy, @members = pagy(
       Member
         .apply_filters(filter_params)

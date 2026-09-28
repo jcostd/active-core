@@ -1,0 +1,6 @@
+<%# locals: (month:) %>
+<nav class="join" aria-label="Mese">
+  <%= link_to icon("arrow_left"), month_path(month.prev_month), class: "btn btn-sm join-item", title: "Mese precedente" %>
+  <%= link_to "Questo mese", month_path(nil), class: "btn btn-sm join-item" %>
+  <%= link_to icon("arrow_right"), month_path(month.next_month), class: "btn btn-sm join-item", title: "Mese successivo" %>
+</nav>

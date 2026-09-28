@@ -1,7 +1,4 @@
-<% content_for :page_title, params[:filter] == "expiring" ? "Abbonamenti in scadenza" : "Abbonamenti" %>
-<% content_for :page_counter, "#{@pagy.count} totali" %>
-
-<%= render "shared/header/page" %>
+<%= render "shared/page_header", title: params[:filter] == "expiring" ? "Abbonamenti in scadenza" : "Abbonamenti", counter: "#{@pagy.count} totali" %>
 
 <% if @subscriptions.empty? %>
   <%= render "shared/empty_state",
@@ -9,7 +6,7 @@
              title: "Nessun abbonamento",
              message: "Non ci sono abbonamenti da mostrare." %>
 <% else %>
-  <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+  <ul class="list panel">
     <%= render partial: "dashboard/expiring_subscription", collection: @subscriptions, as: :sub %>
   </ul>
 

@@ -1,51 +1,20 @@
 <%= turbo_stream_from "sales" %>
+<%= render "shared/page_header", title: "Vendite", counter: "#{Sale.kept.count} totali", new_path: new_sale_path, new_label: "Nuova" %>
 
-<% content_for :page_title, "Vendite" %>
-
-<% content_for :page_counter, "#{@total_active_sales} totali" %>
-
-<% content_for :page_actions do %>
-  <%= link_to [:new, :sale],
-          class: "btn btn-primary gap-2",
-          data: { turbo_frame: "modal" } do %>
-    <%= icon("add") %>
-    <span class="hidden sm:inline">Nuova</span>
-  <% end %>
+<%= render layout: "shared/filter/form",
+           locals: { url: sales_path, frame: "sales_list", placeholder: "Cerca n. ricevuta o socio...", drawer_title: "Filtri Vendite" } do %>
+  <%= filter_select :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte" %>
+  <%= filter_select :period, [ [ "Oggi", "today" ], [ "Questo Mese", "this_month" ], [ "Mese Scorso", "last_month" ], [ "Quest'Anno", "this_year" ] ],
+                    label: "Periodo", blank: "Sempre" %>
+  <%= filter_select :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Qualsiasi" %>
+  <%= filter_select :accounting_category, [ [ "Istituzionale", "institutional" ], [ "Associativo", "associative" ] ],
+                    label: "Categoria Contabile", blank: "Qualsiasi" %>
+  <%= filter_select :operator_id, User.kept.operators.order(:username).pluck(:username, :id), label: "Operatore", blank: "Tutti gli operatori" %>
 <% end %>
 
-<% content_for :page_search_and_filters do %>
-  <%= render layout: "shared/filter/form",
-             locals: { url: sales_path, frame: "sales_list", placeholder: "Cerca n. ricevuta o socio...", drawer_title: "Filtri Vendite" } do |form| %>
-    <%= filter_select form, :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte" %>
-    <%= filter_select form, :period, [ [ "Oggi", "today" ], [ "Questo Mese", "this_month" ], [ "Mese Scorso", "last_month" ], [ "Quest'Anno", "this_year" ] ],
-                      label: "Periodo", blank: "Sempre" %>
-    <%= filter_select form, :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Qualsiasi" %>
-    <%= filter_select form, :accounting_category, [ [ "Istituzionale", "institutional" ], [ "Associativo", "associative" ] ],
-                      label: "Categoria Contabile", blank: "Qualsiasi" %>
-    <%= filter_select form, :operator_id, User.kept.operators.order(:username).pluck(:username, :id), label: "Operatore", blank: "Tutti gli operatori" %>
-  <% end %>
-<% end %>
-
-<%= render "shared/header/page" %>
-
-<%= turbo_frame_tag "sales_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:sort, :state, :period, :payment_method, :accounting_category, :operator_id] %>
-
-  <div class="mt-6">
-    <% if @pagy.count == 0 %>
-      <%= render "shared/empty_state",
-         icon_name: "receipt",
-         title: "Nessuna vendita trovata",
-         message: "Non ci sono movimenti registrati con questi criteri." %>
-    <% else %>
-      <%= filtered_results_counter(@pagy) %>
-
-      <ul id="sales" class="list bg-base-100 rounded-box shadow-sm">
-        <%= render partial: "sales/row", collection: @sales, as: :sale,
-                 cached: ->(sale) { [ sale, sale.member, sale.reversible_by?(current_user) ] } %>
-      </ul>
-
-      <%= render "shared/pagination" %>
-    <% end %>
-  </div>
+<%= render layout: "shared/list", locals: { frame: "sales_list", records: @sales, icon_name: "receipt", empty: "Nessuna vendita trovata",
+                                            filter_keys: %i[sort state period payment_method accounting_category operator_id] } do %>
+  <ul id="sales" class="list panel">
+    <%= render partial: "sales/row", collection: @sales, as: :sale, cached: ->(sale) { [ sale, sale.member, sale.reversible_by?(current_user) ] } %>
+  </ul>
 <% end %>

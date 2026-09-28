@@ -1,17 +1,13 @@
 <%= turbo_stream_from @member %>
 <%= render "members/context", member: @member %>
 
-<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
-  <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("history", classes: "size-6 opacity-50") %> Registro presenze
-  </h2>
-</div>
+<%= render "shared/section_header", title: "Registro presenze", icon_name: "history" %>
 
 <% if @attendances.empty? %>
   <%= render "shared/empty_state", icon_name: "history", title: "Nessuna presenza",
              message: "Nessun istruttore ha ancora segnato questo socio in un registro." %>
 <% else %>
-  <ul id="member_attendances" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+  <ul id="member_attendances" class="list panel">
     <% @attendances.each do |attendance| %>
       <li id="<%= dom_id(attendance) %>" class="list-row items-center">
         <div class="font-bold capitalize w-36"><%= l(attendance.month, format: "%B %Y") %></div>

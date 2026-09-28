@@ -9,19 +9,17 @@ module FiltersHelper
   end
 
   def filtered_results_counter(pagy)
-    return unless filtering?
-
-    content_tag :div, "Trovati #{pagy.count} risultati", class: "mb-4 text-sm font-medium text-base-content/70"
+    tag.div "Trovati #{pagy.count} risultati", class: "mb-4 text-sm font-medium text-base-content/70" if pagy && filtering?
   end
 
   # select del cassetto filtri: si invia da sola al cambio e lascia le sue etichette ai chip dei filtri attivi
-  def filter_select(form, name, choices, label:, blank:)
+  def filter_select(name, choices, label:, blank:)
     filter_labels[name.to_s] = { label:, values: choice_labels(choices) }
+    options = choices.first&.last.is_a?(Array) ? grouped_options_for_select(choices, params[name]) : options_for_select(choices, params[name])
 
     tag.fieldset class: "fieldset" do
       tag.legend(label, class: "fieldset-legend") +
-        form.select(name, choices, { include_blank: blank, selected: params[name] },
-                    class: "select w-full", data: { action: "change->autosubmit#submit" })
+        select_tag(name, options, include_blank: blank, class: "select w-full", data: { action: "change->autosubmit#submit" })
     end
   end
 

@@ -2,33 +2,18 @@
 <%= turbo_stream_from "members" %>
 <%= render "disciplines/context", discipline: @discipline %>
 
-<div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-6">
-  <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("group", classes: "size-6 opacity-50") %> Iscritti di <%= l(@month, format: "%B %Y") %>
-  </h2>
-
-  <div class="join">
-    <%= link_to discipline_members_path(@discipline, request.query_parameters.except("page").merge(month: @month.prev_month.strftime("%Y-%m"))),
-                class: "btn btn-sm join-item", title: "Mese precedente" do %>
-      <%= icon("arrow_left") %>
-    <% end %>
-    <%= link_to "Questo mese", discipline_members_path(@discipline, request.query_parameters.except("month", "page")), class: "btn btn-sm join-item" %>
-    <%= link_to discipline_members_path(@discipline, request.query_parameters.except("page").merge(month: @month.next_month.strftime("%Y-%m"))),
-                class: "btn btn-sm join-item", title: "Mese successivo" do %>
-      <%= icon("arrow_right") %>
-    <% end %>
-  </div>
-</div>
+<%= render "shared/section_header", title: "Iscritti di #{l(@month, format: "%B %Y")}", icon_name: "group",
+                                    aside: render("shared/month_nav", month: @month) %>
 
 <%= render layout: "shared/filter/form",
            locals: { url: discipline_members_path(@discipline), frame: "discipline_members_list", placeholder: "Cerca iscritto...",
                      drawer_title: "Filtri Iscritti", default_sort: "name_asc",
-                     sort_options: [ [ "Nome: A-Z", "name_asc" ], [ "Nome: Z-A", "name_desc" ] ] } do |form| %>
+                     sort_options: [ [ "Nome: A-Z", "name_asc" ], [ "Nome: Z-A", "name_desc" ] ] } do %>
   <%= hidden_field_tag :month, params[:month] %>
-  <%= filter_select form, :product_id, @products.pluck(:name, :id), label: "Prodotto", blank: "Tutti i prodotti" %>
-  <%= filter_select form, :seen, [ [ "Visti dall'istruttore", "yes" ], [ "Non visti", "no" ] ], label: "Registro", blank: "Tutti" %>
-  <%= filter_select form, :membership_status, member_membership_filters, label: "Tesseramento", blank: "Qualsiasi" %>
-  <%= filter_select form, :med_cert, member_med_cert_filters, label: "Certificato Medico", blank: "Qualsiasi" %>
+  <%= filter_select :product_id, @products.pluck(:name, :id), label: "Prodotto", blank: "Tutti i prodotti" %>
+  <%= filter_select :seen, [ [ "Visti dall'istruttore", "yes" ], [ "Non visti", "no" ] ], label: "Registro", blank: "Tutti" %>
+  <%= filter_select :membership_status, member_membership_filters, label: "Tesseramento", blank: "Qualsiasi" %>
+  <%= filter_select :med_cert, member_med_cert_filters, label: "Certificato Medico", blank: "Qualsiasi" %>
 <% end %>
 
 <%= turbo_frame_tag "discipline_members_list" do %>

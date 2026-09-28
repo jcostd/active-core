@@ -14,4 +14,10 @@ module NavigationHelper
         safe_join(tabs.compact.map { |label, path, icon_name| tag.li(active_link_to(path) { icon(icon_name) + " " + label }) })
     end
   end
+
+  # la pagina corrente in un altro mese (nil: quello in corso), con gli stessi filtri e dalla prima pagina
+  def month_path(month)
+    query = request.query_parameters.except("page", "month").merge(month: month&.strftime("%Y-%m")).compact
+    [ request.path, query.to_query.presence ].compact.join("?")
+  end
 end

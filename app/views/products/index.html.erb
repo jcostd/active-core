@@ -1,40 +1,10 @@
 <%= turbo_stream_from "products" %>
+<%= render "shared/page_header", title: "Prodotti", counter: "#{Product.kept.count} totali", new_path: new_product_path %>
 
-<% content_for :page_title, "Prodotti" %>
+<%= render "shared/filter/form", url: products_path, frame: "products_list", placeholder: "Cerca prodotto..." %>
 
-<% content_for :page_counter, "#{@total_active_products} totali" %>
-
-<% content_for :page_actions do %>
-  <%= link_to [:new, :product],
-          class: "btn btn-primary gap-2",
-          data: { turbo_frame: "modal" } do %>
-    <%= icon("add", size: 20) %>
-    <span class="hidden sm:inline">Nuovo</span>
-  <% end %>
-<% end %>
-
-<% content_for :page_search_and_filters do %>
-  <%= render "shared/filter/form", url: products_path, frame: "products_list", placeholder: "Cerca prodotto..." %>
-<% end %>
-
-<%= render "shared/header/page" %>
-
-<%= turbo_frame_tag "products_list" do %>
-  <div class="mt-6">
-    <% if @products.empty? %>
-      <%= render "shared/empty_state",
-                 icon_name: "product",
-                 title: "Nessun prodotto trovato",
-                 message: "Non ci sono prodotti che corrispondono ai criteri di ricerca." %>
-    <% else %>
-
-      <%= filtered_results_counter(@pagy) %>
-
-      <ul id="products" class="list bg-base-100 rounded-box shadow-sm">
-        <%= render partial: "product_row", collection: @products, as: :product %>
-      </ul>
-
-      <%= render "shared/pagination" %>
-    <% end %>
-  </div>
+<%= render layout: "shared/list", locals: { frame: "products_list", records: @products, icon_name: "product", empty: "Nessun prodotto trovato" } do %>
+  <ul id="products" class="list panel">
+    <%= render partial: "product_row", collection: @products, as: :product %>
+  </ul>
 <% end %>

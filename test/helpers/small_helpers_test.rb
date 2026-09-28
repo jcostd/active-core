@@ -40,11 +40,10 @@ class SmallHelpersTest < ActionView::TestCase
   end
 
   test "active filter chips reuse the labels of their select" do
-    form_with(url: "/") do |form|
-      filter_select form, :membership_status, member_membership_filters, label: "Stato Tesseramento", blank: "Tutti"
-      filter_select form, :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte"
-      filter_select form, :product_id, [ [ "Yoga", [ [ "Yoga Mensile", products(:yoga_monthly).id ] ] ] ], label: "Prodotto", blank: "Tutti"
-    end
+    filter_select :membership_status, member_membership_filters, label: "Stato Tesseramento", blank: "Tutti"
+    filter_select :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte"
+    grouped = filter_select :product_id, [ [ "Yoga", [ [ "Yoga Mensile", products(:yoga_monthly).id ] ] ] ], label: "Prodotto", blank: "Tutti"
+    assert_match %(<optgroup label="Yoga">), grouped
 
     assert_equal "Stato Tesseramento", humanize_filter_key(:membership_status)
     assert_equal "Quota scaduta", humanize_filter_value(:membership_status, "expired")

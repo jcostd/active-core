@@ -8,7 +8,6 @@ class UsersController < ApplicationController
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    @total_active_users = User.kept.count
     @pagy, @users = pagy(
       User
         .apply_filters(filter_params)

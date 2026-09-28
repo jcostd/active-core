@@ -1,0 +1,14 @@
+<%# locals: (frame:, records:, filter_keys: [], empty: "Nessun risultato", icon_name: "filter_off", message: "Prova a cambiare la ricerca o a togliere i filtri.") %>
+<%# elenco filtrabile nel suo frame: chip dei filtri attivi, poi la lista (il blocco) e la paginazione, o lo stato vuoto %>
+<%= turbo_frame_tag frame do %>
+  <%= render "shared/filter/active", filter_keys: %>
+  <div class="mt-6">
+    <% if records.empty? %>
+      <%= render "shared/empty_state", icon_name:, title: empty, message: %>
+    <% else %>
+      <%= filtered_results_counter(@pagy) %>
+      <%= yield %>
+      <%= render "shared/pagination" %>
+    <% end %>
+  </div>
+<% end %>
