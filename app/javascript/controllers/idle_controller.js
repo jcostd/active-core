@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Esce dopo timeoutValue secondi senza input dell'utente.
+// Esce dopo timeoutValue secondi senza input dell'utente, inviando il form di uscita della pagina.
 // L'ultima attività è condivisa tra le schede via localStorage.
 const STORAGE_KEY = "idle:last-activity"
 const EVENTS = [ "pointerdown", "keydown", "wheel", "touchstart" ]
@@ -8,7 +8,8 @@ const CHECK_EVERY_MS = 15_000
 const WRITE_EVERY_MS = 5_000
 
 export default class extends Controller {
-  static values = { timeout: Number, url: String }
+  static targets = [ "signOut" ]
+  static values = { timeout: Number }
 
   connect() {
     this.record = this.record.bind(this)
@@ -44,23 +45,6 @@ export default class extends Controller {
   }
 
   signOut() {
-    const form = document.createElement("form")
-    form.method = "post"
-    form.action = this.urlValue
-    form.append(this.hidden("_method", "delete"), this.hidden("authenticity_token", this.csrfToken))
-    document.body.append(form)
-    form.submit()
-  }
-
-  hidden(name, value) {
-    const input = document.createElement("input")
-    input.type = "hidden"
-    input.name = name
-    input.value = value
-    return input
-  }
-
-  get csrfToken() {
-    return document.querySelector("meta[name='csrf-token']")?.content || ""
+    this.signOutTarget.requestSubmit()
   }
 }

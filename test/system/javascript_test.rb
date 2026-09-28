@@ -56,6 +56,16 @@ class JavascriptTest < ApplicationSystemTestCase
     assert_selector "dialog[open]", text: "Stato Tesseramento"
   end
 
+  test "after the idle timeout the browser signs out with the form of the page" do
+    visit members_path
+    page.execute_script(%(Stimulus.getControllerForElementAndIdentifier(document.body, "idle").signOut()))
+
+    assert_current_path new_session_path
+    assert_text "Sessione scaduta per inattività."
+    visit members_path
+    assert_current_path new_session_path
+  end
+
   test "flash messages go away by themselves" do
     Capybara.reset_session!
     visit new_session_path

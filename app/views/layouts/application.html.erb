@@ -3,7 +3,8 @@
   <%= render "layouts/head", title: page_title %>
 
   <body class="bg-base-200 antialiased" data-controller="theme-sync idle" data-theme-sync-theme-value="<%= current_theme %>"
-        data-idle-timeout-value="<%= Session::IDLE_TIMEOUT.to_i %>" data-idle-url-value="<%= session_path(reason: "idle") %>">
+        data-idle-timeout-value="<%= Session::IDLE_TIMEOUT.to_i %>">
+    <%= button_to "Esci", session_path(reason: "idle"), method: :delete, form: { hidden: true, data: { idle_target: "signOut", turbo: false } } %>
     <div class="drawer mx-auto max-w-[100rem] lg:drawer-open">
       <input id="main-drawer" type="checkbox" class="drawer-toggle">
 

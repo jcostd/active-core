@@ -61,7 +61,7 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
     assert_not_empty expiring
 
     Subscription.kept.where(start_date: ..@today).find_each do |subscription|
-      assert_equal expiring.include?(subscription), subscription.status.key == :expiring_soon, subscription.product.name
+      assert_equal expiring.include?(subscription), subscription.status == :expiring_soon, subscription.product.name
     end
   end
 

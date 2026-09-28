@@ -10,15 +10,13 @@ class SubscriptionsHelperTest < ActionView::TestCase
   end
 
   test "every subscription status has a style" do
-    %i[expired future expiring_soon active].each do |key|
-      status = Struct.new(:key, :label).new(key, "x")
-      assert subscription_status_badge(status).present?, key
-    end
+    assert_equal Subscription::STATUS_LABELS.keys.sort, SUBSCRIPTION_STATUS_STYLES.keys.sort
+    assert_equal Subscription::PAYMENT_LABELS.keys.sort, SUBSCRIPTION_PAYMENT_STYLES.keys.sort
   end
 
   test "status badge shows the period with literal classes, never the payment" do
     @sub.update_columns(start_date: Date.current - 1, end_date: Date.current + 20)
-    html = subscription_status_badge(@sub.reload.status)
+    html = subscription_status_badge(@sub.reload)
     assert_match "Attivo", html
     assert_match "badge-success", html
     assert_no_match "saldare", html

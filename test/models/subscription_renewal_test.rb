@@ -68,10 +68,10 @@ class SubscriptionRenewalTest < ActiveSupport::TestCase
 
   test "status is not expiring once renewed" do
     @current.update_columns(agreed_price_cents: 0)
-    assert_equal :expiring_soon, @current.status.key
+    assert_equal :expiring_soon, @current.status
 
     sub(@monthly, Date.current + 4, Date.current + 34)
-    assert_equal :active, Subscription.find(@current.id).status.key
+    assert_equal :active, Subscription.find(@current.id).status
   end
 
   test "renewal detection is a single query for scopes" do

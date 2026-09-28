@@ -1,19 +1,19 @@
 <%# locals: (subscription:) %>
-<% status, style = subscription.status, subscription_status_style(subscription.status) %>
+<% status, style = subscription.status, subscription_status_style(subscription) %>
 <% sales = subscription.sales.reject(&:discarded?).sort_by(&:sold_on) %>
 <% due = subscription.amount_due %>
-<li id="<%= dom_id(subscription) %>" class="<%= class_names("list-row", "opacity-60 grayscale": status.key == :expired) %>">
+<li id="<%= dom_id(subscription) %>" class="<%= class_names("list-row", "opacity-60 grayscale": status == :expired) %>">
   <div class="<%= class_names("p-2 rounded-box self-start", style[:tint]) %>"><%= icon(style[:icon]) %></div>
 
   <div class="list-col-grow flex flex-col gap-1">
     <div class="flex flex-wrap items-center gap-2">
       <span class="font-bold"><%= subscription.product.name %></span>
-      <%= subscription_status_badge(status) %>
+      <%= subscription_status_badge(subscription) %>
       <%= subscription_payment_badge(subscription) %>
     </div>
     <div class="text-xs opacity-70 flex items-center gap-1">
       <%= icon("calendar_today", classes: "size-3") %> <%= format_date(subscription.start_date) %> → <%= format_date(subscription.end_date) %>
-      <%= tag.span("· #{subscription.days_left} gg rimasti", class: "font-mono") unless status.key == :expired %>
+      <%= tag.span("· #{subscription.days_left} gg rimasti", class: "font-mono") unless status == :expired %>
     </div>
 
     <% if sales.any? || due > 0 %>
@@ -41,7 +41,7 @@
   </div>
 
   <div class="flex items-center self-start">
-    <% if status.key.in?(%i[expired expiring_soon]) && !subscription.renewed? %>
+    <% if status.in?(%i[expired expiring_soon]) && !subscription.renewed? %>
       <%= link_to icon("reset"), renew_sale_path(subscription), class: "btn btn-square btn-sm btn-ghost text-info", title: "Rinnova", data: { turbo_frame: "modal" } %>
     <% end %>
     <%= ui_row_edit_button(edit_subscription_path(subscription)) if current_user.admin? %>

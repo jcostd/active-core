@@ -1,9 +1,8 @@
 <%# locals: (subscription:) %>
-<% status = subscription.status %>
 <% due = !subscription.fully_paid? %>
 
-<div class="badge badge-soft gap-1.5 font-semibold <%= due ? SubscriptionsHelper::SUBSCRIPTION_PAYMENT_STYLES.fetch(status.payment_key) : subscription_status_style(status)[:badge] %>"
-     title="<%= [ status.label, (status.payment_label if due) ].compact.join(" · ") %>">
+<div class="badge badge-soft gap-1.5 font-semibold <%= due ? SubscriptionsHelper::SUBSCRIPTION_PAYMENT_STYLES.fetch(subscription.payment_status) : subscription_status_style(subscription)[:badge] %>"
+     title="<%= [ subscription.status_label, (subscription.payment_status_label if due) ].compact.join(" · ") %>">
 
   <span class="truncate max-w-[120px]" title="<%= subscription.product.name %>">
     <%= subscription.product.name %>
@@ -26,7 +25,7 @@
       <%= icon("payments", classes: "size-4") %>
     <% end %>
 
-  <% elsif [:expired, :expiring_soon].include?(status.key) %>
+  <% elsif subscription.status.in?(%i[expired expiring_soon]) %>
     <%= link_to renew_sale_path(subscription),
                 class: "ml-0.5 p-0.5 -mr-1.5 rounded-full hover:bg-current/20 text-current transition-colors focus:outline-none focus:ring-1 focus:ring-current",
                 data: { turbo_frame: "modal" }, title: "Rinnova al volo" do %>

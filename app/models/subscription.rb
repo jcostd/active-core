@@ -1,18 +1,3 @@
-# Copyright (C) 2026 Jacopo Costantini <jacopocostantini32@gmail.com>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 class Subscription < ApplicationRecord
   include SoftDeletable, Monetizable
 
@@ -77,9 +62,28 @@ class Subscription < ApplicationRecord
     joins(product: :disciplines).where(disciplines: { id: discipline.id })
   }
 
+  STATUS_LABELS  = { expired: "Scaduto", future: "Futuro", expiring_soon: "In Scadenza", active: "Attivo" }.freeze
+  PAYMENT_LABELS = { paid: "Saldato", due: "Da saldare", overdue: "Insoluto" }.freeze
+
+  # due dimensioni distinte: il periodo e il pagamento. Uno scaduto non saldato è "Scaduto" con un insoluto,
+  # non "Da saldare" per sempre
   def status
-    @status ||= SubscriptionStatus.new(self)
+    if expired? then :expired
+    elsif future? then :future
+    elsif expiring_soon? && !renewed? then :expiring_soon
+    else :active
+    end
   end
+
+  def payment_status
+    if fully_paid? then :paid
+    elsif expired? then :overdue
+    else :due
+    end
+  end
+
+  def status_label = STATUS_LABELS.fetch(status)
+  def payment_status_label = PAYMENT_LABELS.fetch(payment_status)
 
   def amount_paid
     if sales.loaded?
@@ -112,7 +116,6 @@ class Subscription < ApplicationRecord
 
   def reload(*)
     remove_instance_variable(:@renewed) if defined?(@renewed)
-    @status = nil
     super
   end
 
