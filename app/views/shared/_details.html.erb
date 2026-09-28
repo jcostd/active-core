@@ -1,0 +1,10 @@
+<%# locals: (rows:) %>
+<%# etichetta → valore; un valore vuoto diventa un trattino %>
+<ul class="list text-sm">
+  <% rows.each do |label, value| %>
+    <li class="list-row items-center">
+      <span class="opacity-60"><%= label %></span>
+      <span class="list-col-grow text-right min-w-0 truncate"><%= display_value(value) %></span>
+    </li>
+  <% end %>
+</ul>

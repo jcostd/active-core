@@ -278,7 +278,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
     get sale_path(@sale)
     assert_response :success
-    assert_match "ANNULLATA", response.body
+    assert_select "header .badge", text: "Annullata"
     assert_select "a[href='#{sale_path(@sale, format: :pdf)}']", count: 0
   end
 

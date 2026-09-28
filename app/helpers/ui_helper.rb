@@ -59,17 +59,9 @@ module UiHelper
     end
   end
 
-  def ui_status_badge(is_valid, valid_text:, invalid_text:, valid_class: "badge-success badge-soft", invalid_class: "badge-error badge-soft", icon_name: nil)
-    base_classes = "badge badge-sm gap-1 font-bold"
-
-    if is_valid
-      content_tag(:div, class: "#{base_classes} #{valid_class}") do
-        (icon_name ? icon(icon_name, classes: "size-3") + " " : "".html_safe) + valid_text
-      end
-    else
-      content_tag(:div, class: "#{base_classes} #{invalid_class}", title: "Attenzione: #{invalid_text}") do
-        icon("error", classes: "size-3") + " #{invalid_text}"
-      end
+  def ui_status_badge(is_valid, valid_text:, invalid_text:, icon_name: nil, invalid_tone: "badge-error")
+    tag.div class: [ "badge badge-sm badge-soft gap-1 font-bold", is_valid ? "badge-success" : invalid_tone ], title: ("Attenzione: #{invalid_text}" unless is_valid) do
+      is_valid ? safe_join([ (icon(icon_name, classes: "size-3") if icon_name), valid_text ], " ") : icon("error", classes: "size-3") + " #{invalid_text}"
     end
   end
 end

@@ -14,14 +14,6 @@ class SalesHelperTest < ActionView::TestCase
     assert_match "Altro", payment_method_badge("bitcoin")
   end
 
-  test "transaction status shows cancelled sales" do
-    sale = Sale.new
-    assert_match "Pagamento Confermato", transaction_status_indicator(sale)
-
-    sale.discarded_at = Time.current
-    assert_match "ANNULLATA", transaction_status_indicator(sale)
-  end
-
   test "grouped product options by discipline, uncategorized first" do
     link!(products(:yoga_monthly), disciplines(:yoga), disciplines(:sala_pesi))
 

@@ -15,9 +15,7 @@ class DisciplinesController < ApplicationController
     )
   end
 
-  def show
-    @related_products = @discipline.products.kept
-  end
+  def show; end
 
   def new
     @discipline = Discipline.new(

@@ -1,123 +1,64 @@
 <%# locals: (member:, valid_subscriptions: []) %>
-
-<div id="<%= dom_id(member) %>" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-
-  <div class="space-y-6">
-
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-4">
-        <h3 class="text-xs font-bold uppercase opacity-50 tracking-wider mb-3 flex items-center gap-2">
-          <%= icon("med", classes: "size-4") %> Certificato Medico
-        </h3>
-
-        <div class="mb-2">
-          <% if member.medical_certificate_valid? %>
-            <%= ui_status_badge(true, valid_text: "Valido fino al #{format_date(member.medical_certificate_expiry)}", invalid_text: "", icon_name: "success") %>
-          <% else %>
-            <%= ui_status_badge(false, valid_text: "", invalid_text: "Scaduto o Mancante", icon_name: "warning") %>
-            <div class="text-xs opacity-70 mt-1 ml-5">Accesso limitato.</div>
-          <% end %>
-        </div>
-
-        <div class="divider my-1"></div>
-        <%= link_to "Aggiorna Data", edit_member_path(member), class: "btn btn-xs btn-outline w-full", data: { turbo_frame: "modal" } %>
+<div id="<%= dom_id(member) %>" class="record-layout">
+  <div class="flex flex-col gap-6">
+    <%= render layout: "shared/panel", locals: { title: "Certificato medico", icon_name: "med" } do %>
+      <div class="panel-body">
+        <%= ui_status_badge(member.medical_certificate_valid?, icon_name: "success", invalid_text: "Scaduto o mancante",
+                            valid_text: "Valido fino al #{format_date(member.medical_certificate_expiry)}") %>
+        <%= link_to "Aggiorna data", edit_member_path(member), class: "btn btn-xs btn-outline", data: { turbo_frame: "modal" } %>
       </div>
-    </div>
+    <% end %>
 
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-4 text-sm">
-        <h3 class="text-xs font-bold uppercase opacity-50 tracking-wider mb-3 flex items-center gap-2">
-          <%= icon("badge", classes: "size-4") %> Anagrafica
-        </h3>
-        <ul class="space-y-3">
-          <li class="flex gap-3 items-center">
-            <span class="w-6 opacity-50"><%= icon("phone") %></span>
-            <span class="font-mono"><%= display_value(format_phone(member.phone)) %></span>
-          </li>
-          <li class="flex gap-3 items-center">
-            <span class="w-6 opacity-50"><%= icon("mail") %></span>
-            <span class="truncate"><%= format_email(member.email_address) %></span>
-          </li>
-          <li class="flex gap-3 items-center">
-            <span class="w-6 opacity-50"><%= icon("home") %></span>
-            <span class="leading-tight"><%= display_value(member.full_address) %></span>
-          </li>
-          <li class="flex gap-3 items-center">
-            <span class="w-6 opacity-50"><%= icon("cake") %></span>
-            <span>
-              <%= format_date(member.birth_date) %>
-              <span class="text-xs opacity-50 ml-1">(<%= format_time_ago(member.birth_date) %>)</span>
-            </span>
-          </li>
-          <li class="flex gap-3 items-center">
-            <span class="w-6 opacity-50"><%= icon("fingerprint") %></span>
-            <span class="font-mono"><%= display_value(member.fiscal_code, placeholder: "CF da completare") %></span>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <%= render layout: "shared/panel", locals: { title: "Anagrafica", icon_name: "badge" } do %>
+      <%= render "shared/details", rows: {
+            "Codice fiscale" => tag.span(member.fiscal_code || "da completare", class: "font-mono"),
+            "Nato il" => (safe_join([ format_date(member.birth_date), tag.span(safe_join([ "(", format_time_ago(member.birth_date), ")" ]), class: "opacity-50") ], " ") if member.birth_date),
+            "Telefono" => (format_phone(member.phone) if member.phone.present?),
+            "Email" => (format_email(member.email_address) if member.email_address.present?),
+            "Indirizzo" => member.full_address } %>
+    <% end %>
   </div>
 
-  <div class="lg:col-span-2 space-y-6">
-
-    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
-      <div class="p-4 bg-base-200/30 border-b border-base-200 flex justify-between items-center">
-        <h3 class="font-bold text-sm uppercase opacity-70 tracking-wider flex items-center gap-2">
-          <%= icon("credit_card", classes: "size-4") %> Abbonamenti
-        </h3>
-        <%= link_to "Vedi Tutti", member_subscriptions_path(member), class: "link link-hover text-xs opacity-60" %>
-      </div>
-
+  <div class="record-main">
+    <%= render layout: "shared/panel", locals: { title: "Abbonamenti", icon_name: "credit_card",
+                                                 aside: link_to("Vedi tutti", member_subscriptions_path(member), class: "link link-hover text-xs opacity-60") } do %>
       <% if valid_subscriptions.any? %>
-        <ul class="list bg-base-100 rounded-none w-full">
+        <ul class="list">
           <% valid_subscriptions.each do |sub| %>
-            <li class="list-row items-center <%= 'bg-warning/5' if (sub.status.key == :expiring_soon) %>">
-              <div>
-                <div class="p-2 rounded-box <%= sub.future? ? 'bg-info/10 text-info' : 'bg-primary/10 text-primary' %>">
-                  <%= icon(sub.future? ? "clock" : "success") %>
-                </div>
+            <% expiring = sub.status.key == :expiring_soon %>
+            <li class="<%= class_names("list-row items-center", "bg-warning/5": expiring) %>">
+              <div class="<%= class_names("p-2 rounded-box", sub.future? ? "bg-info/10 text-info" : "bg-primary/10 text-primary") %>">
+                <%= icon(sub.future? ? "clock" : "success") %>
               </div>
-              <div class="grow min-w-0">
-                <div class="font-bold truncate"><%= display_value(sub.product&.name) %></div>
-
-		<div class="text-xs opacity-70 flex flex-col gap-0.5">
+              <div class="list-col-grow min-w-0">
+                <div class="font-bold truncate"><%= sub.product.name %></div>
+                <div class="text-xs opacity-70">
                   <% if sub.future? %>
-                    <span class="text-info font-medium">Inizia il <%= format_date(sub.start_date) %></span>
+                    <span class="text-info">Inizia il <%= format_date(sub.start_date) %></span>
                   <% else %>
-                    <span>Scade il <strong><%= format_date(sub.end_date) %></strong></span>
+                    Scade il <strong><%= format_date(sub.end_date) %></strong>
                   <% end %>
                 </div>
               </div>
-              <div class="shrink-0 flex items-center gap-4">
-                <% if sub.future? %>
-                  <%= ui_badge("Futuro", tone: :info) %>
-                <% else %>
-                  <div class="text-right hidden sm:block">
-                    <div class="text-2xl font-black font-mono leading-none tracking-tight <%= (sub.status.key == :expiring_soon) ? 'text-warning' : 'opacity-20' %>"><%= sub.days_left %></div>
+              <% if sub.future? %>
+                <%= ui_badge("Futuro", tone: :info) %>
+              <% else %>
+                <div class="flex items-center gap-4">
+                  <div class="text-right hidden sm:block leading-none">
+                    <div class="<%= class_names("text-2xl font-black font-mono", expiring ? "text-warning" : "opacity-20") %>"><%= sub.days_left %></div>
                     <div class="text-[9px] uppercase font-bold opacity-40">giorni</div>
                   </div>
-                  <%= link_to renew_sale_path(sub),
-                      class: "btn btn-sm btn-square #{(sub.status.key == :expiring_soon) ? 'btn-primary' : 'btn-ghost'}",
-                      data: { turbo_frame: "modal" }, title: "Rinnova" do %>
-                    <%= icon("reset") %>
-                  <% end %>
-                <% end %>
-              </div>
+                  <%= link_to icon("reset"), renew_sale_path(sub), title: "Rinnova", data: { turbo_frame: "modal" },
+                              class: class_names("btn btn-sm btn-square", expiring ? "btn-primary" : "btn-ghost") %>
+                </div>
+              <% end %>
             </li>
           <% end %>
         </ul>
       <% else %>
-        <div class="text-center py-6">
-          <div class="bg-base-200 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 opacity-50">
-            <%= icon("shopping_cart") %>
-          </div>
-          <h4 class="font-bold opacity-70 text-sm"><%= member_empty_subscriptions_badge %></h4>
-          <div class="mt-3">
-            <%= link_to "Vendi Abbonamento", new_sale_path(member_id: member.id), class: "btn btn-primary btn-sm btn-outline", data: { turbo_frame: "modal" } %>
-          </div>
-        </div>
+        <%= render "shared/empty_state", compact: true, icon_name: "shopping_cart", title: "Nessun abbonamento attivo",
+                   action: link_to("Vendi abbonamento", new_sale_path(member_id: member.id), class: "btn btn-primary btn-sm btn-outline", data: { turbo_frame: "modal" }) %>
       <% end %>
-    </div>
-
+    <% end %>
   </div>
 </div>

@@ -6,39 +6,14 @@
 
 <p class="text-sm opacity-60 mt-6">Questi dati compaiono sulle ricevute e sui riepiloghi di pagamento.</p>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-  <div>
-    <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
-      <%= icon("home", classes: "size-4") %> Sede
-    </h3>
-    <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
-      <% { "Indirizzo" => @gym_profile.address_line_1, "Località" => @gym_profile.address_line_2,
-           "CAP" => @gym_profile.zip_code, "Città" => @gym_profile.city }.each do |label, value| %>
-        <li class="list-row items-center">
-          <div class="opacity-60 font-medium"><%= label %></div>
-          <div class="list-col-grow text-right"><%= display_value(value) %></div>
-        </li>
-      <% end %>
-    </ul>
-  </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 items-start">
+  <%= render layout: "shared/panel", locals: { title: "Sede", icon_name: "home" } do %>
+    <%= render "shared/details", rows: { "Indirizzo" => @gym_profile.address_line_1, "Località" => @gym_profile.address_line_2,
+                                          "CAP" => @gym_profile.zip_code, "Città" => @gym_profile.city } %>
+  <% end %>
 
-  <div>
-    <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
-      <%= icon("payments", classes: "size-4") %> Contatti e pagamenti
-    </h3>
-    <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">Telefono</div>
-        <div class="list-col-grow text-right"><%= display_value(@gym_profile.phone) %></div>
-      </li>
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">Email</div>
-        <div class="list-col-grow text-right truncate"><%= format_email(@gym_profile.email) %></div>
-      </li>
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">IBAN</div>
-        <div class="list-col-grow text-right font-mono"><%= display_value(@gym_profile.bank_iban) %></div>
-      </li>
-    </ul>
-  </div>
+  <%= render layout: "shared/panel", locals: { title: "Contatti e pagamenti", icon_name: "payments" } do %>
+    <%= render "shared/details", rows: { "Telefono" => @gym_profile.phone, "Email" => (format_email(@gym_profile.email) if @gym_profile.email.present?),
+                                          "IBAN" => (tag.span(@gym_profile.bank_iban, class: "font-mono") if @gym_profile.bank_iban.present?) } %>
+  <% end %>
 </div>

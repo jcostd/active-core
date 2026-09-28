@@ -6,34 +6,18 @@ module SalesHelper
     "other"         => { label: "Altro",       icon: "receipt",         color: "badge-ghost" }
   }.freeze
 
+  UNCATEGORIZED = "Quote e Varie".freeze
+
+  # prodotti del POS raggruppati per disciplina (uno può stare in più gruppi); quote e varie in cima
   def grouped_product_options
-    products = Product.kept.order(:name).includes(:disciplines)
-
-    groups = Hash.new { |h, k| h[k] = [] }
-    uncategorized = []
-
-    products.each do |product|
-      active_disciplines = product.disciplines.reject(&:discarded?)
-
-      if active_disciplines.any?
-        active_disciplines.each do |discipline|
-          groups[discipline.name] << [ product.name, product.id ]
-        end
-      else
-        uncategorized << [ product.name, product.id ]
-      end
+    groups = Hash.new { |hash, name| hash[name] = [] }
+    Product.kept.order(:name).includes(:disciplines).each do |product|
+      names = product.disciplines.reject(&:discarded?).map(&:name).presence || [ UNCATEGORIZED ]
+      names.each { groups[it] << [ product.name, product.id ] }
     end
-
-    result = groups.sort.map { |discipline_name, product_list| [ discipline_name, product_list ] }
-
-    if uncategorized.any?
-      result.unshift([ "Quote e Varie", uncategorized ])
-    end
-
-    result
+    groups.sort_by { |name, _| [ name == UNCATEGORIZED ? 0 : 1, name ] }
   end
 
-  # PER I FORM: f.select :payment_method, payment_method_options
   # chi frequenta senza abbonamento: il POS si apre con socio e prodotto già scelti, date e prezzo li propone lui
   def sell_to_walk_in_link(member, product)
     link_to new_sale_path(sale: { member_id: member.id, product_id: product&.id }.compact),
@@ -46,27 +30,14 @@ module SalesHelper
     PAYMENT_METHODS.map { |key, data| [ data[:label], key ] }
   end
 
-  def payment_method_icon(method, classes: "size-6")
-    data = PAYMENT_METHODS[method.to_s] || PAYMENT_METHODS["other"]
-    icon(data[:icon], classes: classes)
-  end
+  def payment_method(method) = PAYMENT_METHODS.fetch(method.to_s) { PAYMENT_METHODS["other"] }
+
+  def payment_method_icon(method, classes: "size-6") = icon(payment_method(method)[:icon], classes:)
 
   def payment_method_badge(method)
-    data = PAYMENT_METHODS[method.to_s] || PAYMENT_METHODS["other"]
-    content_tag(:div, class: "badge badge-sm badge-soft gap-1 text-[10px] uppercase font-bold tracking-wider #{data[:color]}") do
+    data = payment_method(method)
+    tag.div class: [ "badge badge-sm badge-soft gap-1 text-[10px] uppercase font-bold tracking-wider", data[:color] ] do
       icon(data[:icon], classes: "size-3") + " #{data[:label]}"
-    end
-  end
-
-  def transaction_status_indicator(sale)
-    if sale.discarded?
-      content_tag(:span, class: "text-error font-bold flex items-center gap-1") do
-        icon("close", classes: "size-3") + " ANNULLATA"
-      end
-    else
-      content_tag(:span, class: "text-success font-bold flex items-center gap-1") do
-        icon("success", classes: "size-3") + " Pagamento Confermato"
-      end
     end
   end
 end

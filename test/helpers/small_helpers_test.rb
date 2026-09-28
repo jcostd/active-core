@@ -5,7 +5,7 @@ class SmallHelpersTest < ActionView::TestCase
 
   test "product category" do
     assert_match "Q. Associativa", product_category_badge(products(:annual_membership))
-    assert_match "Quota Istituzionale", product_category_text(products(:yoga_monthly))
+    assert_match "Q. Istituzionale", product_category_badge(products(:yoga_monthly))
   end
 
   test "standing styles cover every key and tone" do
