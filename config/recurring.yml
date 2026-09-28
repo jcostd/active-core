@@ -17,3 +17,24 @@ production:
   sweep_expired_sessions:
     class: SessionSweepJob
     schedule: every 15 minutes
+
+  # manutenzione di SQLite (app/models/database_maintenance.rb), di notte
+  optimize_databases:
+    command: "DatabaseMaintenance.optimize"
+    schedule: "0 4 * * *"
+
+  rebuild_member_search:
+    command: "DatabaseMaintenance.rebuild_search"
+    schedule: "15 4 * * 0"
+
+  check_databases:
+    command: "DatabaseMaintenance.check"
+    schedule: "30 4 * * 0"
+
+  verify_backup:
+    command: "DatabaseMaintenance.verify_backup"
+    schedule: "45 4 * * 0"
+
+  vacuum_support_databases:
+    command: "DatabaseMaintenance.vacuum_support_databases"
+    schedule: "0 5 1 * *"
