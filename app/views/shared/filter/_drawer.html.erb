@@ -1,5 +1,6 @@
 <%# pannello laterale: modal-end di daisyUI; niente <form method="dialog"> perché sta dentro il form dei filtri %>
-<dialog data-drawer-target="dialog" class="modal modal-end">
+<dialog id="filter_drawer" data-drawer-target="dialog" class="modal modal-end"
+        data-action="close->drawer#closed turbo:before-cache@document->drawer#close">
   <div class="modal-box h-full max-h-screen w-80 sm:w-96 rounded-none p-0 flex flex-col">
     <div class="flex items-center justify-between border-b border-base-200 p-4">
       <h3 class="font-bold text-xl flex items-center gap-2">

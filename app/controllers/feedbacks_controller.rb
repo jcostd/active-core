@@ -11,7 +11,7 @@ class FeedbacksController < ApplicationController
     @feedback.browser_info = request.user_agent
 
     if @feedback.save
-      redirect_back fallback_location: root_path, notice: "Segnalazione inviata. Grazie per il tuo aiuto!"
+      turbo_refresh_or_redirect_to root_path, notice: "Segnalazione inviata. Grazie per il tuo aiuto!"
     else
       render :new, layout: "modal", status: :unprocessable_entity
     end

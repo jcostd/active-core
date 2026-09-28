@@ -19,7 +19,7 @@
     <div class="shrink-0 p-4 mb-2">
       <%= link_to new_feedback_path(current_page: request.original_url),
             class: "btn btn-ghost btn-sm w-full justify-start gap-3 text-base-content/70",
-            data: { turbo_frame: "feedback_modal" } do %>
+            data: { turbo_frame: "modal" } do %>
         <%= icon("chat_bubble") %>
         <span class="font-normal">Invia Feedback</span>
       <% end %>

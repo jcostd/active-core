@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it" data-theme="<%= current_theme %>">
   <head>
-    <title><%= content_for(:title) || "Active Core" %></title>
+    <title><%= page_title %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Active Core">
@@ -32,12 +32,12 @@
   >
 
     <%= render layout: "shared/app_shell_layout" do %>
-      <%= yield %>
+      <%= content_for?(:page) ? yield(:page) : yield %>
     <% end %>
 
     <%= render "shared/flash" %>
 
-    <%= turbo_frame_tag "modal" %>
-    <%= turbo_frame_tag "feedback_modal" %>
+    <%# un solo modale; permanente: gli aggiornamenti in tempo reale (morph) non lo toccano mai %>
+    <%= turbo_frame_tag "modal", data: { turbo_permanent: true } %>
   </body>
 </html>

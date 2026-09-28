@@ -1,29 +1,26 @@
 import { Controller } from "@hotwired/stimulus"
 
+// modale di daisyUI nel frame "modal": si apre da sola; si chiude con i form method="dialog"
+// (✕, clic fuori, Esc) o dopo un salvataggio riuscito, e chiusa svuota il frame
 export default class extends Controller {
   connect() {
     if (document.documentElement.hasAttribute("data-turbo-preview")) return
 
     this.element.showModal()
-
-    this.boundRemove = this.element.remove.bind(this.element)
-    document.addEventListener("turbo:before-cache", this.boundRemove, { once: true })
-  }
-
-  disconnect() {
-    document.removeEventListener("turbo:before-cache", this.boundRemove)
   }
 
   close() {
     this.element.close()
   }
 
-  // svuota il frame alla chiusura: lo stesso link potrà riaprire la modale
-  cleanUp() {
+  // POST, PATCH o DELETE andati a buon fine: la pagina sotto si aggiorna da sola (refresh o redirect)
+  closeAfterSave({ detail: { success, formSubmission } }) {
+    if (success && !formSubmission.isSafe) this.close()
+  }
+
+  clear() {
     const frame = this.element.closest("turbo-frame")
-    if (frame) {
-      frame.innerHTML = ""
-      frame.removeAttribute("src")
-    }
+    frame.removeAttribute("src")
+    frame.replaceChildren()
   }
 }

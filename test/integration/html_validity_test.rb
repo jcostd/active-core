@@ -24,6 +24,8 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "vendite" => ->(t) { t.sales_path },
     "vendita" => ->(t) { t.sale_path(t.instance_variable_get(:@sale)) },
     "POS" => ->(t) { t.new_sale_path(member_id: t.members(:alice).id) },
+    "modifica socio a pagina intera" => ->(t) { t.edit_member_path(t.members(:alice)) },
+    "segnalazione a pagina intera" => ->(t) { t.new_feedback_path },
     "report" => ->(t) { t.reports_path },
     "presenze socio" => ->(t) { t.member_attendances_path(t.members(:alice)) },
     "iscritti di un mese chiuso" => ->(t) { t.discipline_members_path(t.disciplines(:yoga), month: Date.current.prev_month.strftime("%Y-%m")) },

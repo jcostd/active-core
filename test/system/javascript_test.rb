@@ -93,17 +93,84 @@ class JavascriptTest < ApplicationSystemTestCase
 
   test "once closed, the modal is not brought back by a refresh" do
     open_modal root_path, "Nuova Vendita"
-    find("dialog[open] button[data-action='click->dialog#close']").click
+    find("dialog[open] .modal-box button[aria-label=Chiudi]").click
     assert_no_selector "dialog[open]"
 
     refresh_from_server
     assert_no_selector "dialog[open]"
+    assert_no_selector "turbo-frame#modal *"
+  end
+
+  test "saving in a modal closes it and updates the page below" do
+    visit member_path(members(:alice))
+    open_member_edit
+    fill_in "member[phone]", with: "3339998888"
+    within("dialog[open]") { click_on "Salva" }
+
+    assert_no_selector "dialog[open]"
+    assert_text "Socio aggiornato con successo."
+    assert_text "333 999 8888"
+    assert_equal "3339998888", members(:alice).reload.phone
+  end
+
+  test "validation errors keep the modal open" do
+    visit member_path(members(:alice))
+    open_member_edit
+    fill_in "member[last_name]", with: ""
+    within("dialog[open]") { click_on "Salva" }
+
+    within("dialog[open]") { assert_text "Cognome" }
+    assert_equal "Allevi", members(:alice).reload.last_name
+  end
+
+  test "the modal closes with Esc and by clicking outside, and opens again" do
+    open_modal root_path, "Nuova Vendita"
+    find("dialog[open]").send_keys(:escape)
+    assert_no_selector "dialog[open]"
+
+    click_on "Nuova Vendita"
+    assert_selector "dialog[open]"
+    find("dialog[open] form.modal-backdrop button", visible: :all).execute_script("this.click()")
+    assert_no_selector "dialog[open]"
+  end
+
+  test "a sale from the POS lands on the sale page, without a modal" do
+    grant_membership_to(members(:alice))
+    open_modal root_path, "Nuova Vendita"
+    fill_in "members_search", with: "Alic"
+    within("dialog[open]") { click_on "Alice Allevi" }
+    select products(:annual_membership).name, from: "sale[product_id]"
+    assert_field "sale[amount]", with: /30/
+    within("dialog[open]") { click_on "Conferma", match: :first }
+
+    assert_text "Vendita registrata con successo."
+    assert_current_path sale_path(Sale.order(:id).last)
+    assert_no_selector "dialog[open]"
+  end
+
+  test "feedback is sent from its modal" do
+    visit members_path
+    click_on "Invia Feedback"
+    within("dialog[open]") do
+      fill_in "feedback[message]", with: "Il pulsante stampa non si vede"
+      click_on "Salva"
+    end
+
+    assert_no_selector "dialog[open]"
+    assert_text "Segnalazione inviata"
+    assert_current_path members_path
   end
 
   private
     # come un broadcast_refresh ricevuto da Solid Cable
     def refresh_from_server
       page.execute_script(%(Turbo.renderStreamMessage('<turbo-stream action="refresh"></turbo-stream>')))
+    end
+
+    def open_member_edit
+      find("details[name=member_header_dropdowns] summary").click
+      click_on "Modifica Anagrafica"
+      assert_selector "dialog[open]"
     end
 
     # le pagine in modale si aprono dai loro link, come fa l'utente
