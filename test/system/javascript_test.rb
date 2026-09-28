@@ -46,10 +46,11 @@ class JavascriptTest < ApplicationSystemTestCase
   test "filter drawer and active filter chips" do
     grant_membership_to(members(:alice))
     visit members_path(membership_status: "active")
-    assert_selector "[data-controller=filter-badge] .badge", text: "Quota valida"
+    assert_selector "#active_filters .badge", text: "Quota valida"
 
-    find("[data-action='filter-badge#remove']").click
-    assert_no_selector "[data-controller=filter-badge] .badge"
+    find("a[aria-label='Rimuovi filtro Stato Tesseramento']").click
+    assert_no_selector "#active_filters"
+    assert_no_current_path(/membership_status/)
 
     click_on "Filtri"
     assert_selector "dialog[open]", text: "Stato Tesseramento"

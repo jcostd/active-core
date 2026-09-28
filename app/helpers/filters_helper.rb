@@ -1,12 +1,7 @@
 module FiltersHelper
   FILTER_KEYS = { "query" => "Ricerca", "month" => "Mese" }.freeze
 
-  def state_filters
-    [
-      [ "Attivi", "kept" ],
-      [ "Archiviati", "discarded" ]
-    ]
-  end
+  def state_filters = [ [ "Attivi", "kept" ], [ "Archiviati", "discarded" ] ]
 
   def filtered_results_counter(pagy)
     tag.div "Trovati #{pagy.count} risultati", class: "mb-4 text-sm font-medium text-base-content/70" if pagy && filtering?

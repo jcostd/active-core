@@ -1,19 +1,7 @@
 module MembersHelper
-  def member_membership_filters
-    [
-      [ "Quota valida", "active" ],
-      [ "Quota scaduta", "expired" ],
-      [ "Mai tesserato", "missing" ]
-    ]
-  end
+  def member_membership_filters = [ [ "Quota valida", "active" ], [ "Quota scaduta", "expired" ], [ "Mai tesserato", "missing" ] ]
 
-  def member_med_cert_filters
-    [
-      [ "Valido", "valid" ],
-      [ "Scaduto", "expired" ],
-      [ "Mancante", "missing" ]
-    ]
-  end
+  def member_med_cert_filters = [ [ "Valido", "valid" ], [ "Scaduto", "expired" ], [ "Mancante", "missing" ] ]
 
   def member_status_badges(member)
     safe_join [ ui_status_badge(member.membership_valid?, valid_text: "Quota valida", invalid_text: "Quota scaduta"),

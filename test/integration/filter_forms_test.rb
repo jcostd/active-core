@@ -21,13 +21,22 @@ class FilterFormsTest < ActionDispatch::IntegrationTest
       users_path(role: "kiosk") => "Kiosk",
       discipline_members_path(disciplines(:yoga), membership_status: "missing") => "Mai tesserato" }.each do |path, label|
       get path
-      assert_select "[data-controller=filter-badge] .badge strong", text: label
+      assert_select "#active_filters .badge strong", text: label
     end
+  end
+
+  test "a chip links to the same page without that filter; clearing keeps the sort and the month" do
+    path = discipline_members_path(disciplines(:yoga))
+    get discipline_members_path(disciplines(:yoga), month: "2026-08", sort: "name_desc", seen: "no", med_cert: "expired", page: 2)
+
+    assert_select "#active_filters a[href=?]", "#{path}?med_cert=expired&month=2026-08&sort=name_desc"
+    assert_select "#active_filters a[href=?]", "#{path}?month=2026-08&seen=no&sort=name_desc"
+    assert_select "#active_filters a[href=?]", "#{path}?month=2026-08&sort=name_desc", text: "Azzera filtri"
   end
 
   test "sales state chip is not mislabelled" do
     get sales_path(state: "active")
-    assert_select "[data-controller=filter-badge] .badge strong", text: "Archiviati", count: 0
+    assert_select "#active_filters .badge strong", text: "Archiviati", count: 0
   end
 
   test "selected filter is kept after reload" do

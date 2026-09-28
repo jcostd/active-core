@@ -20,9 +20,9 @@ module NavigationHelper
     end
   end
 
+  # la pagina corrente con altri parametri
+  def current_path_with(query) = [ request.path, query.compact.to_query.presence ].compact.join("?")
+
   # la pagina corrente in un altro mese (nil: quello in corso), con gli stessi filtri e dalla prima pagina
-  def month_path(month)
-    query = request.query_parameters.except("page", "month").merge(month: month&.strftime("%Y-%m")).compact
-    [ request.path, query.to_query.presence ].compact.join("?")
-  end
+  def month_path(month) = current_path_with(request.query_parameters.except("page", "month").merge(month: month&.strftime("%Y-%m")))
 end

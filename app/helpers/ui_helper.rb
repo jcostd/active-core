@@ -1,11 +1,7 @@
 module UiHelper
   def ui_avatar(record, size: "size-14", text_size: "text-lg")
-    content_tag :div, class: "avatar avatar-placeholder" do
-      color_style = record.respond_to?(:avatar_color_style) ? record.avatar_color_style : ""
-
-      content_tag :div, class: [ "rounded-box shadow-sm", size ], style: color_style do
-        content_tag :span, record.initials, class: [ "font-bold font-mono uppercase", text_size ]
-      end
+    tag.div class: "avatar avatar-placeholder" do
+      tag.div tag.span(record.initials, class: [ "font-bold font-mono uppercase", text_size ]), class: [ "rounded-box shadow-sm", size ], style: record.avatar_color_style
     end
   end
 
@@ -30,35 +26,19 @@ module UiHelper
   def row_icon(name) = tag.div(icon(name), class: "size-10 bg-base-200 rounded-box grid place-items-center text-base-content/50")
 
   def ui_row_edit_button(path, title: "Modifica")
-    link_to path,
-            class: "btn btn-square btn-ghost text-base-content/50 hover:text-primary",
-            data: { turbo_frame: "modal" },
-            title: title do
-      icon("edit")
-    end
+    link_to icon("edit"), path, class: "btn btn-square btn-ghost text-base-content/50 hover:text-primary", title:, data: { turbo_frame: "modal" }
   end
 
   def ui_row_delete_button(path, confirm: "Sei sicuro?", title: "Archivia")
-    link_to path,
-            class: "btn btn-square btn-ghost text-base-content/50 hover:text-error hover:bg-error/10",
-            title: title,
-            data: {
-              turbo_method: :delete,
-              turbo_confirm: confirm
-            } do
-      icon("delete")
-    end
+    link_to icon("delete"), path, class: "btn btn-square btn-ghost text-base-content/50 hover:text-error hover:bg-error/10", title:,
+                                  data: { turbo_method: :delete, turbo_confirm: confirm }
   end
 
   def ui_requirement_badge(condition, text:, icon_name:, active_class: "badge-info badge-soft")
     if condition
-      content_tag(:div, class: "badge badge-sm gap-1 font-bold #{active_class}", title: "Richiede #{text}") do
-        icon(icon_name, classes: "size-3") + " #{text}"
-      end
+      tag.div icon(icon_name, classes: "size-3") + " #{text}", class: [ "badge badge-sm gap-1 font-bold", active_class ], title: "Richiede #{text}"
     else
-      content_tag(:div, class: "badge badge-sm badge-ghost opacity-40 gap-1 font-normal line-through", title: "Non richiede #{text}") do
-        "No #{text}"
-      end
+      tag.div "No #{text}", class: "badge badge-sm badge-ghost opacity-40 font-normal line-through", title: "Non richiede #{text}"
     end
   end
 
