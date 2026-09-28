@@ -94,4 +94,12 @@ class DomainEdgesTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "marking and unmarking an attendance refresh the attendances stream" do
+    attendance = nil
+    assert_turbo_stream_broadcasts("attendances") do
+      perform_enqueued_jobs { attendance = Attendance.create!(member: members(:alice), discipline: disciplines(:yoga), marked_by: users(:kiosk)) }
+    end
+    assert_turbo_stream_broadcasts("attendances") { perform_enqueued_jobs { attendance.destroy! } }
+  end
 end

@@ -26,6 +26,7 @@ class User < ApplicationRecord
   has_many :sales, dependent: :restrict_with_error
   has_many :feedbacks, dependent: :restrict_with_error
   has_many :activity_logs, dependent: :restrict_with_error
+  has_many :marked_attendances, class_name: "Attendance", foreign_key: "marked_by_id", dependent: :restrict_with_error
   has_many :checkins_performed, class_name: "AccessLog",
            foreign_key: "checkin_by_user_id",
            dependent: :restrict_with_error

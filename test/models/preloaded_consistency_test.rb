@@ -75,6 +75,21 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
     end
   end
 
+  test "registro: who attends unenrolled in SQL is who the kiosk shows as not enrolled" do
+    carla = Member.create!(first_name: "Carla", last_name: "Prova", birth_date: 30.years.ago, fiscal_code_pending: true)
+    [ @alice, @bob, carla ].product([ @yoga, @pesi ]).each do |member, discipline|
+      Attendance.create!(member:, discipline:, marked_by: users(:kiosk))
+    end
+    unenrolled = Attendance.unenrolled.pluck(:member_id, :discipline_id)
+
+    Attendance.includes(:discipline, member: { subscriptions: [ :sales, { product: :disciplines } ] }).find_each do |attendance|
+      standing = Standing.new(member: attendance.member, discipline: attendance.discipline, month: attendance.month)
+      assert_equal unenrolled.include?([ attendance.member_id, attendance.discipline_id ]), standing.key == :not_enrolled,
+                   "#{attendance.member.first_name} a #{attendance.discipline.name}"
+    end
+    assert unenrolled.any? && unenrolled.size < 6, "lo scenario deve avere iscritti e no"
+  end
+
   test "amount paid and undo rights agree with and without preloaded payments" do
     subscription = sell!(member: @bob, product: products(:yoga_monthly), user: users(:admin), amount: 10, start_date: @today + 10).subscription
     Sale.create!(member: @bob, product: products(:yoga_monthly), user: users(:staff), amount: 15, payment_method: :cash, subscription:)

@@ -3,6 +3,7 @@ it:
   activerecord:
     models:
       access_log: Accesso
+      attendance: Presenza
       discipline: Disciplina
       feedback: Segnalazione
       gym_profile: Profilo palestra
@@ -19,6 +20,11 @@ it:
         member: Socio
         status: Esito
         subscription: Abbonamento
+      attendance:
+        discipline: Disciplina
+        marked_by: Segnata da
+        member: Socio
+        month: Mese
       discipline:
         name: Nome
         requires_medical_certificate: Richiede certificato medico

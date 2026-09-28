@@ -52,6 +52,11 @@ module Member::Filterable
       where(id: enrollments.select(:member_id))
     }
 
+    # nel registro della disciplina in quel mese
+    scope :attended, ->(discipline, month) {
+      where(id: Attendance.where(discipline:).in_month(month).select(:member_id))
+    }
+
     scope :without_recent_checkin_for, ->(discipline) {
       where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
     }

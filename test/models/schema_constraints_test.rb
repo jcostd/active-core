@@ -11,6 +11,7 @@ class SchemaConstraintsTest < ActiveSupport::TestCase
     @records = [
       members(:alice), products(:yoga_monthly), disciplines(:yoga), users(:staff), gym_profiles(:asd),
       sale, sale.subscription, ReceiptCounter.first,
+      Attendance.create!(member: members(:alice), discipline: disciplines(:yoga), marked_by: users(:kiosk)),
       AccessLog.create!(member: members(:alice), discipline: disciplines(:yoga), checkin_by_user: users(:staff))
     ]
   end

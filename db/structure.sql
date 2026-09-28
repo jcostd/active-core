@@ -129,7 +129,21 @@ CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acd
 CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_subscription_id" ON "sales" ("subscription_id") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "attendances" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "member_id" integer NOT NULL, "discipline_id" integer NOT NULL, "marked_by_id" integer NOT NULL, "month" date NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_a033a37902"
+FOREIGN KEY ("member_id")
+  REFERENCES "members" ("id")
+, CONSTRAINT "fk_rails_d88e9f3581"
+FOREIGN KEY ("discipline_id")
+  REFERENCES "disciplines" ("id")
+, CONSTRAINT "fk_rails_de1a861ed4"
+FOREIGN KEY ("marked_by_id")
+  REFERENCES "users" ("id")
+);
+CREATE INDEX "index_attendances_on_marked_by_id" ON "attendances" ("marked_by_id") /*application='ActiveCore'*/;
+CREATE UNIQUE INDEX "index_attendances_on_discipline_id_and_month_and_member_id" ON "attendances" ("discipline_id", "month", "member_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_attendances_on_member_id_and_month" ON "attendances" ("member_id", "month") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260928090000'),
 ('20260927120000'),
 ('20260927100100'),
 ('20260927100000'),

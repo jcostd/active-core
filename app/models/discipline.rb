@@ -24,6 +24,7 @@ class Discipline < ApplicationRecord
   has_many :subscriptions, through: :products
 
   has_many :access_logs, dependent: :nullify
+  has_many :attendances, dependent: :destroy
 
   normalizes :name, with: ->(name) { ProperCase.title(name) }
   validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
