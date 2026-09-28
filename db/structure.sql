@@ -4,12 +4,6 @@ CREATE UNIQUE INDEX "index_disciplines_on_name" ON "disciplines" ("name") WHERE 
 CREATE TABLE IF NOT EXISTS "gym_profiles" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "address_line_1" varchar, "address_line_2" varchar, "bank_iban" varchar, "city" varchar, "created_at" datetime(6) NOT NULL, "email" varchar, "name" varchar, "phone" varchar, "updated_at" datetime(6) NOT NULL, "vat_number" varchar, "zip_code" varchar);
 CREATE TABLE IF NOT EXISTS "receipt_counters" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "last_number" integer DEFAULT 0 NOT NULL, "sequence_category" varchar NOT NULL, "updated_at" datetime(6) NOT NULL, "year" integer NOT NULL);
 CREATE UNIQUE INDEX "index_receipt_counters_on_year_and_sequence_category" ON "receipt_counters" ("year", "sequence_category");
-CREATE TABLE IF NOT EXISTS "feedbacks" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "admin_notes" text, "browser_info" varchar, "created_at" datetime(6) NOT NULL, "message" text NOT NULL, "page_url" varchar, "status" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_c57bb6cf28"
-FOREIGN KEY ("user_id")
-  REFERENCES "users" ("id")
-);
-CREATE INDEX "index_feedbacks_on_status" ON "feedbacks" ("status");
-CREATE INDEX "index_feedbacks_on_user_id" ON "feedbacks" ("user_id");
 CREATE TABLE IF NOT EXISTS "product_disciplines" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discipline_id" integer NOT NULL, "product_id" integer NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_78b6087a54"
 FOREIGN KEY ("discipline_id")
   REFERENCES "disciplines" ("id")
@@ -19,13 +13,11 @@ FOREIGN KEY ("product_id")
 );
 CREATE INDEX "index_product_disciplines_on_discipline_id" ON "product_disciplines" ("discipline_id");
 CREATE UNIQUE INDEX "index_product_disciplines_on_product_id_and_discipline_id" ON "product_disciplines" ("product_id", "discipline_id");
-CREATE INDEX "index_product_disciplines_on_product_id" ON "product_disciplines" ("product_id");
 CREATE TABLE IF NOT EXISTS "schema_migrations" ("version" varchar NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS "ar_internal_metadata" ("key" varchar NOT NULL PRIMARY KEY, "value" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar NOT NULL, "first_name" varchar NOT NULL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "password_digest" varchar NOT NULL, "preferences" json DEFAULT '{}', "role" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "username" varchar NOT NULL);
 CREATE INDEX "index_users_on_discarded_at" ON "users" ("discarded_at");
 CREATE UNIQUE INDEX "index_users_on_email_address" ON "users" ("email_address") WHERE discarded_at IS NULL;
-CREATE INDEX "index_users_on_preferences" ON "users" ("preferences");
 CREATE INDEX "index_users_on_role" ON "users" ("role");
 CREATE UNIQUE INDEX "index_users_on_username" ON "users" ("username") WHERE discarded_at IS NULL;
 CREATE VIRTUAL TABLE members_fts USING fts5(
@@ -53,28 +45,7 @@ FOREIGN KEY ("product_id")
 );
 CREATE INDEX "index_subscriptions_on_discarded_at" ON "subscriptions" ("discarded_at") /*application='ActiveCore'*/;
 CREATE INDEX "index_subscriptions_on_member_id_and_end_date" ON "subscriptions" ("member_id", "end_date") /*application='ActiveCore'*/;
-CREATE INDEX "index_subscriptions_on_member_id" ON "subscriptions" ("member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_subscriptions_on_product_id" ON "subscriptions" ("product_id") /*application='ActiveCore'*/;
-CREATE TABLE IF NOT EXISTS "members" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "address" varchar, "birth_date" date NOT NULL, "city" varchar, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar, "first_name" varchar NOT NULL, "fiscal_code" varchar, "full_address" varchar GENERATED ALWAYS AS (address || ', ' || city || ' (' || zip_code || ')') VIRTUAL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "medical_certificate_expiry" date, "phone" varchar, "updated_at" datetime(6) NOT NULL, "zip_code" varchar);
-CREATE INDEX "index_members_on_discarded_at" ON "members" ("discarded_at") /*application='ActiveCore'*/;
-CREATE UNIQUE INDEX "index_members_on_fiscal_code" ON "members" ("fiscal_code") WHERE discarded_at IS NULL /*application='ActiveCore'*/;
-CREATE INDEX "index_members_on_full_address" ON "members" ("full_address") /*application='ActiveCore'*/;
-CREATE INDEX "index_members_on_full_name" ON "members" ("full_name") /*application='ActiveCore'*/;
-CREATE INDEX "index_members_on_medical_certificate_expiry" ON "members" ("medical_certificate_expiry") /*application='ActiveCore'*/;
-CREATE TRIGGER members_ai AFTER INSERT ON members BEGIN
-  INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
-  VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
-END;
-CREATE TRIGGER members_ad AFTER DELETE ON members BEGIN
-  INSERT INTO members_fts(members_fts, rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
-  VALUES ('delete', old.id, old.first_name, old.last_name, old.fiscal_code, old.email_address, old.phone, old.birth_date);
-END;
-CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
-  INSERT INTO members_fts(members_fts, rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
-  VALUES ('delete', old.id, old.first_name, old.last_name, old.fiscal_code, old.email_address, old.phone, old.birth_date);
-  INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
-  VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
-END;
 CREATE TABLE IF NOT EXISTS "sessions" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "ip_address" varchar, "updated_at" datetime(6) NOT NULL, "user_agent" varchar, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_758836b4f0"
 FOREIGN KEY ("user_id")
   REFERENCES "users" ("id")
@@ -97,7 +68,6 @@ FOREIGN KEY ("subscription_id")
 CREATE INDEX "index_sales_on_discarded_at" ON "sales" ("discarded_at") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_member_id" ON "sales" ("member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_product_id" ON "sales" ("product_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_sales_on_receipt_code" ON "sales" ("receipt_code") /*application='ActiveCore'*/;
 CREATE UNIQUE INDEX "idx_on_receipt_year_receipt_sequence_receipt_number_3689acdaf9" ON "sales" ("receipt_year", "receipt_sequence", "receipt_number") WHERE receipt_number IS NOT NULL /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_sold_on" ON "sales" ("sold_on") /*application='ActiveCore'*/;
 CREATE INDEX "index_sales_on_user_id" ON "sales" ("user_id") /*application='ActiveCore'*/;
@@ -121,7 +91,32 @@ FOREIGN KEY ("recorded_by_id")
 );
 CREATE INDEX "index_private_lessons_on_recorded_by_id" ON "private_lessons" ("recorded_by_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_private_lessons_on_held_at" ON "private_lessons" ("held_at") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "feedbacks" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "browser_info" varchar, "created_at" datetime(6) NOT NULL, "message" text NOT NULL, "page_url" varchar, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_c57bb6cf28"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+);
+CREATE INDEX "index_feedbacks_on_user_id" ON "feedbacks" ("user_id") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "members" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "address" varchar, "birth_date" date NOT NULL, "city" varchar, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar, "first_name" varchar NOT NULL, "fiscal_code" varchar, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "medical_certificate_expiry" date, "phone" varchar, "updated_at" datetime(6) NOT NULL, "zip_code" varchar);
+CREATE INDEX "index_members_on_discarded_at" ON "members" ("discarded_at") /*application='ActiveCore'*/;
+CREATE UNIQUE INDEX "index_members_on_fiscal_code" ON "members" ("fiscal_code") WHERE discarded_at IS NULL /*application='ActiveCore'*/;
+CREATE INDEX "index_members_on_full_name" ON "members" ("full_name") /*application='ActiveCore'*/;
+CREATE INDEX "index_members_on_medical_certificate_expiry" ON "members" ("medical_certificate_expiry") /*application='ActiveCore'*/;
+CREATE TRIGGER members_ai AFTER INSERT ON members BEGIN
+  INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
+  VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
+END;
+CREATE TRIGGER members_ad AFTER DELETE ON members BEGIN
+  INSERT INTO members_fts(members_fts, rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
+  VALUES ('delete', old.id, old.first_name, old.last_name, old.fiscal_code, old.email_address, old.phone, old.birth_date);
+END;
+CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
+  INSERT INTO members_fts(members_fts, rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
+  VALUES ('delete', old.id, old.first_name, old.last_name, old.fiscal_code, old.email_address, old.phone, old.birth_date);
+  INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
+  VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260929100000'),
 ('20260929090000'),
 ('20260928150000'),
 ('20260928120000'),

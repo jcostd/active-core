@@ -51,8 +51,6 @@ gem "kamal", require: false
 # Cache/compressione HTTP degli asset e X-Sendfile per Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 
-# Varianti di Active Storage [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # Vedi https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -2,13 +2,11 @@ require_relative "boot"
 
 require "rails"
 
-# niente action_text e action_mailbox
+# niente action_text, action_mailbox, active_storage e action_mailer
 %w[
   active_record/railtie
-  active_storage/engine
   action_controller/railtie
   action_view/railtie
-  action_mailer/railtie
   active_job/railtie
   action_cable/engine
   rails/test_unit/railtie

@@ -169,43 +169,14 @@ class MemberTest < ActiveSupport::TestCase
     assert_not_includes alice.relevant_subscriptions, old
   end
 
-  test "valid_subscription_for returns the active course of the discipline" do
-    alice = members(:alice)
-    course = link!(products(:yoga_monthly), disciplines(:yoga))
-    sub = Subscription.create!(member: alice, product: course, start_date: Date.current - 1, end_date: Date.current + 10)
+  test "full address skips the missing parts" do
+    member = Member.new(address: "via roma 1", city: "roma", zip_code: "00100")
+    assert_equal "Via Roma 1, Roma (00100)", member.full_address
 
-    assert_equal sub, alice.valid_subscription_for(disciplines(:yoga))
-    assert_nil alice.valid_subscription_for(disciplines(:sala_pesi))
-  end
-
-  test "valid_subscription_for honors the date, loaded or not" do
-    alice = members(:alice)
-    course = link!(products(:yoga_monthly), disciplines(:yoga))
-    past   = Subscription.create!(member: alice, product: course, start_date: Date.current - 60, end_date: Date.current - 31)
-    future = Subscription.create!(member: alice, product: course, start_date: Date.current + 10, end_date: Date.current + 40)
-
-    [ Member.find(alice.id), Member.preload(subscriptions: { product: :disciplines }).find(alice.id) ].each do |member|
-      assert_equal past,   member.valid_subscription_for(disciplines(:yoga), Date.current - 45)
-      assert_equal future, member.valid_subscription_for(disciplines(:yoga), Date.current + 20)
-      assert_nil member.valid_subscription_for(disciplines(:yoga))
-    end
-  end
-
-  test "valid_subscription_for picks the earliest overlapping and skips discarded" do
-    alice = members(:alice)
-    course = link!(products(:yoga_monthly), disciplines(:yoga))
-    other  = link!(Product.create!(name: "Yoga Extra", price_cents: 1000, duration_days: 30), disciplines(:yoga))
-    late   = Subscription.create!(member: alice, product: course, start_date: Date.current - 2, end_date: Date.current + 10)
-    early  = Subscription.create!(member: alice, product: other, start_date: Date.current - 5, end_date: Date.current + 10)
-
-    [ Member.find(alice.id), Member.preload(subscriptions: { product: :disciplines }).find(alice.id) ].each do |member|
-      assert_equal early, member.valid_subscription_for(disciplines(:yoga))
-    end
-
-    early.discard!
-    [ Member.find(alice.id), Member.preload(subscriptions: { product: :disciplines }).find(alice.id) ].each do |member|
-      assert_equal late, member.valid_subscription_for(disciplines(:yoga))
-    end
+    member.zip_code = nil
+    assert_equal "Via Roma 1, Roma", member.full_address
+    assert_equal "Roma", Member.new(city: "Roma").full_address
+    assert_nil Member.new.full_address
   end
 
   test "fiscal code must be 16 alphanumeric chars" do

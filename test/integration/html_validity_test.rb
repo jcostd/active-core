@@ -40,9 +40,7 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "private segreteria" => ->(t) { t.private_lessons_path },
     "nuova privata a pagina intera" => ->(t) { t.new_private_lesson_path },
     "ricerca kiosk" => ->(t) { t.kiosk_discipline_member_searches_path(t.disciplines(:yoga), query: "i") },
-    "accesso" => ->(t) { t.new_session_path },
-    "recupero password" => ->(t) { t.new_password_path },
-    "nuova password" => ->(t) { t.edit_password_path(t.users(:staff).password_reset_token) }
+    "accesso" => ->(t) { t.new_session_path }
   }
 
   PAGES.each do |name, path|

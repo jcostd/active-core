@@ -5,3 +5,12 @@
 @plugin "./daisyui.mjs" {
     themes: corporate --default, business --prefersdark, light, dark, dim;
 }
+
+/* paginazione nativa di Pagy con l'aspetto di daisyUI */
+.pagy.series-nav {
+    @apply flex flex-wrap justify-center gap-1;
+
+    a { @apply btn btn-sm btn-ghost font-normal; }
+    a[aria-current] { @apply bg-neutral text-neutral-content; }
+    a[aria-disabled]:not([aria-current]) { @apply btn-disabled bg-transparent; }
+}

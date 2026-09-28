@@ -15,7 +15,7 @@ class FeedbacksControllerTest < ActionDispatch::IntegrationTest
                            headers: { "User-Agent" => "iPad Safari", "Referer" => "http://www.example.com/sales/new" }
     end
     feedback = Feedback.last
-    assert_equal [ "/sales/new", "iPad Safari", "pending" ], [ feedback.page_url, feedback.browser_info, feedback.status ]
+    assert_equal [ "/sales/new", "iPad Safari" ], [ feedback.page_url, feedback.browser_info ]
     assert_equal "Segnalazione inviata. Grazie per il tuo aiuto!", flash[:notice]
   end
 

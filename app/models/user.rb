@@ -41,8 +41,6 @@ class User < ApplicationRecord
   # l'indice unico del database vale solo per gli utenti attivi
   validates :email_address, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
   validates :password, length: { minimum: 4 }, allow_nil: true
-  # has_secure_password ignora una password vuota: nel reset va pretesa
-  validates :password, presence: true, on: :password_reset
   validate :keep_an_admin, on: :update
   validate :kiosk_role_is_fixed
 

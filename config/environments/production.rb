@@ -21,9 +21,6 @@ Rails.application.configure do
   # Servire immagini, CSS e JS da un asset server esterno.
   # config.asset_host = "http://assets.example.com"
 
-  # File caricati salvati sul disco locale (opzioni in config/storage.yml).
-  config.active_storage.service = :local
-
   # Tutto il traffico passa da un reverse proxy che termina SSL.
   # config.assume_ssl = true
 
@@ -52,14 +49,6 @@ Rails.application.configure do
   # Coda persistente (Solid Queue) per Active Job.
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
-
-  # Ignora indirizzi email errati e non sollevare errori di invio.
-  # Mettere true e configurare il server email per vedere gli errori di invio.
-  # config.action_mailer.raise_delivery_errors = false
-
-  # Host usato nei link delle email.
-  # deploy in LAN su http: APP_HOST è il nome/IP che lo staff digita nel browser
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "localhost"), protocol: "http" }
 
   # Nessun dump dello schema dopo le migrazioni.
   config.active_record.dump_schema_after_migration = false

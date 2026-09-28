@@ -26,7 +26,7 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
     subscribe @bob,   yoga_quarter,  -80,  3    # in scadenza, non rinnovato
   end
 
-  test "membership, valid subscription and enrollment agree with and without preload" do
+  test "membership and enrollment agree with and without preload" do
     [ @alice, @bob ].each do |member|
       queried   = Member.find(member.id)
       preloaded = Member.preload(subscriptions: { product: :disciplines }).find(member.id)
@@ -35,8 +35,6 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
         assert_equal queried.membership_valid?(date), preloaded.membership_valid?(date), "quota di #{member.first_name} il #{date}"
 
         [ @yoga, @pesi ].each do |discipline|
-          assert_same_answer queried.valid_subscription_for(discipline, date)&.id, preloaded.valid_subscription_for(discipline, date)&.id,
-                             "abbonamento #{discipline.name} di #{member.first_name} il #{date}"
           assert_equal Member.enrolled_in(discipline, during: date.all_month).include?(member),
                        preloaded.enrollments_in(discipline, during: date.all_month).any?,
                        "iscrizione #{discipline.name} di #{member.first_name} a #{date.strftime("%m/%Y")}"
@@ -99,10 +97,6 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
   end
 
   private
-    def assert_same_answer(queried, preloaded, message)
-      assert queried == preloaded, "#{message}: #{queried.inspect} con la query, #{preloaded.inspect} precaricato"
-    end
-
     def product(name, duration_days) = Product.create!(name:, duration_days:, price_cents: 4000)
 
     def subscribe(member, product, from, to, discarded: false)

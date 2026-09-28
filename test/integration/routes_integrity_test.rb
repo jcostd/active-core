@@ -2,7 +2,7 @@ require "test_helper"
 
 # ogni route deve puntare a un'azione esistente, e ogni GET a una vista
 class RoutesIntegrityTest < ActionDispatch::IntegrationTest
-  FRAMEWORK = %w[rails/ active_storage action_mailbox turbo]
+  FRAMEWORK = %w[rails/ turbo]
   NO_TEMPLATE = %w[preferences/themes#update]
 
   test "every route has an action" do

@@ -96,7 +96,6 @@ L'app gira nella rete della palestra, in HTTP. Variabili d'ambiente utili:
 
 | Variabile   | Esempio                        | Uso                                             |
 | ----------- | ------------------------------ | ----------------------------------------------- |
-| `APP_HOST`  | `palestra.lan`                 | indirizzo usato nei link delle email            |
 | `APP_HOSTS` | `palestra.lan,192.168.1.10`    | nomi/IP accettati (protezione DNS rebinding)    |
 
 

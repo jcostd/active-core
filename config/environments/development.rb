@@ -28,18 +28,6 @@ Rails.application.configure do
   # Con :null_store nessuna cache.
   config.cache_store = :memory_store
 
-  # File caricati salvati sul disco locale (opzioni in config/storage.yml).
-  config.active_storage.service = :local
-
-  # Nessun errore se l'email non parte.
-  config.action_mailer.raise_delivery_errors = false
-
-  # Le modifiche alle viste sono subito attive.
-  config.action_mailer.perform_caching = false
-
-  # localhost nei link delle email.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
-
   # Deprecazioni nel log di Rails.
   config.active_support.deprecation = :log
 

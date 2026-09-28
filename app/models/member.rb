@@ -53,6 +53,11 @@ class Member < ApplicationRecord
     errors.add(:fiscal_code, "non è valido: controlla lettere, cifre e carattere finale") unless FiscalCode.valid?(fiscal_code)
   end
 
+  # "Via Roma 1, Roma (00100)", senza le parti che mancano
+  def full_address
+    [ address, [ city, ("(#{zip_code})" if zip_code.present?) ].compact_blank.join(" ") ].compact_blank.join(", ").presence
+  end
+
   # l'unica risposta a "da quando parte il prossimo abbonamento a product?": dal giorno dopo l'ultimo
   # della stessa linea se non è scaduto da più di RENEWAL_GRACE_PERIOD giorni, altrimenti da from;
   # poi il prodotto allinea le date (mese solare, anno sportivo...)
@@ -89,17 +94,6 @@ class Member < ApplicationRecord
       break covered if membership.start_date > (covered ? covered + 1 : date)
       [ covered, membership.end_date ].compact.max
     end
-  end
-
-  # in memoria se gli abbonamenti (con prodotto e discipline) sono già caricati, come nel kiosk
-  def valid_subscription_for(discipline, date = Date.current)
-    unless subscriptions.loaded?
-      return subscriptions.active_at(date).for_discipline(discipline).order(subscriptions: { start_date: :asc }).first
-    end
-
-    subscriptions
-      .select { it.kept? && it.start_date <= date && it.end_date >= date && it.product.disciplines.include?(discipline) }
-      .min_by(&:start_date)
   end
 
   # abbonamenti della disciplina che toccano il periodo; in memoria: chi li mostra li precarica

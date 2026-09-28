@@ -25,16 +25,6 @@ Rails.application.configure do
   # Protezione CSRF disattivata nei test.
   config.action_controller.allow_forgery_protection = false
 
-  # File caricati in una cartella temporanea.
-  config.active_storage.service = :test
-
-  # Nessuna email inviata davvero:
-  # il metodo :test le accumula in ActionMailer::Base.deliveries.
-  config.action_mailer.delivery_method = :test
-
-  # Host usato nei link delle email.
-  config.action_mailer.default_url_options = { host: "example.com" }
-
   # Deprecazioni su stderr.
   config.active_support.deprecation = :stderr
 
