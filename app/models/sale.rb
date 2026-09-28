@@ -19,7 +19,6 @@ class Sale < ApplicationRecord
   include Refreshable
   include FiscalLockable
   include Monetizable
-  include Trackable
   include Receiptable
   include Installments      # l'abbonamento calcola le sue date prima dei controlli seguenti
   include MembershipGuard

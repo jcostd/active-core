@@ -4,13 +4,6 @@ CREATE UNIQUE INDEX "index_disciplines_on_name" ON "disciplines" ("name") WHERE 
 CREATE TABLE IF NOT EXISTS "gym_profiles" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "address_line_1" varchar, "address_line_2" varchar, "bank_iban" varchar, "city" varchar, "created_at" datetime(6) NOT NULL, "email" varchar, "name" varchar, "phone" varchar, "updated_at" datetime(6) NOT NULL, "vat_number" varchar, "zip_code" varchar);
 CREATE TABLE IF NOT EXISTS "receipt_counters" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "last_number" integer DEFAULT 0 NOT NULL, "sequence_category" varchar NOT NULL, "updated_at" datetime(6) NOT NULL, "year" integer NOT NULL);
 CREATE UNIQUE INDEX "index_receipt_counters_on_year_and_sequence_category" ON "receipt_counters" ("year", "sequence_category");
-CREATE TABLE IF NOT EXISTS "activity_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "action" varchar NOT NULL, "changes_set" json DEFAULT '{}', "created_at" datetime(6) NOT NULL, "subject_id" integer NOT NULL, "subject_type" varchar NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_c9badf82db"
-FOREIGN KEY ("user_id")
-  REFERENCES "users" ("id")
-);
-CREATE INDEX "index_activity_logs_on_subject" ON "activity_logs" ("subject_type", "subject_id");
-CREATE INDEX "index_activity_logs_on_user_id_and_created_at" ON "activity_logs" ("user_id", "created_at");
-CREATE INDEX "index_activity_logs_on_user_id" ON "activity_logs" ("user_id");
 CREATE TABLE IF NOT EXISTS "feedbacks" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "admin_notes" text, "browser_info" varchar, "created_at" datetime(6) NOT NULL, "message" text NOT NULL, "page_url" varchar, "status" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_c57bb6cf28"
 FOREIGN KEY ("user_id")
   REFERENCES "users" ("id")
@@ -129,6 +122,7 @@ FOREIGN KEY ("recorded_by_id")
 CREATE INDEX "index_private_lessons_on_recorded_by_id" ON "private_lessons" ("recorded_by_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_private_lessons_on_held_at" ON "private_lessons" ("held_at") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260929090000'),
 ('20260928150000'),
 ('20260928120000'),
 ('20260928090000'),

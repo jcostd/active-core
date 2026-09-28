@@ -50,7 +50,6 @@ Database is SQLite with `schema_format: :sql` for the primary db (`db/structure.
 ### Shared model concerns (`app/models/concerns/`)
 
 - `SoftDeletable` — `discard!`/`undiscard!` + `kept`/`discarded` scopes (not a gem; hand-rolled, uses `discarded_at`), wrapped in a transaction so callback cascades are atomic. Almost all domain models use this instead of hard deletes.
-- `Trackable` — auto-writes `ActivityLog` rows (polymorphic `subject`) on create/update/destroy/discard/undiscard, scoped to `Current.user`; sensitive/noisy fields excluded via `IGNORED_FIELDS`.
 - `Monetizable` — `monetize :attr` over an `attr_cents` column; `Monetizable.cents(value)` parses `1.200,50`, `1,200.50`, `12,5`, `€ 45` (thousands only in groups of three, BigDecimal math) and returns nil for non-amounts, which become a validation error. Money is always stored in cents.
 - `FtsSearchable` — `search_text(query)` joins against a SQLite FTS5 shadow table (`#{table}_fts`) for full-text search (used by `Member`).
 - `Refreshable` — Turbo Stream broadcasting (`broadcasts_refreshes` + broadcast to the plural collection channel) for live UI updates.
