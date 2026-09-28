@@ -26,7 +26,6 @@ class Member < ApplicationRecord
   attribute :fiscal_code_pending, :boolean, default: false
 
   has_many :sales,         dependent: :restrict_with_error
-  has_many :access_logs,   dependent: :destroy
   has_many :attendances,   dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 

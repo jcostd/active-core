@@ -48,26 +48,6 @@ CREATE VIRTUAL TABLE members_fts USING fts5(
 /* members_fts(first_name,last_name,fiscal_code,email_address,phone,birth_date) */;
 CREATE TABLE _litestream_seq (id INTEGER PRIMARY KEY, seq INTEGER);
 CREATE TABLE _litestream_lock (id INTEGER);
-CREATE TABLE IF NOT EXISTS "access_logs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "checkin_by_user_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "entered_at" datetime(6) NOT NULL, "member_id" integer NOT NULL, "subscription_id" integer, "updated_at" datetime(6) NOT NULL, "discipline_id" integer, "status" integer DEFAULT 0 NOT NULL, CONSTRAINT "fk_rails_df50081f1b"
-FOREIGN KEY ("subscription_id")
-  REFERENCES "subscriptions" ("id")
-, CONSTRAINT "fk_rails_21592df11b"
-FOREIGN KEY ("member_id")
-  REFERENCES "members" ("id")
-, CONSTRAINT "fk_rails_1f32fe057e"
-FOREIGN KEY ("checkin_by_user_id")
-  REFERENCES "users" ("id")
-, CONSTRAINT "fk_rails_94f46a97ff"
-FOREIGN KEY ("discipline_id")
-  REFERENCES "disciplines" ("id")
-);
-CREATE INDEX "index_access_logs_on_checkin_by_user_id" ON "access_logs" ("checkin_by_user_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_entered_at" ON "access_logs" ("entered_at") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_member_id_and_entered_at" ON "access_logs" ("member_id", "entered_at") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_member_id" ON "access_logs" ("member_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_subscription_id" ON "access_logs" ("subscription_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_discipline_id" ON "access_logs" ("discipline_id") /*application='ActiveCore'*/;
-CREATE INDEX "index_access_logs_on_status" ON "access_logs" ("status") /*application='ActiveCore'*/;
 CREATE TABLE IF NOT EXISTS "products" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "accounting_category" varchar DEFAULT 'institutional' NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "duration_days" integer NOT NULL, "name" varchar NOT NULL, "price_cents" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE INDEX "index_products_on_discarded_at" ON "products" ("discarded_at") /*application='ActiveCore'*/;
 CREATE UNIQUE INDEX "index_products_on_name" ON "products" ("name") WHERE discarded_at IS NULL /*application='ActiveCore'*/;
@@ -143,6 +123,7 @@ CREATE INDEX "index_attendances_on_marked_by_id" ON "attendances" ("marked_by_id
 CREATE UNIQUE INDEX "index_attendances_on_discipline_id_and_month_and_member_id" ON "attendances" ("discipline_id", "month", "member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_attendances_on_member_id_and_month" ON "attendances" ("member_id", "month") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260928120000'),
 ('20260928090000'),
 ('20260927120000'),
 ('20260927100100'),

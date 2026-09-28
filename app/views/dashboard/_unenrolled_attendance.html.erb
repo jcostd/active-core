@@ -1,0 +1,18 @@
+<%# locals: (attendance:) %>
+<% member = attendance.member %>
+
+<li class="list-row items-center">
+  <%= link_to member, class: "block hover:opacity-80" do %>
+    <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+  <% end %>
+
+  <div class="min-w-0">
+    <%= link_to member.full_name, member, class: "font-semibold truncate hover:text-primary" %>
+    <%= link_to attendance.discipline.name, discipline_members_path(attendance.discipline),
+                class: "block text-xs text-base-content/60 uppercase tracking-wide hover:text-primary" %>
+  </div>
+
+  <%= link_to new_sale_path(member_id: member.id), class: "btn btn-sm btn-primary", data: { turbo_frame: "modal" } do %>
+    <%= icon("shopping_cart", classes: "size-4") %> Vendi
+  <% end %>
+</li>

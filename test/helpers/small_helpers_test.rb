@@ -1,21 +1,29 @@
 require "test_helper"
 
 class SmallHelpersTest < ActionView::TestCase
-  include IconsHelper, UiHelper, MembersHelper, ProductsHelper, AccessLogsHelper, FiltersHelper
+  include IconsHelper, UiHelper, MembersHelper, ProductsHelper, StandingsHelper, FiltersHelper
 
   test "product category" do
     assert_match "Q. Associativa", product_category_badge(products(:annual_membership))
     assert_match "Quota Istituzionale", product_category_text(products(:yoga_monthly))
   end
 
-  test "access log styles cover every enum value" do
-    AccessLog.statuses.each_key do |status|
-      log = AccessLog.new(status:)
-      assert access_log_status_badge(log).present?, status
-      assert access_log_status_icon(log).present?, status
-    end
-    assert_match "Negato", access_log_status_badge(AccessLog.new(status: :error))
-    assert_equal "Accesso Generico", access_log_activity_name(AccessLog.new)
+  test "standing styles cover every key and tone" do
+    assert_equal Standing::LABELS.keys.sort, StandingsHelper::STANDING_BADGES.keys.sort
+    assert_equal %i[error ok warning], StandingsHelper::STANDING_CARDS.keys.sort
+  end
+
+  test "standing badges name the standing and the certificate" do
+    standing = Struct.new(:key, :label, :certificate_missing?)
+
+    html = standing_badges(standing.new(:paid, "Saldato", false))
+    assert_match "Saldato", html
+    assert_match "badge-success", html
+    assert_no_match "Cert.", html
+
+    html = standing_badges(standing.new(:not_enrolled, "Non iscritto", true))
+    assert_match "badge-error", html
+    assert_match "Cert. scaduto", html
   end
 
   test "member badges" do

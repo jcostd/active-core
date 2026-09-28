@@ -30,7 +30,6 @@ class ViewConventionsTest < ActiveSupport::TestCase
     [ Member, User, Product, Discipline, Sale ].each do |model|
       assert_empty default - model::SORTS.keys, "#{model} non conosce un ordinamento predefinito"
     end
-    assert_empty %w[date_desc date_asc] - AccessLog::SORTS.keys
   end
 
   test "no daisyUI 4 classes" do

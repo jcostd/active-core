@@ -33,9 +33,10 @@ class Attendance < ApplicationRecord
 
   def self.current_month = Date.current.beginning_of_month
 
-  # il mese in corso lo corregge chiunque faccia l'appello, i mesi chiusi solo l'admin
+  # il mese in corso lo corregge chiunque faccia l'appello, i mesi chiusi solo l'admin, quelli futuri nessuno
   def self.editable_by?(user, month)
-    user.admin? || month.to_date.beginning_of_month == current_month
+    month = month.to_date.beginning_of_month
+    month == current_month || (user.admin? && month < current_month)
   end
 
   def editable_by?(user) = self.class.editable_by?(user, month)

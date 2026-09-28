@@ -148,4 +148,20 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       assert_select "#pending_members .card", text: /Quota mancante/
     end
   end
+
+  test "dashboard rows of who is to regularize follow member and discipline renames" do
+    Attendance.create!(member: members(:bob), discipline: disciplines(:yoga), marked_by: users(:kiosk))
+
+    with_fragment_caching do
+      sign_in_as(users(:staff))
+      get root_path
+      assert_select "#unenrolled_attendances", text: /Bob Bianchi\s*Yoga/
+
+      travel 1.second
+      members(:bob).update!(first_name: "Roberto")
+      disciplines(:yoga).update!(name: "Yoga Flow")
+      get root_path
+      assert_select "#unenrolled_attendances", text: /Roberto Bianchi\s*Yoga Flow/
+    end
+  end
 end

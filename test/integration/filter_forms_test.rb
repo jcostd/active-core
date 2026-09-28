@@ -8,16 +8,16 @@ class FilterFormsTest < ActionDispatch::IntegrationTest
     assert_select "#filter-form select[name=payment_method] option", text: "Contanti"
     assert_select "#filter-form select[name=payment_method] option", text: /Credit card/, count: 0
 
-    get access_logs_path
-    assert_select "#filter-form select[name=status] option", text: "Consentito"
-    assert_select "#filter-form select[name=status] option", text: "Warning", count: 0
+    get discipline_members_path(disciplines(:yoga))
+    assert_select "#filter-form select[name=seen] option", text: "Visti dall'istruttore"
+    assert_select "#filter-form select[name=seen] option", text: "Yes", count: 0
   end
 
   test "active filter chips speak italian on every page" do
     { members_path(membership_status: "expired") => "Quota scaduta",
       sales_path(state: "active") => "Valide",
       sales_path(state: "discarded", period: "last_month") => "Mese Scorso",
-      access_logs_path(status: "warning") => "Avviso",
+      discipline_members_path(disciplines(:yoga), seen: "no") => "Non visti",
       users_path(role: "kiosk") => "Kiosk",
       discipline_members_path(disciplines(:yoga), membership_status: "missing") => "Mai tesserato" }.each do |path, label|
       get path
@@ -50,8 +50,8 @@ class FilterFormsTest < ActionDispatch::IntegrationTest
   end
 
   test "custom sort options are rendered" do
-    get access_logs_path
-    assert_select "select[name=sort] option[value=date_asc]", text: "Meno recenti"
-    assert_select "select[name=sort] option[selected][value=date_desc]"
+    get discipline_members_path(disciplines(:yoga))
+    assert_select "select[name=sort] option[value=name_desc]", text: "Nome: Z-A"
+    assert_select "select[name=sort] option[selected][value=name_asc]"
   end
 end

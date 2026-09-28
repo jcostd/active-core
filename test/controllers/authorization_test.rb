@@ -17,7 +17,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "member new"         => ->(t) { t.get t.new_member_path },
     "member edit"        => ->(t) { t.get t.edit_member_path(t.members(:alice)) },
     "member subs"        => ->(t) { t.get t.member_subscriptions_path(t.members(:alice)) },
-    "member accesses"    => ->(t) { t.get t.member_access_logs_path(t.members(:alice)) },
+    "member attendances" => ->(t) { t.get t.member_attendances_path(t.members(:alice)) },
     "disciplines index"  => ->(t) { t.get t.disciplines_path },
     "discipline show"    => ->(t) { t.get t.discipline_path(t.disciplines(:yoga)) },
     "discipline members" => ->(t) { t.get t.discipline_members_path(t.disciplines(:yoga)) },
@@ -38,7 +38,6 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "report show"        => ->(t) { t.get t.report_path("daily_cash") },
     "products index"     => ->(t) { t.get t.products_path },
     "sales index"        => ->(t) { t.get t.sales_path },
-    "access logs index"  => ->(t) { t.get t.access_logs_path },
     "users index"        => ->(t) { t.get t.users_path },
     "gym profile show"   => ->(t) { t.get t.gym_profile_path },
     "gym profile edit"   => ->(t) { t.get t.edit_gym_profile_path },
@@ -76,7 +75,8 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "member search"  => ->(t) { t.get t.members_searches_path(query: "Alice") },
     "user edit"      => ->(t) { t.get t.edit_user_path(t.users(:kiosk)) },
     "theme update"   => ->(t) { t.patch t.preferences_theme_path, params: { theme: "dark" } },
-    "feedback new"   => ->(t) { t.get t.new_feedback_path }
+    "feedback new"   => ->(t) { t.get t.new_feedback_path },
+    "desk marks"     => ->(t) { t.post t.discipline_attendances_path(t.disciplines(:yoga)), params: { member_id: t.members(:alice).id } }
   ).each do |name, action|
     test "kiosk user is confined away from #{name}" do
       sign_in_as(users(:kiosk))

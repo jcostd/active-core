@@ -56,6 +56,7 @@ class AttendanceTest < ActiveSupport::TestCase
     assert_equal [ false, false, true ], users(:kiosk, :staff, :admin).map { closed.editable_by?(it) }
     assert Attendance.editable_by?(users(:staff), Date.current.end_of_month)
     assert_not Attendance.editable_by?(users(:staff), Date.current.prev_month)
+    assert_not Attendance.editable_by?(users(:admin), Date.current.next_month), "un mese futuro non si corregge"
   end
 
   test "archived members and disciplines cannot be marked" do

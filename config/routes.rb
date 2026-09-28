@@ -12,7 +12,7 @@ Rails.application.routes.draw do
 
   resources :members do
     resources :subscriptions, only: [ :index ], module: :members
-    resources :access_logs,   only: [ :index ], module: :members
+    resources :attendances,   only: [ :index ], module: :members
     resources :sales,         only: [ :index ], module: :members
   end
 
@@ -22,13 +22,13 @@ Rails.application.routes.draw do
   end
 
   resources :disciplines do
-    resources :members, only: [ :index ], module: :disciplines
+    resources :members,     only: [ :index ], module: :disciplines
+    resources :attendances, only: [ :create, :destroy ], module: :disciplines
   end
   resources :products
 
   resources :sales, only: [ :index, :new, :create, :show, :destroy ]
   resources :subscriptions, only: [ :index, :edit, :update, :destroy ]
-  resources :access_logs, only: [ :index, :destroy ]
 
   resources :reports, only: [ :index, :show ], param: :report_type
   resource :gym_profile, only: [ :show, :edit, :update ]

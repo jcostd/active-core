@@ -84,14 +84,36 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
     assert @alice.reload.discarded?
   end
 
-  test "member subscriptions and accesses pages" do
+  test "member subscriptions page" do
     grant_membership_to(@alice)
     get member_subscriptions_path(@alice)
     assert_response :success
     assert_match "Quota Associativa 2025", response.body
+  end
 
-    get member_access_logs_path(@alice)
+  test "member attendances page lists the registers, newest month first, with the standing of each" do
+    yoga, pesi = disciplines(:yoga), disciplines(:sala_pesi)
+    grant_membership_to(@alice)
+    course = link!(products(:yoga_monthly), yoga)
+    this_month = Date.current.beginning_of_month
+    Subscription.create!(member: @alice, product: course, start_date: this_month, end_date: this_month.end_of_month)
+    current = Attendance.create!(member: @alice, discipline: yoga, marked_by: users(:kiosk))
+    older   = Attendance.create!(member: @alice, discipline: pesi, month: this_month.prev_month, marked_by: users(:admin))
+    Attendance.create!(member: members(:bob), discipline: yoga, marked_by: users(:kiosk))
+
+    get member_attendances_path(@alice)
     assert_response :success
+    assert_equal [ "attendance_#{current.id}", "attendance_#{older.id}" ], css_select("#member_attendances > li").map { it["id"] }
+    assert_select "#attendance_#{current.id}", text: /Yoga.*Segnato da Kiosk Accessi.*Da saldare/m
+    assert_select "#attendance_#{older.id}", text: /Sala Pesi.*Non iscritto/m
+    assert_select "#attendance_#{current.id} a[href='#{discipline_members_path(yoga, month: this_month.strftime("%Y-%m"))}']"
+    assert_select "a[href='#{member_attendances_path(@alice)}']", text: /Presenze/
+  end
+
+  test "member attendances page without registers" do
+    get member_attendances_path(@alice)
+    assert_select "h2", text: /Registro presenze/
+    assert_match "Nessuna presenza", response.body
   end
 
   test "member sales history shows total for admin" do

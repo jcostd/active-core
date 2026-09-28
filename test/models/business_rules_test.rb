@@ -42,25 +42,15 @@ class BusinessRulesTest < ActiveSupport::TestCase
     assert session.expired?
   end
 
-  test "double check-in is blocked for 10 minutes" do
-    attrs = { member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff) }
-    AccessLog.create!(attrs)
-
-    travel 9.minutes + 59.seconds
-    assert_not AccessLog.new(attrs).valid?
-
-    travel 2.seconds
-    assert AccessLog.new(attrs).valid?
+  test "the register holds a member once per discipline and month" do
+    Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
+    assert_not Attendance.new(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk)).valid?
   end
 
-  test "kiosk hides members checked in within the last hour" do
-    AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
-
-    travel 59.minutes
-    assert_not_includes Member.without_recent_checkin_for(disciplines(:yoga)), @member
-
-    travel 2.minutes
-    assert_includes Member.without_recent_checkin_for(disciplines(:yoga)), @member
+  test "closed registers are corrected by the admin only" do
+    closed = Attendance.create!(member: @member, discipline: disciplines(:yoga), month: Date.current.prev_month, marked_by: users(:admin))
+    assert_not closed.editable_by?(users(:staff))
+    assert closed.editable_by?(users(:admin))
   end
 
   test "renewal grace period is 30 days" do
@@ -93,17 +83,6 @@ class BusinessRulesTest < ActiveSupport::TestCase
 
     assert_includes Subscription.expiring, seven
     assert_not_includes Subscription.expiring, eight
-  end
-
-  test "kiosk warns about expiry 7 days ahead, not 8" do
-    course = link!(products(:yoga_monthly), disciplines(:yoga))
-    @sale.subscription.discard!
-    sub = Subscription.create!(member: @member, product: course, start_date: Date.current - 20, end_date: Date.current + 8)
-    policy = -> { AccessPolicy.new(member: @member.reload, discipline: disciplines(:yoga)).evaluate!.warnings }
-
-    assert_empty policy.call
-    sub.update_columns(end_date: Date.current + 7)
-    assert_includes policy.call, "Abbonamento in scadenza tra 7 giorni."
   end
 
   test "staff may start exactly on the proposed date, not a day earlier" do

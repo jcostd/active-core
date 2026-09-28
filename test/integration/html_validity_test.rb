@@ -7,7 +7,6 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     grant_membership_to(@member)
     course = link!(products(:yoga_monthly), disciplines(:yoga))
     @sale = sell!(member: @member, product: course)
-    AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
     Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
     Subscription.create!(member: members(:bob), product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
     sign_in_as(users(:admin))
@@ -26,7 +25,8 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "vendita" => ->(t) { t.sale_path(t.instance_variable_get(:@sale)) },
     "POS" => ->(t) { t.new_sale_path(member_id: t.members(:alice).id) },
     "report" => ->(t) { t.reports_path },
-    "registro accessi" => ->(t) { t.access_logs_path },
+    "presenze socio" => ->(t) { t.member_attendances_path(t.members(:alice)) },
+    "iscritti di un mese chiuso" => ->(t) { t.discipline_members_path(t.disciplines(:yoga), month: Date.current.prev_month.strftime("%Y-%m")) },
     "utenti" => ->(t) { t.users_path },
     "dati ASD" => ->(t) { t.gym_profile_path },
     "modifica dati ASD" => ->(t) { t.edit_gym_profile_path },

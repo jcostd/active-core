@@ -87,14 +87,6 @@ class DomainEdgesTest < ActiveSupport::TestCase
     end
   end
 
-  test "access logs broadcast to their stream" do
-    assert_turbo_stream_broadcasts("access_logs") do
-      perform_enqueued_jobs do
-        AccessLog.create!(member: members(:alice), discipline: disciplines(:yoga), checkin_by_user: users(:staff))
-      end
-    end
-  end
-
   test "marking and unmarking an attendance refresh the attendances stream" do
     attendance = nil
     assert_turbo_stream_broadcasts("attendances") do

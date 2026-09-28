@@ -1,4 +1,4 @@
-<%# locals: (member:, enrollments:, presences:) %>
+<%# locals: (member:, discipline:, month:, editable:, enrollments:, attendance:) %>
 <li id="<%= dom_id(member) %>" class="list-row hover:bg-base-200/50 transition-colors">
   <div class="shrink-0 self-start sm:self-center">
     <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
@@ -18,8 +18,23 @@
     </div>
   </div>
 
-  <div class="flex flex-col items-end shrink-0 self-start sm:self-center text-right min-w-[5rem]">
-    <span class="text-2xl font-black font-mono leading-none <%= 'opacity-20' if presences.zero? %>"><%= presences %></span>
-    <span class="text-[10px] uppercase tracking-wider font-semibold opacity-60"><%= presences == 1 ? "presenza" : "presenze" %></span>
+  <div class="flex items-center gap-2 shrink-0 self-start sm:self-center">
+    <% if attendance %>
+      <span class="badge badge-sm badge-soft badge-success gap-1 font-bold" title="Segnato da <%= attendance.marked_by.full_name %>">
+        <%= icon("check", classes: "size-3") %> Visto
+      </span>
+      <% if editable %>
+        <%= button_to discipline_attendance_path(discipline, attendance), method: :delete,
+                      class: "btn btn-square btn-ghost btn-sm text-base-content/50 hover:text-error", title: "Togli dal registro",
+                      form: { data: { turbo_confirm: "Togliere #{member.full_name} dal registro di #{l(month, format: "%B %Y")}?", turbo_frame: "_top" } } do %>
+          <%= icon("close", classes: "size-4") %>
+        <% end %>
+      <% end %>
+    <% elsif editable %>
+      <%= button_to "Segna visto", discipline_attendances_path(discipline), params: { member_id: member.id, month: month.strftime("%Y-%m") },
+                    class: "btn btn-sm btn-ghost", form: { data: { turbo_frame: "_top" } } %>
+    <% else %>
+      <span class="badge badge-sm badge-ghost opacity-60">Non visto</span>
+    <% end %>
   </div>
 </li>

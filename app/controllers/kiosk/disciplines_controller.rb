@@ -1,6 +1,4 @@
 class Kiosk::DisciplinesController < Kiosk::BaseController
-  STANDING_PRELOAD = { subscriptions: [ :sales, { product: :disciplines } ] }.freeze
-
   def index
     @disciplines = Discipline.kept.order(:name)
   end
@@ -12,13 +10,13 @@ class Kiosk::DisciplinesController < Kiosk::BaseController
 
     @attendances = @discipline.attendances.in_month(@month)
                               .joins(:member).order(members: { first_name: :asc, last_name: :asc })
-                              .preload(member: STANDING_PRELOAD).to_a
+                              .preload(member: Standing::PRELOAD).to_a
 
     @pending_members = Member.kept.enrolled_in(@discipline, during: @month.all_month)
                              .or(Member.kept.attended(@discipline, @month.prev_month))
                              .where.not(id: @attendances.map(&:member_id))
                              .order(:first_name, :last_name)
-                             .preload(STANDING_PRELOAD).to_a
+                             .preload(Standing::PRELOAD).to_a
 
     @standings = [ *@attendances.map(&:member), *@pending_members ].index_with do
       Standing.new(member: it, discipline: @discipline, month: @month)

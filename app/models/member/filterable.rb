@@ -57,8 +57,11 @@ module Member::Filterable
       where(id: Attendance.where(discipline:).in_month(month).select(:member_id))
     }
 
-    scope :without_recent_checkin_for, ->(discipline) {
-      where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
+    scope :by_attendance, ->(discipline, month, seen) {
+      case seen
+      when "yes" then attended(discipline, month)
+      when "no"  then where.not(id: attended(discipline, month).select(:id))
+      end
     }
   end
 

@@ -27,6 +27,18 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # segnati da operatori diversi e in parte non iscritti: il nome di chi ha segnato non deve costare una query a riga
+  def mark(count)
+    markers = users(:kiosk, :staff, :staff_two, :admin)
+    Member.where(last_name: "Kiosk").where.missing(:attendances).first(count).each_with_index do |member, i|
+      Attendance.create!(member:, discipline: @yoga, marked_by: markers[i % 4])
+    end
+    count.times do |i|
+      walk_in = Member.create!(first_name: "Ospite#{i}", last_name: "Nuovo#{count}", birth_date: "1990-01-01", fiscal_code_pending: true)
+      Attendance.create!(member: walk_in, discipline: @yoga, marked_by: markers[i % 4])
+    end
+  end
+
   test "kiosk discipline page does not grow with members" do
     sign_in_as(users(:staff))
     enroll(2)
@@ -43,12 +55,43 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
   test "discipline members page does not grow with members" do
     sign_in_as(users(:staff))
     enroll(2)
+    mark(1)
     few = queries_for(discipline_members_path(@yoga))
 
     enroll(8)
+    mark(8)
     many = queries_for(discipline_members_path(@yoga))
 
     assert_equal few, many, "N+1 negli iscritti: #{few} query con 2 soci, #{many} con 10"
+  end
+
+  test "member attendances page does not grow with rows" do
+    sign_in_as(users(:staff))
+    member = members(:alice)
+    months = (0..8).map { Date.current.months_ago(it) }
+    markers = users(:kiosk, :staff, :staff_two, :admin)
+    add = ->(range) { range.each { Attendance.create!(member:, discipline: @yoga, month: months[it], marked_by: users(:admin)).update_column(:marked_by_id, markers[it % 4].id) } }
+
+    add.(0..0)
+    few = queries_for(member_attendances_path(member))
+
+    add.(1..8)
+    many = queries_for(member_attendances_path(member))
+
+    assert_equal few, many
+  end
+
+  test "dashboard does not grow with who is to regularize" do
+    sign_in_as(users(:staff))
+    walk_ins = ->(n) { n.times { |i| Attendance.create!(member: Member.create!(first_name: "Ospite#{i}#{n}", last_name: "Nuovo", birth_date: "1990-01-01", fiscal_code_pending: true), discipline: @yoga, marked_by: users(:kiosk)) } }
+
+    walk_ins.(1)
+    few = queries_for(root_path)
+
+    walk_ins.(6)
+    many = queries_for(root_path)
+
+    assert_equal few, many
   end
 
   test "member subscriptions page does not grow with rows" do

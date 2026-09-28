@@ -58,20 +58,12 @@ class PreloadedConsistencyTest < ActiveSupport::TestCase
     assert listed.values.any? && !listed.values.all?, "lo scenario deve avere rinnovati e no"
   end
 
-  test "dashboard expiring list, status badge and kiosk warning name the same subscriptions" do
+  test "dashboard expiring list and status badge name the same subscriptions" do
     expiring = Subscription.expiring.to_a
     assert_not_empty expiring
 
     Subscription.kept.where(start_date: ..@today).find_each do |subscription|
       assert_equal expiring.include?(subscription), subscription.status.key == :expiring_soon, subscription.product.name
-    end
-
-    [ @alice, @bob ].product([ @yoga, @pesi ]).each do |member, discipline|
-      policy = AccessPolicy.new(member:, discipline:).evaluate!
-      next unless policy.subscription
-
-      assert_equal policy.subscription.status.key == :expiring_soon, policy.warnings.any? { it.start_with?("Abbonamento in scadenza") },
-                   "#{member.first_name} a #{discipline.name}"
     end
   end
 

@@ -33,6 +33,27 @@ class KioskMirrorTest < ActionDispatch::IntegrationTest
     assert_empty pending & register, "nessuno in due liste"
   end
 
+  test "who is in the register but not enrolled is what the desk must regularize" do
+    to_regularize = kiosk_register - iscritti
+
+    assert_equal ids_of(@hugo), to_regularize
+    get discipline_members_path(@yoga)
+    assert_equal to_regularize, css_select("#unenrolled_attendances li a[href^='/members/']").map { it["href"].delete_prefix("/members/").to_i }.uniq.sort
+
+    get root_path
+    assert_equal to_regularize, css_select("#unenrolled_attendances li a[href^='/members/']").map { it["href"].delete_prefix("/members/").to_i }.uniq.sort
+  end
+
+  test "once sold a subscription, a walk-in leaves the list to regularize and joins the enrolled" do
+    grant_membership_to(@hugo)
+    sell!(member: @hugo, product: @course, start_date: Date.current.beginning_of_month)
+
+    assert_includes iscritti, @hugo.id
+    assert_includes kiosk_register, @hugo.id
+    get discipline_members_path(@yoga)
+    assert_select "#unenrolled_attendances", count: 0
+  end
+
   test "next month's enrolled are proposed when their month starts" do
     assert_not_includes kiosk_pending, @elena.id
 

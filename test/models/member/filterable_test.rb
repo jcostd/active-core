@@ -118,14 +118,18 @@ class Member::FilterableTest < ActiveSupport::TestCase
     assert_empty member.enrollments_in(disciplines(:sala_pesi), during: Date.new(2026, 9, 1)..Date.new(2026, 12, 31))
   end
 
-  test "without recent checkin hides members checked in within the kiosk cooldown" do
-    AccessLog.create!(member: @alice, discipline: disciplines(:open_day), checkin_by_user: users(:staff))
+  test "by_attendance splits the members seen by the instructor in a month" do
+    yoga = disciplines(:yoga)
+    Attendance.create!(member: @alice, discipline: yoga, marked_by: users(:kiosk))
+    Attendance.create!(member: @bob, discipline: yoga, month: Date.current.prev_month, marked_by: users(:admin))
+    Attendance.create!(member: @bob, discipline: disciplines(:sala_pesi), marked_by: users(:kiosk))
+    both = Member.where(id: [ @alice, @bob ])
 
-    assert_not_includes Member.without_recent_checkin_for(disciplines(:open_day)), @alice
-    assert_includes Member.without_recent_checkin_for(disciplines(:yoga)), @alice
-
-    travel AccessLog::KIOSK_COOLDOWN + 1.minute
-    assert_includes Member.without_recent_checkin_for(disciplines(:open_day)), @alice
+    assert_equal [ @alice ], both.by_attendance(yoga, Date.current, "yes").to_a
+    assert_equal [ @bob ], both.by_attendance(yoga, Date.current, "no").to_a
+    assert_equal [ @bob ], both.by_attendance(yoga, Date.current.prev_month, "yes").to_a
+    assert_equal both.to_a.sort_by(&:id), both.by_attendance(yoga, Date.current, "bogus").sort_by(&:id)
+    assert_equal both.to_a.sort_by(&:id), both.by_attendance(yoga, Date.current, nil).sort_by(&:id)
   end
 
   test "sorted_by orders by name" do

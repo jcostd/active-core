@@ -1,3 +1,4 @@
+<%= turbo_stream_from "attendances" %>
 <%= render "disciplines/context", discipline: @discipline %>
 
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-6">
@@ -24,12 +25,26 @@
                      sort_options: [ [ "Nome: A-Z", "name_asc" ], [ "Nome: Z-A", "name_desc" ] ] } do |form| %>
   <%= hidden_field_tag :month, params[:month] %>
   <%= filter_select form, :product_id, @products.pluck(:name, :id), label: "Prodotto", blank: "Tutti i prodotti" %>
+  <%= filter_select form, :seen, [ [ "Visti dall'istruttore", "yes" ], [ "Non visti", "no" ] ], label: "Registro", blank: "Tutti" %>
   <%= filter_select form, :membership_status, member_membership_filters, label: "Tesseramento", blank: "Qualsiasi" %>
   <%= filter_select form, :med_cert, member_med_cert_filters, label: "Certificato Medico", blank: "Qualsiasi" %>
 <% end %>
 
 <%= turbo_frame_tag "discipline_members_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:product_id, :membership_status, :med_cert] %>
+  <%= render "shared/filter/active", filter_keys: [:product_id, :seen, :membership_status, :med_cert] %>
+
+  <% if @unenrolled.any? %>
+    <section id="unenrolled_attendances" class="mt-6 card bg-error/5 border border-error/30">
+      <div class="card-body p-4 gap-3">
+        <h3 class="font-bold flex items-center gap-2">
+          <%= icon("warning", classes: "size-5 text-error") %> Frequentano senza abbonamento (<%= @unenrolled.size %>)
+        </h3>
+        <ul class="list">
+          <%= render partial: "disciplines/attendances/unenrolled", collection: @unenrolled, as: :attendance, locals: { editable: @editable } %>
+        </ul>
+      </div>
+    </section>
+  <% end %>
 
   <div class="mt-6">
     <% if @pagy.count == 0 %>
@@ -42,7 +57,8 @@
 
       <ul id="discipline_members" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
         <% @members.each do |member| %>
-          <%= render "disciplines/members/row", member:, enrollments: @enrollments.fetch(member), presences: @presences.fetch(member.id, 0) %>
+          <%= render "disciplines/members/row", member:, discipline: @discipline, month: @month, editable: @editable,
+                                                enrollments: @enrollments.fetch(member), attendance: @attendances[member.id] %>
         <% end %>
       </ul>
 

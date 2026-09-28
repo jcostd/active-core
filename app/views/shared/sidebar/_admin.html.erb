@@ -81,21 +81,4 @@
     </details>
   </li>
 
-  <li>
-    <details id="disclosure-accesses" open>
-      <summary>
-        <%= icon("login", classes: "size-5 opacity-75") %>
-        Controllo Accessi
-      </summary>
-      <ul>
-        <li>
-          <%= active_link_to access_logs_path do %>
-            Registro Entrate
-          <% end %>
-          <%= yield :access_log_actions if content_for?(:access_log_actions) %>
-        </li>
-      </ul>
-    </details>
-  </li>
-
 </ul>

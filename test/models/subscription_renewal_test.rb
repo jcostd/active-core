@@ -74,14 +74,6 @@ class SubscriptionRenewalTest < ActiveSupport::TestCase
     assert_equal :active, Subscription.find(@current.id).status.key
   end
 
-  test "kiosk does not warn about an expiring but renewed subscription" do
-    grant_membership_to(@alice)
-    assert_includes AccessPolicy.new(member: @alice, discipline: @yoga_discipline).evaluate!.warnings, "Abbonamento in scadenza tra 3 giorni."
-
-    sub(@monthly, Date.current + 4, Date.current + 34)
-    assert_empty AccessPolicy.new(member: @alice.reload, discipline: @yoga_discipline).evaluate!.warnings
-  end
-
   test "renewal detection is a single query for scopes" do
     sub(@monthly, Date.current + 4, Date.current + 34)
     assert_equal [ @current ], Subscription.renewed.where(member: @alice).to_a

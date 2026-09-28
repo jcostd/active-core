@@ -2,7 +2,6 @@
 it:
   activerecord:
     models:
-      access_log: Accesso
       attendance: Presenza
       discipline: Disciplina
       feedback: Segnalazione
@@ -13,13 +12,6 @@ it:
       subscription: Abbonamento
       user: Utente
     attributes:
-      access_log:
-        checkin_by_user: Operatore
-        discipline: Disciplina
-        entered_at: Ingresso
-        member: Socio
-        status: Esito
-        subscription: Abbonamento
       attendance:
         discipline: Disciplina
         marked_by: Segnata da

@@ -44,16 +44,24 @@ class DisciplineTest < ActiveSupport::TestCase
     assert new_yoga.valid?
   end
 
-  test "hard deleting a discipline unlinks products but keeps the access history" do
+  test "hard deleting a discipline unlinks products and keeps the products" do
     discipline = Discipline.create!(name: "Boxe")
     link!(products(:yoga_monthly), discipline)
-    log = AccessLog.create!(member: members(:alice), discipline:, checkin_by_user: users(:staff))
 
     discipline.destroy
 
     assert_empty ProductDiscipline.where(discipline_id: discipline.id)
-    assert AccessLog.exists?(log.id)
-    assert_nil log.reload.discipline_id
     assert Product.exists?(products(:yoga_monthly).id)
+  end
+
+  test "a discipline with a register cannot be hard deleted: it is archived instead" do
+    discipline = Discipline.create!(name: "Boxe")
+    attendance = Attendance.create!(member: members(:alice), discipline:, marked_by: users(:kiosk))
+
+    assert_not discipline.destroy
+    assert Attendance.exists?(attendance.id)
+
+    discipline.discard!
+    assert Attendance.exists?(attendance.id), "archiviare non tocca il registro"
   end
 end

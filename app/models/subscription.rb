@@ -23,7 +23,6 @@ class Subscription < ApplicationRecord
   belongs_to :member,  touch: true
   belongs_to :product
   has_many :sales,       inverse_of: :subscription, dependent: :nullify
-  has_many :access_logs, dependent: :nullify
 
   validates :start_date, :end_date, presence: true
   validates :agreed_price_cents, numericality: { greater_than_or_equal_to: 0 }

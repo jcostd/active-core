@@ -1,6 +1,8 @@
 # posizione di un socio in una disciplina per un mese: cosa vede l'istruttore accanto al nome.
 # In memoria: chi la mostra precarica gli abbonamenti con vendite, prodotto e discipline.
 class Standing
+  PRELOAD = { subscriptions: [ :sales, { product: :disciplines } ] }.freeze
+
   LABELS = { not_enrolled: "Non iscritto", no_membership: "Quota mancante", due: "Da saldare", paid: "Saldato" }.freeze
 
   attr_reader :member, :discipline, :month
