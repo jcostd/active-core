@@ -12,27 +12,13 @@ require "rails"
   rails/test_unit/railtie
 ].each { require it }
 
-# Carica le gem del Gemfile, comprese quelle
-# limitate a :test, :development o :production.
 Bundler.require(*Rails.groups)
 
 module ActiveCore
   class Application < Rails::Application
-    # Default di configurazione della versione di Rails.
     config.load_defaults 8.1
-
-    # Aggiungere a `ignore` le sottocartelle di `lib` senza file `.rb`
-    # o da non ricaricare/caricare in anticipo
-    # (es. `templates`, `generators`, `middleware`).
     config.autoload_lib(ignore: %w[assets tasks])
 
-    # Configurazione di applicazione, engine e railtie.
-    #
-    # Si può sovrascrivere per ambiente nei file
-    # di config/environments, letti dopo.
-    #
-    # config.time_zone = "Central Time (US & Canada)"
-    # config.eager_load_paths << Rails.root.join("extras")
     config.time_zone = "Rome"
 
     # solo italiano: le ASD sono un istituto giuridico italiano
