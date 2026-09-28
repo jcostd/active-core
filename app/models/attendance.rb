@@ -1,5 +1,7 @@
 # presenza nel registro mensile di una disciplina: l'istruttore smarca chi vede, una volta al mese
 class Attendance < ApplicationRecord
+  include MonthlyRegister
+
   # kiosk e Iscritti seguono il registro della loro disciplina, la dashboard tutti
   broadcasts_refreshes_to ->(attendance) { [ attendance.discipline, :attendances ] }
   broadcasts_refreshes_to ->(_) { "attendances" }
@@ -33,8 +35,6 @@ class Attendance < ApplicationRecord
     SQL
   }
 
-  def self.current_month = Date.current.beginning_of_month
-
   # cosa proporre alla cassa a chi frequenta senza abbonamento: la quota se manca (senza non si vende il corso),
   # altrimenti l'ultimo corso che aveva nella disciplina o il più venduto. Soci precaricati con Standing::PRELOAD
   def self.products_to_sell(attendances)
@@ -50,12 +50,6 @@ class Attendance < ApplicationRecord
 
       member.subscriptions.select { it.kept? && it.product.kept? && fits.(it.product) }.max_by(&:end_date)&.product || catalog.find(&fits)
     end
-  end
-
-  # il mese in corso lo corregge chiunque faccia l'appello, i mesi chiusi solo l'admin, quelli futuri nessuno
-  def self.editable_by?(user, month)
-    month = month.to_date.beginning_of_month
-    month == current_month || (user.admin? && month < current_month)
   end
 
   def editable_by?(user) = self.class.editable_by?(user, month)

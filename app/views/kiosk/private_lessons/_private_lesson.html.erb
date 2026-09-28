@@ -1,0 +1,31 @@
+<%# locals: (private_lesson:) %>
+<article id="<%= dom_id(private_lesson) %>" class="card bg-base-100 border-2 border-base-300 shadow-sm">
+  <div class="card-body p-5 flex-row items-start gap-4">
+    <div class="flex flex-col gap-2 grow min-w-0">
+      <p class="text-sm font-bold uppercase tracking-wider opacity-50">
+        <%= l(private_lesson.held_at, format: "%a %-d %B, %H:%M") %> · <%= format_minutes(private_lesson.duration_minutes) %>
+      </p>
+      <h3 class="text-2xl font-black leading-tight"><%= private_lesson.teacher %></h3>
+      <div class="flex flex-wrap gap-2">
+        <% private_lesson.athletes.each do |name| %>
+          <span class="badge badge-lg badge-soft badge-primary"><%= name %></span>
+        <% end %>
+      </div>
+      <% if private_lesson.note %>
+        <p class="italic opacity-70"><%= private_lesson.note %></p>
+      <% end %>
+    </div>
+
+    <div class="flex flex-col gap-2 shrink-0">
+      <%= link_to edit_kiosk_private_lesson_path(private_lesson), class: "btn btn-circle btn-ghost text-base-content/50",
+                  title: "Correggi la privata di #{private_lesson.teacher}" do %>
+        <%= icon("edit", classes: "size-6") %>
+      <% end %>
+      <%= button_to kiosk_private_lesson_path(private_lesson), method: :delete,
+                    class: "btn btn-circle btn-ghost text-base-content/40", title: "Cancella la privata di #{private_lesson.teacher}",
+                    form: { data: { turbo_confirm: "Cancellare la privata di #{private_lesson.teacher}?" } } do %>
+        <%= icon("close", classes: "size-6") %>
+      <% end %>
+    </div>
+  </div>
+</article>

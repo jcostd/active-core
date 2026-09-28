@@ -131,6 +131,19 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
     assert_equal few, many
   end
 
+  test "private lessons pages do not grow with lessons" do
+    sign_in_as(users(:staff))
+    write = ->(n) { n.times { PrivateLesson.create!(teacher: "Maestro #{it % 3}", athletes: [ "Atleta #{it}" ], held_at: Time.current, duration_minutes: 60, recorded_by: users(:kiosk)) } }
+
+    write.(2)
+    few = [ kiosk_private_lessons_path, private_lessons_path ].map { queries_for(it) }
+
+    write.(8)
+    many = [ kiosk_private_lessons_path, private_lessons_path ].map { queries_for(it) }
+
+    assert_equal few, many
+  end
+
   test "the current user is loaded together with the session" do
     sign_in_as(users(:staff))
     get root_path

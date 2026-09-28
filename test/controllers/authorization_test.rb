@@ -23,6 +23,8 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     "discipline members" => ->(t) { t.get t.discipline_members_path(t.disciplines(:yoga)) },
     "new sale"           => ->(t) { t.get t.new_sale_path },
     "own profile"        => ->(t) { t.get t.user_path(t.users(:staff)) },
+    "private lessons"    => ->(t) { t.get t.private_lessons_path },
+    "private lesson new" => ->(t) { t.get t.new_private_lesson_path },
     "kiosk"              => ->(t) { t.get t.kiosk_root_path }
   }
 
@@ -118,6 +120,11 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_difference -> { Attendance.count }, -1 do
       delete kiosk_discipline_attendance_path(@discipline, Attendance.last)
     end
+
+    get kiosk_private_lessons_path
+    assert_response :success
+    get new_kiosk_private_lesson_path
+    assert_response :success
   end
 
   test "staff opens the kiosk and marks in their own name" do
@@ -125,6 +132,9 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
     post kiosk_discipline_attendances_path(@discipline, member_id: @member.id)
     assert_equal @staff, Attendance.last.marked_by
+
+    post kiosk_private_lessons_path, params: { private_lesson: { teacher: "Marco", athletes: [ "Luca" ], duration_minutes: 60, held_at: Time.current } }
+    assert_equal @staff, PrivateLesson.last.recorded_by
   end
 
   test "kiosk user can sign out" do

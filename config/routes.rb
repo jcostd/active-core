@@ -27,6 +27,8 @@ Rails.application.routes.draw do
   end
   resources :products
 
+  resources :private_lessons, except: [ :show ]
+
   resources :sales, only: [ :index, :new, :create, :show, :destroy ]
   resources :subscriptions, only: [ :index, :edit, :update, :destroy ]
 
@@ -37,7 +39,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   root "dashboard#index"
 
-  # kiosk dell'iPad: registro presenze del mese
+  # kiosk dell'iPad: registro presenze del mese e lezioni private
   namespace :kiosk do
     root to: "disciplines#index"
 
@@ -45,5 +47,6 @@ Rails.application.routes.draw do
       resources :attendances, only: [ :create, :destroy ]
       resources :member_searches, only: [ :index ]
     end
+    resources :private_lessons, except: [ :show ]
   end
 end

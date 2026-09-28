@@ -11,7 +11,8 @@ class SchemaConstraintsTest < ActiveSupport::TestCase
     @records = [
       members(:alice), products(:yoga_monthly), disciplines(:yoga), users(:staff), gym_profiles(:asd),
       sale, sale.subscription, ReceiptCounter.first,
-      Attendance.create!(member: members(:alice), discipline: disciplines(:yoga), marked_by: users(:kiosk))
+      Attendance.create!(member: members(:alice), discipline: disciplines(:yoga), marked_by: users(:kiosk)),
+      PrivateLesson.create!(teacher: "Marco", athletes: [ "Luca" ], held_at: Time.current, duration_minutes: 60, recorded_by: users(:kiosk))
     ]
   end
 

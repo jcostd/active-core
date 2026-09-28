@@ -8,6 +8,7 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     course = link!(products(:yoga_monthly), disciplines(:yoga))
     @sale = sell!(member: @member, product: course)
     Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
+    PrivateLesson.create!(teacher: "Marco", athletes: [ "Luca", "Sara" ], held_at: Time.current, duration_minutes: 60, note: "Recupero", recorded_by: users(:kiosk))
     Subscription.create!(member: members(:bob), product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
     sign_in_as(users(:admin))
   end
@@ -34,6 +35,10 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "modifica dati ASD" => ->(t) { t.edit_gym_profile_path },
     "kiosk" => ->(t) { t.kiosk_root_path },
     "registro kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) },
+    "private kiosk" => ->(t) { t.kiosk_private_lessons_path },
+    "nuova privata kiosk" => ->(t) { t.new_kiosk_private_lesson_path },
+    "private segreteria" => ->(t) { t.private_lessons_path },
+    "nuova privata a pagina intera" => ->(t) { t.new_private_lesson_path },
     "ricerca kiosk" => ->(t) { t.kiosk_discipline_member_searches_path(t.disciplines(:yoga), query: "i") },
     "accesso" => ->(t) { t.new_session_path },
     "recupero password" => ->(t) { t.new_password_path },

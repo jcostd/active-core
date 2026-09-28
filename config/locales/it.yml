@@ -7,6 +7,7 @@ it:
       feedback: Segnalazione
       gym_profile: Profilo palestra
       member: Socio
+      private_lesson: Lezione privata
       product: Prodotto
       sale: Pagamento
       subscription: Abbonamento
@@ -46,6 +47,13 @@ it:
         medical_certificate_expiry: Scadenza certificato medico
         phone: Telefono
         zip_code: CAP
+      private_lesson:
+        athletes: Atleti
+        duration_minutes: Durata
+        held_at: Inizio
+        note: Nota
+        recorded_by: Scritta da
+        teacher: Maestro
       product:
         accounting_category: Categoria contabile
         disciplines: Discipline

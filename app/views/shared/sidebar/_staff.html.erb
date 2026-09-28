@@ -21,4 +21,11 @@
     <% end %>
     <%= yield :discipline_actions if content_for?(:discipline_actions) %>
   </li>
+
+  <li>
+    <%= active_link_to private_lessons_path do %>
+      <%= icon("event", classes: "size-5 opacity-75") %>
+      Lezioni private
+    <% end %>
+  </li>
 </ul>

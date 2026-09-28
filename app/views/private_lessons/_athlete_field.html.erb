@@ -1,0 +1,8 @@
+<%# locals: (name:) %>
+<div class="join w-full" data-repeatable-target="row">
+  <input type="text" name="private_lesson[athletes][]" value="<%= name %>" list="athlete_names" autocomplete="off"
+         class="input input-lg join-item w-full" placeholder="Nome e cognome" aria-label="Atleta">
+  <button type="button" class="btn btn-lg join-item" data-action="repeatable#remove" aria-label="Togli atleta">
+    <%= icon("close") %>
+  </button>
+</div>

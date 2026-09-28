@@ -8,6 +8,13 @@
   </li>
 
   <li>
+    <%= active_link_to private_lessons_path do %>
+      <%= icon("event", classes: "size-5 opacity-75") %>
+      Lezioni private
+    <% end %>
+  </li>
+
+  <li>
     <details id="disclosure-registry" open>
       <summary>
         <%= icon("group", classes: "size-5 opacity-75") %>

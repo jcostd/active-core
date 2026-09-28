@@ -1,0 +1,77 @@
+<%= turbo_stream_from "private_lessons" %>
+
+<% content_for :page_title, "Lezioni private" %>
+<% content_for :page_counter, pluralize(@private_lessons.size, "privata", plural: "private") %>
+
+<% content_for :page_actions do %>
+  <%= link_to new_private_lesson_path, class: "btn btn-primary gap-2", data: { turbo_frame: "modal" } do %>
+    <%= icon("add") %>
+    <span class="hidden sm:inline">Nuova</span>
+  <% end %>
+<% end %>
+
+<% content_for :page_search_and_filters do %>
+  <%= render layout: "shared/filter/form",
+             locals: { url: private_lessons_path, frame: "private_lessons_list", placeholder: "Cerca maestro, atleta o nota...",
+                       drawer_title: "Filtri Private", default_sort: "held_desc",
+                       sort_options: [ [ "Più recenti", "held_desc" ], [ "Meno recenti", "held_asc" ] ] } do |form| %>
+    <%= hidden_field_tag :month, params[:month] %>
+    <%= filter_select form, :teacher, @teachers.map { [ it, it ] }, label: "Maestro", blank: "Tutti i maestri" %>
+  <% end %>
+<% end %>
+
+<%= render "shared/header/page" %>
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <h2 class="text-xl font-bold flex items-center gap-2">
+    <%= icon("event", classes: "size-6 opacity-50") %> <%= l(@month, format: "%B %Y").capitalize %>
+  </h2>
+
+  <div class="join">
+    <%= link_to private_lessons_path(request.query_parameters.merge(month: @month.prev_month.strftime("%Y-%m"))),
+                class: "btn btn-sm join-item", title: "Mese precedente" do %>
+      <%= icon("arrow_left") %>
+    <% end %>
+    <%= link_to "Questo mese", private_lessons_path(request.query_parameters.except("month")), class: "btn btn-sm join-item" %>
+    <%= link_to private_lessons_path(request.query_parameters.merge(month: @month.next_month.strftime("%Y-%m"))),
+                class: "btn btn-sm join-item", title: "Mese successivo" do %>
+      <%= icon("arrow_right") %>
+    <% end %>
+  </div>
+</div>
+
+<%= turbo_frame_tag "private_lessons_list" do %>
+  <%= render "shared/filter/active", filter_keys: [ :teacher ] %>
+
+  <div class="mt-6 flex flex-col gap-6">
+    <% if @private_lessons.empty? %>
+      <%= render "shared/empty_state", icon_name: "event", title: "Nessuna privata",
+                 message: "Nessuna lezione privata scritta a #{l(@month, format: "%B %Y")} con questi filtri." %>
+    <% else %>
+      <section id="private_lessons_summary" class="card bg-base-100 border border-base-200 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="font-bold">Riepilogo per maestro</h3>
+          <table class="table table-sm">
+            <thead>
+              <tr><th>Maestro</th><th class="text-right">Private</th><th class="text-right">Tempo</th><th class="text-right">Atleti</th></tr>
+            </thead>
+            <tbody>
+              <% @private_lessons.group_by(&:teacher).sort.each do |teacher, lessons| %>
+                <tr>
+                  <td class="font-medium"><%= teacher %></td>
+                  <td class="text-right tabular-nums"><%= lessons.size %></td>
+                  <td class="text-right tabular-nums"><%= format_minutes(lessons.sum(&:duration_minutes)) %></td>
+                  <td class="text-right tabular-nums"><%= lessons.flat_map(&:athletes).uniq.size %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <ul id="private_lessons" class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
+        <%= render partial: "private_lessons/private_lesson", collection: @private_lessons, locals: { editable: @editable } %>
+      </ul>
+    <% end %>
+  </div>
+<% end %>

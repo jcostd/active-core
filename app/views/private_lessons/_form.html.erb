@@ -1,0 +1,55 @@
+<%# locals: (private_lesson:, model:) %>
+<%# nomi liberi: chi insegna o partecipa può non essere dello staff né socio; i suggerimenti vengono dalle private già scritte %>
+<%= form_with model:, class: "space-y-6" do |f| %>
+  <%= render "shared/form_errors", model: private_lesson %>
+
+  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box">
+    <legend class="fieldset-legend"><%= icon("clock", classes: "size-4") %> Chi e quando</legend>
+
+    <%= f.label :teacher, "Maestro", class: "label" %>
+    <%= f.text_field :teacher, list: "teacher_names", required: true, autocomplete: "off",
+                     class: "input input-lg w-full", placeholder: "Chi tiene la lezione" %>
+
+    <%= f.label :held_at, "Inizio", class: "label mt-2" %>
+    <%= f.datetime_field :held_at, required: true, class: "input input-lg w-full" %>
+
+    <span class="label mt-2">Durata</span>
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Durata">
+      <% PrivateLesson::DURATIONS.each do |minutes| %>
+        <%= f.radio_button :duration_minutes, minutes, class: "btn btn-lg", aria: { label: format_minutes(minutes) } %>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box" data-controller="repeatable">
+    <legend class="fieldset-legend"><%= icon("group", classes: "size-4") %> Atleti</legend>
+
+    <div class="flex flex-col gap-2" data-repeatable-target="list">
+      <% (private_lesson.athletes.presence || [ "" ]).each do |name| %>
+        <%= render "private_lessons/athlete_field", name: %>
+      <% end %>
+    </div>
+    <template data-repeatable-target="template"><%= render "private_lessons/athlete_field", name: "" %></template>
+
+    <button type="button" class="btn btn-ghost justify-self-start mt-1" data-action="repeatable#add">
+      <%= icon("add") %> Aggiungi atleta
+    </button>
+  </fieldset>
+
+  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box">
+    <legend class="fieldset-legend"><%= icon("chat_bubble", classes: "size-4") %> Nota</legend>
+    <%= f.text_area :note, rows: 2, maxlength: 500, class: "textarea w-full", aria: { label: "Nota" },
+                    placeholder: "Facoltativa: recupero, pagata al maestro, sala piccola..." %>
+  </fieldset>
+
+  <datalist id="teacher_names">
+    <% PrivateLesson.teacher_names.each do |name| %><option value="<%= name %>"></option><% end %>
+  </datalist>
+  <datalist id="athlete_names">
+    <% PrivateLesson.athlete_names.each do |name| %><option value="<%= name %>"></option><% end %>
+  </datalist>
+
+  <div class="modal-action">
+    <%= f.submit "Salva", class: "btn btn-primary btn-lg px-8", data: { turbo_submits_with: "Salvataggio..." } %>
+  </div>
+<% end %>

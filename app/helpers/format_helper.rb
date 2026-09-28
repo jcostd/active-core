@@ -20,6 +20,12 @@ module FormatHelper
   # importi salvati in centesimi: 1050 -> "10,50 €"
   def format_cents(cents) = cents ? format_money(cents / 100.0) : display_value(nil)
 
+  # 90 -> "1 h 30 min", 45 -> "45 min"
+  def format_minutes(minutes)
+    hours, rest = minutes.to_i.divmod(60)
+    [ ("#{hours} h" if hours.positive?), ("#{rest} min" if rest.positive? || hours.zero?) ].compact.join(" ")
+  end
+
   def format_phone(phone)
     return display_value(nil) if phone.blank?
 

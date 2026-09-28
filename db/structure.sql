@@ -122,7 +122,14 @@ FOREIGN KEY ("marked_by_id")
 CREATE INDEX "index_attendances_on_marked_by_id" ON "attendances" ("marked_by_id") /*application='ActiveCore'*/;
 CREATE UNIQUE INDEX "index_attendances_on_discipline_id_and_month_and_member_id" ON "attendances" ("discipline_id", "month", "member_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_attendances_on_member_id_and_month" ON "attendances" ("member_id", "month") /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "private_lessons" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "teacher" varchar NOT NULL, "athletes" json DEFAULT '[]' NOT NULL, "held_at" datetime(6) NOT NULL, "duration_minutes" integer NOT NULL, "note" text, "recorded_by_id" integer NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_6346e9eeaf"
+FOREIGN KEY ("recorded_by_id")
+  REFERENCES "users" ("id")
+);
+CREATE INDEX "index_private_lessons_on_recorded_by_id" ON "private_lessons" ("recorded_by_id") /*application='ActiveCore'*/;
+CREATE INDEX "index_private_lessons_on_held_at" ON "private_lessons" ("held_at") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260928150000'),
 ('20260928120000'),
 ('20260928090000'),
 ('20260927120000'),

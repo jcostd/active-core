@@ -34,7 +34,7 @@ class ItalianMessagesTest < ActiveSupport::TestCase
   end
 
   test "every validated attribute has an italian name" do
-    [ Attendance, Discipline, Feedback, GymProfile, Member, Product, Sale, Subscription, User ].each do |model|
+    [ Attendance, Discipline, Feedback, GymProfile, Member, PrivateLesson, Product, Sale, Subscription, User ].each do |model|
       model.validators.flat_map(&:attributes).uniq.each do |attr|
         key = "activerecord.attributes.#{model.model_name.i18n_key}.#{attr}"
         assert I18n.exists?(key, :it), "manca #{key}"

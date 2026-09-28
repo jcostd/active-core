@@ -1,0 +1,10 @@
+<div class="flex items-center gap-4">
+  <%= link_to kiosk_private_lessons_path, class: "btn btn-circle btn-ghost", title: "Lezioni private" do %>
+    <%= icon("arrow_left", classes: "size-6") %>
+  <% end %>
+  <h2 class="text-3xl font-black uppercase">Correggi privata</h2>
+</div>
+
+<div class="w-full max-w-2xl mx-auto">
+  <%= render "private_lessons/form", private_lesson: @private_lesson, model: [ :kiosk, @private_lesson ] %>
+</div>

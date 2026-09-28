@@ -32,13 +32,13 @@ ActiveCore è il gestionale pensato per le **Associazioni Sportive Dilettantisti
 -   **Codice fiscale verificato**: controllo del carattere finale (omocodia compresa); chi non lo ha con sé viene iscritto come "CF da completare".
 
 
-### 🚪 Accessi non bloccanti (kiosk iPad)
+### 🚪 Kiosk iPad
 
--   **Verifica in tempo reale**: certificato medico, abbonamento attivo e pagamenti al momento dell'ingresso.
+-   **Registro del mese**: per ogni disciplina l'istruttore smarca chi vede, una volta al mese, qualunque sia l'abbonamento; la segreteria trova chi frequenta senza essere in regola.
 
--   **Nessun blocco**: l'ingresso viene sempre registrato con un esito (OK/Avviso/Errore) e la segreteria gestisce i casi con calma.
+-   **Lezioni private**: il maestro scrive chi l'ha tenuta, per quali atleti (anche più di uno, anche non soci), quando, quanto è durata e una nota facoltativa. I nomi già usati vengono suggeriti; la segreteria le rilegge mese per mese.
 
--   **Doppio tocco**: un secondo check-in ravvicinato viene ignorato.
+-   **Correzioni**: il mese in corso lo corregge chi è al kiosk, i mesi chiusi solo l'admin.
 
 
 ### 📄 Ricevute
