@@ -39,7 +39,7 @@
     <% else %>
       <%= render partial: "kiosk/members/pending", collection: @pending_members, as: :member,
                  locals: { discipline: @discipline, standings: @standings },
-                 cached: ->(member) { [ member, @discipline, @standings[member].key, @standings[member].certificate_missing? ] } %>
+                 cached: ->(member) { [ member, @discipline, @standings[member] ] } %>
     <% end %>
   </section>
 
@@ -54,7 +54,7 @@
     <% else %>
       <%= render partial: "kiosk/attendances/attendance", collection: @attendances,
                  locals: { standings: @standings },
-                 cached: ->(attendance) { [ attendance, attendance.member, @standings[attendance.member].key, @standings[attendance.member].certificate_missing? ] } %>
+                 cached: ->(attendance) { [ attendance, attendance.member, @standings[attendance.member] ] } %>
     <% end %>
   </section>
 </div>

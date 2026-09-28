@@ -33,12 +33,9 @@
       </div>
 
       <div class="navbar-end">
-	<%= link_to session_path,
-		    title: "Esci dal Kiosk",
-		    class: "btn btn-ghost btn-circle",
-		    data: { turbo_method: :delete } do %>
-	    <%= icon("logout") %>
-	  <% end %>
+        <%= link_to session_path, title: "Esci dal Kiosk", class: "btn btn-ghost btn-circle", data: { turbo_method: :delete } do %>
+          <%= icon("logout") %>
+        <% end %>
       </div>
     </div>
 
@@ -46,10 +43,6 @@
       <%= yield %>
     </main>
 
-    <div id="flash-container" class="toast toast-end toast-bottom z-[100]">
-      <%= render "shared/flash" %>
-    </div>
-
-    <%= turbo_frame_tag "modal" %>
+    <%= render "shared/flash" %>
   </body>
 </html>

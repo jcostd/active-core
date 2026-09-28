@@ -99,6 +99,21 @@ class StandingTest < ActiveSupport::TestCase
     assert_equal Date.current.beginning_of_month, Standing.new(member: @alice, discipline: @yoga, month: Date.current.end_of_month).month
   end
 
+  test "cache key changes with the standing and the certificate, nothing else" do
+    grant_membership_to(@alice)
+    subscribe(@course)
+    due = standing.cache_key
+
+    assert_equal due, standing.cache_key, "stabile tra una richiesta e l'altra"
+    Subscription.kept.where(member: @alice, product: @course).update_all(agreed_price_cents: 0)
+    paid = standing.cache_key
+    assert_not_equal due, paid
+
+    @alice.update_column(:medical_certificate_expiry, Date.yesterday)
+    assert_not_equal paid, standing.cache_key
+    assert_equal "standings/paid/no_certificate", standing.cache_key
+  end
+
   test "every key has a label" do
     assert_equal %i[not_enrolled no_membership due paid], Standing::LABELS.keys
   end

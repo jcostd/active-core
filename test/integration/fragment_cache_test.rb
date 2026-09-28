@@ -164,4 +164,41 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
       assert_select "#unenrolled_attendances", text: /Roberto Bianchi\s*Yoga Flow/
     end
   end
+
+  test "kiosk register reads each column of cards at once" do
+    course = link!(products(:yoga_monthly), disciplines(:yoga))
+    Subscription.create!(member: members(:bob), product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
+    Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
+
+    with_fragment_caching do
+      sign_in_as(users(:kiosk))
+      get kiosk_discipline_path(disciplines(:yoga))
+
+      reads = 0
+      ActiveSupport::Notifications.subscribed(->(*) { reads += 1 }, /\Acache_read(_multi)?\.active_support\z/) do
+        get kiosk_discipline_path(disciplines(:yoga))
+      end
+      assert_equal 2, reads, "una lettura per 'Da smarcare' e una per 'Nel registro'"
+      assert_select "#pending_members h3", text: "Bob Bianchi"
+      assert_select "#attendances h3", text: "Alice Allevi"
+    end
+  end
+
+  test "kiosk home reads every discipline card at once and follows renames" do
+    with_fragment_caching do
+      sign_in_as(users(:kiosk))
+      get kiosk_root_path
+      assert_select "h3", text: /Yoga/
+
+      reads = []
+      counter = ->(*, payload) { reads << payload[:key] }
+      ActiveSupport::Notifications.subscribed(counter, "cache_read_multi.active_support") { get kiosk_root_path }
+      assert_equal 1, reads.size, "una sola lettura per tutte le card"
+
+      travel 1.second
+      disciplines(:yoga).update!(name: "Yoga Flow")
+      get kiosk_root_path
+      assert_select "h3", text: /Yoga Flow/
+    end
+  end
 end

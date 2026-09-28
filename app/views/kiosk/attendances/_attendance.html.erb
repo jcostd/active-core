@@ -1,21 +1,10 @@
 <%# locals: (attendance:, standings:) %>
 <% member = attendance.member %>
-<% standing = standings.fetch(member) %>
 
-<div id="<%= dom_id(attendance) %>" class="card shadow-sm border <%= standing_card_style(standing)[:card] %>">
-  <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-4 min-w-0">
-      <%= ui_avatar(member, size: "size-12", text_size: "text-md") %>
-      <div class="min-w-0">
-        <h4 class="font-bold text-lg leading-tight truncate"><%= member.full_name %></h4>
-        <div class="flex flex-wrap gap-1 mt-1"><%= standing_badges(standing) %></div>
-      </div>
-    </div>
-
-    <%= button_to kiosk_discipline_attendance_path(attendance.discipline_id, attendance), method: :delete,
-                  class: "btn btn-circle btn-ghost text-base-content/40", title: "Togli #{member.full_name} dal registro",
-                  form: { data: { turbo_confirm: "Togliere #{member.full_name} dal registro di #{l(attendance.month, format: "%B")}?" } } do %>
-      <%= icon("close", classes: "size-6") %>
-    <% end %>
-  </div>
-</div>
+<%= render layout: "kiosk/member_card", locals: { member:, standing: standings.fetch(member), id: dom_id(attendance) } do %>
+  <%= button_to kiosk_discipline_attendance_path(attendance.discipline_id, attendance), method: :delete,
+                class: "btn btn-circle btn-ghost text-base-content/40", title: "Togli #{member.full_name} dal registro",
+                form: { data: { turbo_confirm: "Togliere #{member.full_name} dal registro di #{l(attendance.month, format: "%B")}?" } } do %>
+    <%= icon("close", classes: "size-6") %>
+  <% end %>
+<% end %>

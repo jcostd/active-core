@@ -1,0 +1,15 @@
+<%# locals: (member:, standing:, id:) %>
+<%# card di un socio nel registro o da smarcare; il blocco è il pulsante a destra %>
+<div id="<%= id %>" class="card shadow-sm border transition-colors <%= standing_card_style(standing)[:card] %>">
+  <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-4 min-w-0">
+      <%= ui_avatar(member, size: "size-12", text_size: "text-md") %>
+      <div class="min-w-0">
+        <h3 class="font-bold text-lg leading-tight truncate"><%= member.full_name %></h3>
+        <div class="flex flex-wrap gap-1 mt-1"><%= standing_badges(standing) %></div>
+      </div>
+    </div>
+
+    <%= yield %>
+  </div>
+</div>

@@ -1,20 +1,9 @@
 <%# locals: (member:, discipline:, standings:) %>
 <% standing = standings.fetch(member) %>
-<% style = standing_card_style(standing) %>
 
-<div id="<%= dom_id(member, :pending) %>" class="card shadow-sm border transition-colors <%= style[:card] %>">
-  <div class="card-body p-4 flex flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-4 min-w-0">
-      <%= ui_avatar(member, size: "size-12", text_size: "text-md") %>
-      <div class="min-w-0">
-        <h4 class="font-bold text-lg leading-tight truncate"><%= member.full_name %></h4>
-        <div class="flex flex-wrap gap-1 mt-1"><%= standing_badges(standing) %></div>
-      </div>
-    </div>
-
-    <%= button_to kiosk_discipline_attendances_path(discipline), params: { member_id: member.id },
-                  class: "btn btn-circle btn-lg shadow-md #{style[:button]}", title: "Smarca #{member.full_name}" do %>
-      <%= icon("check", classes: "size-8") %>
-    <% end %>
-  </div>
-</div>
+<%= render layout: "kiosk/member_card", locals: { member:, standing:, id: dom_id(member, :pending) } do %>
+  <%= button_to kiosk_discipline_attendances_path(discipline), params: { member_id: member.id },
+                class: "btn btn-circle btn-lg shadow-md #{standing_card_style(standing)[:button]}", title: "Smarca #{member.full_name}" do %>
+    <%= icon("check", classes: "size-8") %>
+  <% end %>
+<% end %>

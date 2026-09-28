@@ -41,6 +41,9 @@ class Standing
     @enrollments ||= member.enrollments_in(discipline, during: month.all_month)
   end
 
+  # nelle chiavi dei frammenti: cambia con il pagamento o il certificato, anche senza toccare il socio
+  def cache_key = "standings/#{key}/#{certificate_missing? ? "no_certificate" : "certificate"}"
+
   private
     # il mese in corso si guarda a oggi, quelli chiusi al loro ultimo giorno
     def day = [ month.end_of_month, Date.current ].min

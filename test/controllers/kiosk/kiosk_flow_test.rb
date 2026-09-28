@@ -119,6 +119,78 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     [ carla, dario, elena, @alice ].each { assert_select pending(it), count: 0 }
   end
 
+  test "a subscription touching the month for a single day is enough" do
+    ended_on_first, starts_on_last = person("Carla"), person("Dario")
+    Subscription.create!(member: ended_on_first, product: @course, start_date: @month.first.prev_month, end_date: @month.first)
+    Subscription.create!(member: starts_on_last, product: @course, start_date: @month.last, end_date: @month.last)
+
+    get kiosk_discipline_path(@yoga)
+    assert_select "#pending_members #{pending(ended_on_first)}"
+    assert_select "#pending_members #{pending(starts_on_last)}"
+  end
+
+  test "payment and membership do not decide who is proposed, only the badge" do
+    Subscription.create!(member: @bob, product: @course, start_date: @month.first, end_date: @month.last) # non pagato, senza quota
+
+    get kiosk_discipline_path(@yoga)
+    assert_select "#pending_members #{pending(@bob)}", text: /Quota mancante/
+  end
+
+  test "a membership alone does not put anyone on the list" do
+    get kiosk_discipline_path(@yoga)
+    assert_select pending(@alice), count: 0
+  end
+
+  test "a product linked to two disciplines proposes the member in both" do
+    open = link!(Product.create!(name: "Open Yoga Pesi", price_cents: 6000, duration_days: 30), @yoga, disciplines(:sala_pesi))
+    Subscription.create!(member: @alice, product: open, start_date: @month.first, end_date: @month.last)
+
+    [ @yoga, disciplines(:sala_pesi) ].each do |discipline|
+      get kiosk_discipline_path(discipline)
+      assert_select "#pending_members #{pending(@alice)}", true, discipline.name
+    end
+    get kiosk_discipline_path(disciplines(:open_day))
+    assert_select pending(@alice), count: 0
+  end
+
+  test "enrolled and seen last month is proposed once" do
+    sell!(member: @alice, product: @course)
+    mark(@alice, month: @month.first.prev_month)
+
+    get kiosk_discipline_path(@yoga)
+    assert_select pending(@alice), count: 1
+  end
+
+  test "an archived member is not proposed, not even after last month's register" do
+    mark(@bob, month: @month.first.prev_month)
+    @bob.discard!
+
+    get kiosk_discipline_path(@yoga)
+    assert_select pending(@bob), count: 0
+  end
+
+  test "both lists are in first name order" do
+    zeno, anna = person("Zeno"), person("Anna")
+    [ zeno, anna ].each { Subscription.create!(member: it, product: @course, start_date: @month.first, end_date: @month.last) }
+    sell!(member: @alice, product: @course)
+    [ @bob, person("Mario"), person("Ada") ].each { mark(it) }
+
+    get kiosk_discipline_path(@yoga)
+    assert_equal [ "Alice Allevi", "Anna Prova", "Zeno Prova" ], css_select("#pending_members h3").map { it.text.strip }
+    assert_equal [ "Ada Prova", "Bob Bianchi", "Mario Prova" ], css_select("#attendances h3").map { it.text.strip }
+  end
+
+  test "being in another discipline's register does not hide the member here" do
+    sell!(member: @alice, product: @course)
+    mark(@alice, discipline: disciplines(:sala_pesi))
+
+    get kiosk_discipline_path(@yoga)
+    assert_select "#pending_members #{pending(@alice)}"
+
+    get kiosk_discipline_member_searches_path(@yoga, query: "Ali")
+    assert_select "form[action='#{kiosk_discipline_attendances_path(@yoga, member_id: @alice.id)}']"
+  end
+
   test "the register shows only the current month" do
     old = mark(@alice, month: @month.first.prev_month)
 
@@ -177,6 +249,39 @@ class KioskFlowTest < ActionDispatch::IntegrationTest
     assert_select "##{ActionView::RecordIdentifier.dom_id(@alice, :search_result)}", text: /Già nel registro/
     assert_select "##{ActionView::RecordIdentifier.dom_id(@alice, :search_result)} form", count: 0
     assert_select "form[action='#{kiosk_discipline_attendances_path(@yoga, member_id: bianca.id)}']"
+  end
+
+  test "search shows the same standing as the cards, before marking" do
+    sell!(member: @alice, product: @course)
+
+    get kiosk_discipline_member_searches_path(@yoga, query: "Ali")
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@alice, :search_result)} .badge", text: "Saldato"
+
+    get kiosk_discipline_member_searches_path(@yoga, query: "Bob")
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@bob, :search_result)} .badge", text: "Non iscritto"
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@bob, :search_result)} .badge", text: "Cert. scaduto"
+  end
+
+  test "search warns about the certificate only where the discipline asks for it" do
+    get kiosk_discipline_member_searches_path(disciplines(:open_day), query: "Bob")
+
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@bob, :search_result)}"
+    assert_no_match "Cert.", response.body
+  end
+
+  test "search stays quiet until something is typed" do
+    get kiosk_discipline_member_searches_path(@yoga, query: "")
+    assert_select "turbo-frame li", count: 0
+    assert_no_match "Nessun socio trovato", response.body
+  end
+
+  test "flash messages are shown once, in a single toast" do
+    post kiosk_discipline_attendances_path(@yoga, member_id: @alice.id)
+    follow_redirect!
+
+    assert_select ".toast .alert", text: /Alice è nel registro/
+    assert_select ".toast .toast", count: 0
+    assert_select "turbo-frame#modal", { count: 0 }, "il kiosk non apre modali"
   end
 
   test "search result marks the member" do
