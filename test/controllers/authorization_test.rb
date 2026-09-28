@@ -189,7 +189,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     sign_in_as(@staff)
 
     get member_path(@member)
-    assert_select "a", text: /Archivia Socio/, count: 0
+    assert_select "a[data-turbo-method=delete][href='#{member_path(@member)}']", count: 0
 
     get members_path
     assert_select "a[href='#{edit_member_path(@member)}']"
@@ -199,7 +199,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     sign_in_as(@admin)
 
     get member_path(@member)
-    assert_select "a", text: /Archivia Socio/
+    assert_select "a[data-turbo-method=delete][href='#{member_path(@member)}']", text: /Archivia/
   end
 
   test "subscription undo button follows the undo windows" do

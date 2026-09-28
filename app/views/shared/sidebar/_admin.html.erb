@@ -25,13 +25,12 @@
           <%= active_link_to members_path do %>
             Soci
           <% end %>
-          <%= yield :member_actions if content_for?(:member_actions) %>
+          <%= yield :member_tabs %>
         </li>
         <li>
           <%= active_link_to users_path do %>
             Utenti Sistema
           <% end %>
-          <%= yield :user_actions if content_for?(:user_actions) %>
         </li>
       </ul>
     </details>
@@ -48,13 +47,12 @@
           <%= active_link_to products_path do %>
             Prodotti
           <% end %>
-          <%= yield :product_actions if content_for?(:product_actions) %>
         </li>
         <li>
           <%= active_link_to disciplines_path do %>
             Discipline
           <% end %>
-          <%= yield :discipline_actions if content_for?(:discipline_actions) %>
+          <%= yield :discipline_tabs %>
         </li>
       </ul>
     </details>
@@ -71,13 +69,11 @@
           <%= active_link_to sales_path do %>
             Vendite
           <% end %>
-          <%= yield :sale_actions if content_for?(:sale_actions) %>
         </li>
 	<li>
           <%= active_link_to reports_path do %>
             Report Incassi
           <% end %>
-          <%= yield :report_actions if content_for?(:report_actions) %>
         </li>
         <li>
           <%= active_link_to gym_profile_path do %>

@@ -1,80 +1,12 @@
-<% content_for :member_actions do %>
-  <ul class="menu w-full">
-    <li class="menu-title px-4 py-2 opacity-50 text-xs font-bold uppercase tracking-wider">
-      <%= member.full_name %>
-    </li>
+<% content_for :member_tabs, record_tabs(member.full_name,
+  [ "Panoramica", member_path(member), "badge" ],
+  [ "Abbonamenti", member_subscriptions_path(member), "card_membership" ],
+  ([ "Storico Acquisti", member_sales_path(member), "receipt" ] if current_user.admin?),
+  [ "Presenze", member_attendances_path(member), "history" ]) %>
 
-    <li>
-      <%= active_link_to member_path(member) do %>
-        <%= icon("badge") %> Panoramica
-      <% end %>
-    </li>
-    <li>
-      <%= active_link_to member_subscriptions_path(member) do %>
-        <%= icon("card_membership") %> Abbonamenti
-      <% end %>
-    </li>
-    <% if current_user.admin? %>
-      <li>
-        <%= active_link_to member_sales_path(member) do %>
-          <%= icon("receipt") %> Storico Acquisti
-        <% end %>
-      </li>
-    <% end %>
-    <li>
-      <%= active_link_to member_attendances_path(member) do %>
-        <%= icon("history") %> Presenze
-      <% end %>
-    </li>
-  </ul>
+<%= render layout: "shared/record_header", locals: { title: member.full_name, avatar: ui_avatar(member),
+                                                     badges: (ui_badge("Archiviato", tone: :error) if member.discarded?) } do %>
+  <%= header_button "Vendi / Rinnova", new_sale_path(member_id: member.id), "shopping_cart", tone: "btn-primary", data: { turbo_frame: "modal" } %>
+  <%= header_button "Modifica", edit_member_path(member), "edit", data: { turbo_frame: "modal" } %>
+  <%= header_archive_button "Archivia", member_path(member), confirm: "Archiviare #{member.full_name}?" if current_user.admin? %>
 <% end %>
-
-<% content_for :record_avatar do %>
-  <%= ui_avatar(member) %>
-<% end %>
-
-<% content_for :record_title, member.full_name %>
-
-<% content_for :record_subtitle do %>
-  <% if member.discarded? %>
-    <%= ui_badge("Archiviato", tone: :error) %>
-  <% end %>
-<% end %>
-
-<% content_for :record_actions do %>
-  <div class="flex items-center gap-2">
-    <%= link_to new_sale_path(member_id: member.id),
-		class: "btn btn-primary btn-sm gap-2",
-		data: { turbo_frame: "modal" } do %>
-      <%= icon("shopping_cart") %> <span class="hidden sm:inline">Vendi / Rinnova</span>
-    <% end %>
-
-    <%= render layout: "shared/dropdown_layout", locals: {
-      group_name: "member_header_dropdowns",
-      summary_class: "btn-sm btn-square btn-ghost",
-      icon_name: "more",
-      with_no_arrow: true
-    } do %>
-      <li>
-	<%= link_to edit_member_path(member),
-		    data: { turbo_frame: "modal" } do %>
-	  <%= icon("edit") %> Modifica Anagrafica
-	<% end %>
-      </li>
-      <% if current_user.admin? %>
-	<li>
-	  <%= link_to member_path(member),
-		      class: "text-error hover:bg-error/10 hover:text-error",
-		      data: {
-			turbo_method: :delete,
-			turbo_confirm: "Sei sicuro?"
-		      } do %>
-	    <%= icon("delete") %> Archivia Socio
-	  <% end %>
-	</li>
-      <% end %>
-    <% end %>
-  </div>
-<% end %>
-
-<%= render "shared/header/record" %>

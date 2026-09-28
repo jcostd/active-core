@@ -1,5 +1,9 @@
 <%= turbo_stream_from @product %>
 
-<%= render "products/context", product: @product %>
+<%= render layout: "shared/record_header", locals: { title: @product.name, avatar: icon("product", classes: "size-14 opacity-50"),
+                                                     badges: (ui_badge("Archiviato", tone: :error) if @product.discarded?) } do %>
+  <%= header_button "Modifica", edit_product_path(@product), "edit", tone: "btn-primary", data: { turbo_frame: "modal" } %>
+  <%= header_archive_button "Archivia", product_path(@product), confirm: "Archiviare il prodotto #{@product.name}?" %>
+<% end %>
 
 <%= render @product %>

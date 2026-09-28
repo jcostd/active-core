@@ -42,13 +42,14 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
   test "sale page offers undo only to who can use it" do
     sign_in_as(@staff)
+    undo = "a[data-turbo-method=delete][href='#{sale_path(@sale)}']"
     get sale_path(@sale)
-    assert_select "a", text: /Annulla Pagamento/
+    assert_select undo, text: /Annulla/
 
     sign_out
     sign_in_as(users(:staff_two))
     get sale_path(@sale)
-    assert_select "a", text: /Annulla Pagamento/, count: 0
+    assert_select undo, count: 0
   end
 
   test "admin reverses a recent sale" do

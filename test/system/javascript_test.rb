@@ -168,8 +168,7 @@ class JavascriptTest < ApplicationSystemTestCase
     end
 
     def open_member_edit
-      find("details[name=member_header_dropdowns] summary").click
-      click_on "Modifica Anagrafica"
+      click_on "Modifica"
       assert_selector "dialog[open]"
     end
 

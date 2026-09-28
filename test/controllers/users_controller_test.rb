@@ -95,7 +95,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@admin)
     get user_path(users(:kiosk))
 
-    assert_select "a", text: /Archivia Utente/, count: 0
+    assert_select "a[data-turbo-method=delete][href='#{user_path(users(:kiosk))}']", count: 0
     assert_select ".badge", text: "Kiosk"
   end
 

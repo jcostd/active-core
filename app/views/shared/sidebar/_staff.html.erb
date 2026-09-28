@@ -11,7 +11,7 @@
       <%= icon("member", classes: "size-5 opacity-75") %>
       Soci
     <% end %>
-    <%= yield :member_actions if content_for?(:member_actions) %>
+    <%= yield :member_tabs %>
   </li>
 
   <li>
@@ -19,7 +19,7 @@
       <%= icon("spa", classes: "size-5 opacity-75") %>
       Discipline
     <% end %>
-    <%= yield :discipline_actions if content_for?(:discipline_actions) %>
+    <%= yield :discipline_tabs %>
   </li>
 
   <li>

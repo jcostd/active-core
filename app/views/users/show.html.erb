@@ -1,6 +1,12 @@
 <%= turbo_stream_from @user %>
 
-<%= render "users/context", user: @user %>
+<%= render layout: "shared/record_header", locals: {
+      title: @user.full_name, avatar: ui_avatar(@user),
+      badges: safe_join([ tag.span("@#{@user.username}", class: "badge badge-ghost badge-sm font-mono"), user_role_badge(@user),
+                          (ui_badge("Archiviato", tone: :error) if @user.discarded?) ].compact, " ") } do %>
+  <%= header_button "Modifica", edit_user_path(@user), "edit", data: { turbo_frame: "modal" } %>
+  <%= header_archive_button "Archivia", user_path(@user), confirm: "Archiviare #{@user.full_name}?" if @user.archivable_by?(current_user) %>
+<% end %>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 

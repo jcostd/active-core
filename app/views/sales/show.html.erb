@@ -1,6 +1,15 @@
 <%= turbo_stream_from @sale %>
 
-<%= render "sales/context", sale: @sale %>
+<%= render layout: "shared/record_header", locals: {
+      title: "Vendita del #{format_date(@sale.sold_on)}", avatar: icon("receipt", classes: "size-14 opacity-50"),
+      badges: safe_join([ tag.span("Rif: #{@sale.receipt_code.presence || "N/A"}", class: "font-mono text-sm opacity-70"),
+                          @sale.discarded? ? ui_badge("Annullata", tone: :error) : ui_badge("Confermata", tone: :success) ], " ") } do %>
+  <% unless @sale.discarded? %>
+    <%= header_button "Stampa", sale_path(@sale, format: :pdf), "print", tone: "btn-primary", target: "_blank", data: { turbo: false } %>
+    <%= header_archive_button "Annulla", sale_path(@sale),
+          confirm: "Annullare questo pagamento? Se è l'unico dell'abbonamento, verrà annullato anche l'abbonamento." if @sale.reversible_by?(current_user) %>
+  <% end %>
+<% end %>
 
 <div class="w-full max-w-6xl mx-auto mt-6 space-y-8">
 

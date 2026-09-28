@@ -15,6 +15,17 @@ module UiHelper
     tag.span text, class: [ "badge badge-sm uppercase text-[10px] font-bold", BADGE_TONES.fetch(tone) ]
   end
 
+  # azioni nell'intestazione di una scheda: sul telefono solo l'icona
+  def header_button(label, path, icon_name, tone: "btn-ghost", **options)
+    link_to path, class: [ "btn btn-sm", tone ], title: label, **options do
+      icon(icon_name) + tag.span(label, class: "hidden sm:inline")
+    end
+  end
+
+  def header_archive_button(label, path, confirm:)
+    header_button label, path, "delete", tone: "btn-ghost text-error", data: { turbo_method: :delete, turbo_confirm: confirm }
+  end
+
   def ui_row_edit_button(path, title: "Modifica")
     link_to path,
             class: "btn btn-square btn-ghost text-base-content/50 hover:text-primary",

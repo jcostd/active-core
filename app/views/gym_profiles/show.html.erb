@@ -1,31 +1,8 @@
-<% content_for :record_avatar do %>
-  <%= icon("fitness_center", classes: "size-14 opacity-50") %>
+<%= render layout: "shared/record_header", locals: {
+      title: @gym_profile.name, avatar: icon("fitness_center", classes: "size-14 opacity-50"),
+      badges: tag.span("C.F./P.IVA #{@gym_profile.vat_number || "da completare"}", class: "badge badge-ghost badge-sm font-mono") } do %>
+  <%= header_button "Modifica", edit_gym_profile_path, "edit", data: { turbo_frame: "modal" } %>
 <% end %>
-
-<% content_for :record_title, @gym_profile.name %>
-
-<% content_for :record_subtitle do %>
-  <div class="badge badge-ghost badge-sm font-mono">
-    C.F./P.IVA <%= @gym_profile.vat_number || "da completare" %>
-  </div>
-<% end %>
-
-<% content_for :record_actions do %>
-  <%= render layout: "shared/dropdown_layout", locals: {
-    group_name: "gym_profile_header_dropdowns",
-    summary_class: "btn-sm btn-square btn-ghost",
-    icon_name: "more",
-    with_no_arrow: true
-  } do %>
-    <li>
-      <%= link_to edit_gym_profile_path, data: { turbo_frame: "modal" } do %>
-        <%= icon("edit") %> Modifica
-      <% end %>
-    </li>
-  <% end %>
-<% end %>
-
-<%= render "shared/header/record" %>
 
 <p class="text-sm opacity-60 mt-6">Questi dati compaiono sulle ricevute e sui riepiloghi di pagamento.</p>
 
