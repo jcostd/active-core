@@ -1,4 +1,5 @@
-<%= turbo_stream_from "attendances" %>
+<%= turbo_stream_from @discipline, :attendances %>
+<%= turbo_stream_from "members" %>
 <%= render "disciplines/context", discipline: @discipline %>
 
 <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-6">
@@ -40,7 +41,8 @@
           <%= icon("warning", classes: "size-5 text-error") %> Frequentano senza abbonamento (<%= @unenrolled.size %>)
         </h3>
         <ul class="list">
-          <%= render partial: "disciplines/attendances/unenrolled", collection: @unenrolled, as: :attendance, locals: { editable: @editable } %>
+          <%= render partial: "disciplines/attendances/unenrolled", collection: @unenrolled, as: :attendance,
+                     locals: { editable: @editable, products_to_sell: @products_to_sell } %>
         </ul>
       </div>
     </section>

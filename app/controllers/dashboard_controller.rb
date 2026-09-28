@@ -9,7 +9,8 @@ class DashboardController < ApplicationController
     @unenrolled = Attendance.in_month(Date.current).unenrolled
                             .joins(:member).merge(Member.kept)
                             .order(members: { last_name: :asc, first_name: :asc })
-                            .includes(:member, :discipline).load
+                            .preload(:discipline, member: Standing::PRELOAD).to_a
+    @products_to_sell = Attendance.products_to_sell(@unenrolled)
 
     @recent_sales = Sale.kept
                       .includes(:member, subscription: :product)

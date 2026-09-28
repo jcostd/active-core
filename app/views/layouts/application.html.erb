@@ -15,7 +15,9 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+    <%# tag diretti: turbo_refreshes_with è un content_for :head e qui arriverebbe dopo lo yield %>
+    <%= turbo_refresh_method_tag :morph %>
+    <%= turbo_refresh_scroll_tag :preserve %>
 
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>

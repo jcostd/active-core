@@ -162,9 +162,56 @@ class Disciplines::MembersControllerTest < ActionDispatch::IntegrationTest
     assert_select "#unenrolled_attendances h3", text: /Frequentano senza abbonamento \(1\)/
     assert_select "#unenrolled_attendances li", count: 1
     assert_select "##{ActionView::RecordIdentifier.dom_id(attendance, :unenrolled)}", text: /Hugo Nuovo\s*Segnato da Kiosk Accessi/
-    assert_select "#unenrolled_attendances a[href='#{new_sale_path(member_id: hugo.id)}'][data-turbo-frame=modal]", text: /Vendi/
+    quota = products(:annual_membership)
+    assert_select "#unenrolled_attendances a[href='#{new_sale_path(sale: { member_id: hugo.id, product_id: quota.id })}'][data-turbo-frame=modal]",
+                  text: "Vendi #{quota.name}"
     assert_select "#unenrolled_attendances form[action='#{discipline_attendance_path(@yoga, attendance)}']"
     assert_select row(hugo), { count: 0 }, "non è tra gli iscritti"
+  end
+
+  test "the sell button opens the POS with member and product chosen, dates and price proposed" do
+    walk_in = Member.create!(first_name: "Hugo", last_name: "Nuovo", birth_date: 20.years.ago, fiscal_code_pending: true)
+    grant_membership_to(walk_in)
+    Attendance.create!(member: walk_in, discipline: @yoga, marked_by: users(:kiosk))
+
+    get discipline_members_path(@yoga)
+    link = css_select("#unenrolled_attendances a[data-turbo-frame=modal]").first
+    assert_equal "Vendi #{@course.name}", link.text.strip
+
+    get link["href"], headers: { "Turbo-Frame" => "modal" }
+    assert_response :success
+    assert_select "input[name='sale[member_id]'][value='#{walk_in.id}']"
+    assert_select "select[name='sale[product_id]'] option[selected][value='#{@course.id}']"
+    proposed = walk_in.next_period_for(@course)
+    assert_select "input[name='sale[subscription_attributes][start_date]'][value='#{proposed.start_date.iso8601}']"
+  end
+
+  test "once the membership is sold, the button offers the course" do
+    walk_in = Member.create!(first_name: "Hugo", last_name: "Nuovo", birth_date: 20.years.ago, fiscal_code_pending: true)
+    Attendance.create!(member: walk_in, discipline: @yoga, marked_by: users(:kiosk))
+
+    get discipline_members_path(@yoga)
+    assert_select "#unenrolled_attendances a", text: "Vendi #{products(:annual_membership).name}"
+
+    sell!(member: walk_in, product: products(:annual_membership))
+    get discipline_members_path(@yoga)
+    assert_select "#unenrolled_attendances a", text: "Vendi #{@course.name}"
+
+    sell!(member: walk_in, product: @course)
+    get discipline_members_path(@yoga)
+    assert_select "#unenrolled_attendances", count: 0
+  end
+
+  test "marking from the desk returns to the same filtered page" do
+    bob = enrolled(members(:bob))
+    filtered = discipline_members_path(@yoga, seen: "no", query: "Bian", month: this_month)
+
+    post discipline_attendances_path(@yoga), params: { member_id: bob.id, month: this_month }, headers: { "Referer" => "http://www.example.com#{filtered}" }
+    assert_redirected_to "http://www.example.com#{filtered}"
+
+    delete discipline_attendance_path(@yoga, Attendance.last), headers: { "Referer" => "http://www.example.com#{filtered}" }
+    assert_redirected_to "http://www.example.com#{filtered}"
+    assert_response :see_other
   end
 
   test "the unenrolled section follows the chosen month" do

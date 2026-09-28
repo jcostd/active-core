@@ -19,7 +19,8 @@ class Disciplines::MembersController < ApplicationController
 
     @unenrolled = @discipline.attendances.in_month(@month).unenrolled
                              .joins(:member).order(members: { last_name: :asc, first_name: :asc })
-                             .includes(:member, :marked_by)
+                             .preload(:discipline, :marked_by, member: Standing::PRELOAD).to_a
+    @products_to_sell = Attendance.products_to_sell(@unenrolled)
   end
 
   private

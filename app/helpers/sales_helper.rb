@@ -34,6 +34,14 @@ module SalesHelper
   end
 
   # PER I FORM: f.select :payment_method, payment_method_options
+  # chi frequenta senza abbonamento: il POS si apre con socio e prodotto già scelti, date e prezzo li propone lui
+  def sell_to_walk_in_link(member, product)
+    link_to new_sale_path(sale: { member_id: member.id, product_id: product&.id }.compact),
+            class: "btn btn-sm btn-primary max-w-56", data: { turbo_frame: "modal" }, title: "Vendi #{product&.name}".strip do
+      safe_join([ icon("shopping_cart", classes: "size-4"), tag.span(product ? "Vendi #{product.name}" : "Vendi", class: "truncate") ])
+    end
+  end
+
   def payment_method_options
     PAYMENT_METHODS.map { |key, data| [ data[:label], key ] }
   end

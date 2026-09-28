@@ -1,4 +1,4 @@
-<%# locals: (attendance:, editable:) %>
+<%# locals: (attendance:, editable:, products_to_sell:) %>
 <% member = attendance.member %>
 
 <li id="<%= dom_id(attendance, :unenrolled) %>" class="list-row items-center px-0">
@@ -10,9 +10,7 @@
   </div>
 
   <div class="flex items-center gap-2">
-    <%= link_to new_sale_path(member_id: member.id), class: "btn btn-sm btn-primary", data: { turbo_frame: "modal" } do %>
-      <%= icon("shopping_cart", classes: "size-4") %> Vendi
-    <% end %>
+    <%= sell_to_walk_in_link(member, products_to_sell.fetch(attendance)) %>
     <% if editable %>
       <%= button_to discipline_attendance_path(attendance.discipline_id, attendance), method: :delete,
                     class: "btn btn-square btn-ghost btn-sm text-base-content/50 hover:text-error", title: "Togli dal registro",

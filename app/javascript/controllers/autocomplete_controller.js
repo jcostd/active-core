@@ -48,6 +48,12 @@ export default class extends Controller {
     this.closeFrame()
   }
 
+  // dopo un invio (es. socio smarcato dalla ricerca): campo vuoto e risultati chiusi
+  reset() {
+    this.inputTarget.value = ""
+    this.closeFrame()
+  }
+
   closeFrame() {
     if (!this.hasFrameTarget) return
 

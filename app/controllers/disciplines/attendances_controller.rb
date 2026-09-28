@@ -1,4 +1,5 @@
-# la segreteria corregge il registro dalla pagina Iscritti: il mese in corso chiunque, quelli chiusi l'admin
+# la segreteria corregge il registro dalla pagina Iscritti: il mese in corso chiunque, quelli chiusi l'admin.
+# Si torna alla pagina da cui si è partiti: stessi filtri, stessa pagina, e Turbo mantiene lo scroll
 class Disciplines::AttendancesController < ApplicationController
   include SafeDateParsing
 
@@ -14,7 +15,7 @@ class Disciplines::AttendancesController < ApplicationController
       flash[:alert] = attendance.errors.full_messages.to_sentence
     end
 
-    redirect_to discipline_members_path(@discipline, month: month.strftime("%Y-%m")), status: :see_other
+    redirect_back_or_to discipline_members_path(@discipline, month: month.strftime("%Y-%m")), status: :see_other
   end
 
   def destroy
@@ -27,7 +28,7 @@ class Disciplines::AttendancesController < ApplicationController
       flash[:alert] = "Il registro di #{l(attendance.month, format: "%B %Y")} è chiuso: può correggerlo solo un amministratore."
     end
 
-    redirect_to discipline_members_path(@discipline, month: attendance.month.strftime("%Y-%m")), status: :see_other
+    redirect_back_or_to discipline_members_path(@discipline, month: attendance.month.strftime("%Y-%m")), status: :see_other
   end
 
   private

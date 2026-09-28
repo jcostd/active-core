@@ -1,5 +1,5 @@
 <%= turbo_stream_from "attendances" %>
-<%= turbo_stream_from "subscriptions" %>
+<%= turbo_stream_from "members" %>
 <%= turbo_stream_from "sales" %>
 
 <header class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center mb-8">
@@ -108,7 +108,8 @@
       <% if @unenrolled.any? %>
         <ul class="list bg-base-100/50 rounded-box">
           <%= render partial: "dashboard/unenrolled_attendance", collection: @unenrolled, as: :attendance,
-                     cached: ->(attendance) { [ attendance, attendance.member, attendance.discipline ] } %>
+                     locals: { products_to_sell: @products_to_sell },
+                     cached: ->(attendance) { [ attendance, attendance.member, attendance.discipline, @products_to_sell[attendance] ] } %>
         </ul>
       <% else %>
         <div class="flex flex-col items-center justify-center py-8 text-sm text-base-content/40 gap-3">

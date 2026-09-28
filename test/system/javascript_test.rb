@@ -66,7 +66,46 @@ class JavascriptTest < ApplicationSystemTestCase
     assert_no_selector ".alert", wait: 7
   end
 
+  test "a live refresh does not wipe the POS being filled in" do
+    open_modal root_path, "Nuova Vendita"
+    fill_in "members_search", with: "Alic"
+    click_on "Alice Allevi"
+    assert_selector "input[name='sale[member_id]'][value='#{members(:alice).id}']", visible: :all
+
+    Attendance.create!(member: members(:bob), discipline: disciplines(:yoga), marked_by: users(:kiosk))
+    refresh_from_server
+    assert_selector "#unenrolled_attendances", text: "Bob Bianchi", visible: :all # la pagina sotto si è aggiornata
+
+    assert_selector "dialog[open]"
+    assert_selector "input[name='sale[member_id]'][value='#{members(:alice).id}']", visible: :all
+  end
+
+  test "a live refresh does not close the filter drawer" do
+    visit members_path
+    click_on "Filtri"
+    assert_selector "dialog[open]", text: "Stato Tesseramento"
+
+    Member.create!(first_name: "Nuovo", last_name: "Arrivo", birth_date: 30.years.ago, fiscal_code_pending: true)
+    refresh_from_server
+    assert_selector "#members_list, body", text: "Nuovo Arrivo", visible: :all
+    assert_selector "dialog[open]", text: "Stato Tesseramento"
+  end
+
+  test "once closed, the modal is not brought back by a refresh" do
+    open_modal root_path, "Nuova Vendita"
+    find("dialog[open] button[data-action='click->dialog#close']").click
+    assert_no_selector "dialog[open]"
+
+    refresh_from_server
+    assert_no_selector "dialog[open]"
+  end
+
   private
+    # come un broadcast_refresh ricevuto da Solid Cable
+    def refresh_from_server
+      page.execute_script(%(Turbo.renderStreamMessage('<turbo-stream action="refresh"></turbo-stream>')))
+    end
+
     # le pagine in modale si aprono dai loro link, come fa l'utente
     def open_modal(path, link)
       visit path

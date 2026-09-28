@@ -31,7 +31,8 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat", text: /Da regolarizzare\s*1/
     assert_select "#unenrolled_attendances li", count: 1
     assert_select "#unenrolled_attendances li", text: /Alice Allevi\s*Sala Pesi/
-    assert_select "#unenrolled_attendances a[href='#{new_sale_path(member_id: @member.id)}'][data-turbo-frame=modal]"
+    # Sala Pesi non vende corsi: il POS si apre con il solo socio
+    assert_select "#unenrolled_attendances a[href='#{new_sale_path(sale: { member_id: @member.id })}'][data-turbo-frame=modal]", text: "Vendi"
     assert_select "#unenrolled_attendances a[href='#{discipline_members_path(pesi)}']"
   end
 

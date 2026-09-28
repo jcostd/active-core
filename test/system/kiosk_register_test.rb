@@ -27,6 +27,27 @@ class KioskRegisterTest < ApplicationSystemTestCase
     assert_text "Non iscritto"
   end
 
+  test "an incoming refresh does not wipe what the instructor is searching" do
+    fill_in "members_search", with: "Bian"
+    within("#kiosk_search") { assert_text "Bob Bianchi" }
+
+    Attendance.create!(member: members(:alice), discipline: @yoga, marked_by: users(:staff)) # smarcata da un altro iPad
+    page.execute_script(%(Turbo.renderStreamMessage('<turbo-stream action="refresh"></turbo-stream>')))
+
+    within("#attendances") { assert_text "Alice Allevi" }
+    assert_field "members_search", with: "Bian"
+    within("#kiosk_search") { assert_text "Bob Bianchi" }
+  end
+
+  test "marking from the search clears it" do
+    fill_in "members_search", with: "Bian"
+    click_on "Bob Bianchi"
+
+    within("#attendances") { assert_text "Bob Bianchi" }
+    assert_field "members_search", with: ""
+    within("#kiosk_search") { assert_no_text "Bob Bianchi" }
+  end
+
   test "removing a mark asks for confirmation" do
     within("#pending_members") { click_on "Smarca Alice Allevi" }
     within("#attendances") { assert_text "Alice Allevi" }

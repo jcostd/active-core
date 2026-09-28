@@ -115,6 +115,65 @@ class AttendanceTest < ActiveSupport::TestCase
     end
   end
 
+  test "the desk is offered the membership first when it is missing" do
+    ridotta = Product.create!(name: "Quota Ridotta", price_cents: 1000, duration_days: 365, accounting_category: :associative)
+
+    assert_equal products(:annual_membership), product_to_sell(mark(@bob)), "nessuna quota: la più venduta"
+
+    Subscription.create!(member: @alice, product: ridotta, start_date: 2.years.ago, end_date: 1.year.ago)
+    assert_equal ridotta, product_to_sell(mark(@alice)), "quota scaduta: quella che aveva"
+  end
+
+  test "with a valid membership the desk is offered the course they had in this discipline" do
+    grant_membership_to(@alice)
+    popular = link!(Product.create!(name: "Yoga Open", price_cents: 5000, duration_days: 30), @yoga)
+    3.times { |i| Subscription.create!(member: person("Fan#{i}"), product: popular, start_date: @month, end_date: @month.end_of_month) }
+    Subscription.create!(member: @alice, product: @course, start_date: @month.prev_month.prev_month, end_date: @month.prev_month.prev_month.end_of_month)
+
+    assert_equal @course, product_to_sell(mark(@alice))
+  end
+
+  test "a first timer with a membership is offered the discipline's best seller" do
+    grant_membership_to(@alice)
+    other_discipline = link!(Product.create!(name: "Pesi Mensile", price_cents: 3000, duration_days: 30), @pesi)
+    3.times { |i| Subscription.create!(member: person("Pesista#{i}"), product: other_discipline, start_date: @month, end_date: @month.end_of_month) }
+    Subscription.create!(member: person("Yogi"), product: @course, start_date: @month, end_date: @month.end_of_month)
+    link!(Product.create!(name: "Abbonamento Yoga Mai Venduto", price_cents: 1, duration_days: 30), @yoga)
+
+    assert_equal @course, product_to_sell(mark(@alice))
+  end
+
+  test "archived products are never offered" do
+    grant_membership_to(@alice)
+    Subscription.create!(member: @alice, product: @course, start_date: @month.prev_month, end_date: @month.prev_month.end_of_month)
+    @course.discard!
+    fallback = link!(Product.create!(name: "Yoga Nuovo Listino", price_cents: 5000, duration_days: 30), @yoga)
+
+    assert_equal fallback, product_to_sell(mark(@alice))
+  end
+
+  test "a discipline without membership offers the course straight away" do
+    open_day = disciplines(:open_day)
+    trial = link!(Product.create!(name: "Prova", price_cents: 0, duration_days: 30), open_day)
+
+    assert_equal trial, product_to_sell(mark(@bob, discipline: open_day))
+  end
+
+  test "nothing to offer when the discipline sells nothing" do
+    grant_membership_to(@alice)
+    assert_nil product_to_sell(mark(@alice, discipline: @pesi))
+  end
+
+  test "offers for a whole list cost the same queries as for one" do
+    attendances = [ @alice, @bob ].map { mark(it) }
+    few = queries { Attendance.products_to_sell(Attendance.where(id: attendances).preload(:discipline, member: Standing::PRELOAD).to_a) }
+
+    attendances += 6.times.map { |i| mark(person("Ospite#{i}")) }
+    many = queries { Attendance.products_to_sell(Attendance.where(id: attendances).preload(:discipline, member: Standing::PRELOAD).to_a) }
+
+    assert_equal few, many
+  end
+
   test "a user who marked attendances is kept" do
     user = User.create!(username: "istruttore", first_name: "Ivo", last_name: "Istruttore", email_address: "ivo@example.com", password: "segreta")
     mark(@alice, by: user)
@@ -134,5 +193,16 @@ class AttendanceTest < ActiveSupport::TestCase
 
     def subscribe(member, product, start_date, end_date)
       Subscription.create!(member:, product:, start_date:, end_date:)
+    end
+
+    def product_to_sell(attendance)
+      loaded = Attendance.preload(:discipline, member: Standing::PRELOAD).find(attendance.id)
+      Attendance.products_to_sell([ loaded ]).fetch(loaded)
+    end
+
+    def queries
+      count = 0
+      ActiveSupport::Notifications.subscribed(->(*, payload) { count += 1 unless payload[:name].in?(%w[SCHEMA TRANSACTION]) }, "sql.active_record") { yield }
+      count
     end
 end

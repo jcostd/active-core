@@ -36,6 +36,9 @@ class Product < ApplicationRecord
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validate :terms_fixed_once_sold, on: :update
 
+  # i più venduti prima: la proposta di default alla cassa
+  scope :popular, -> { left_joins(:subscriptions).group(:id).order(Arel.sql("COUNT(subscriptions.id) DESC"), :name) }
+
   # prodotti che si rinnovano a vicenda: sé stesso, quelli con una disciplina in comune e, per una quota, tutte le quote
   def same_line
     line = Product.where(id:).or(Product.where(id: ProductDiscipline.where(discipline_id: product_disciplines.select(:discipline_id)).select(:product_id)))
