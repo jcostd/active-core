@@ -61,8 +61,9 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+  feedbacks: app exec --reuse "bin/rails feedbacks:recent"
 
-# Volume persistente per i database SQLite e i file di Active Storage.
+# Volume persistente per i database SQLite.
 # Meglio un volume montato con backup fuori dal server.
 volumes:
   - "/activecore-storage:/rails/storage"

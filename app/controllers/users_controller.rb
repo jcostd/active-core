@@ -66,7 +66,7 @@ class UsersController < ApplicationController
     end
 
     def user_params
-      permitted = %i[ first_name last_name username email_address password password_confirmation ]
+      permitted = %i[ first_name last_name username password password_confirmation ]
       permitted << :role if current_user.admin?
 
       params.expect(user: permitted)

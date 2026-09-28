@@ -39,7 +39,6 @@ class User < ApplicationRecord
                        format: { with: /\A[a-z0-9_]+\z/, message: "può contenere solo lettere minuscole, numeri e underscore" }
 
   # l'indice unico del database vale solo per gli utenti attivi
-  validates :email_address, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
   validates :password, length: { minimum: 4 }, allow_nil: true
   validate :keep_an_admin, on: :update
   validate :kiosk_role_is_fixed

@@ -11,7 +11,6 @@ class UserTest < ActiveSupport::TestCase
       username: "  MarioRossi  ", # Spazi e maiuscole
       first_name: "Mario",
       last_name: "Rossi",
-      email_address: "mario@test.it",
       password: "password123"
     )
     user.validate # Triggera normalizes
@@ -19,25 +18,16 @@ class UserTest < ActiveSupport::TestCase
     assert_equal "mariorossi", user.username
   end
 
-  test "email is required" do
-    @user.email_address = "  "
-    assert_not @user.valid?
-    assert_includes @user.errors[:email_address], "non può essere lasciato in bianco"
-  end
-
-  test "email must be unique among active users, ignoring case" do
-    user = User.new(username: "nuovo", first_name: "A", last_name: "B", password: "password",
-                    email_address: " STAFF@asd.it ")
+  test "username must be unique among active users, whatever the case typed" do
+    user = User.new(username: " STAFF ", first_name: "A", last_name: "B", password: "password")
     assert_not user.valid?
-    assert_includes user.errors[:email_address], "è già presente"
+    assert_includes user.errors[:username], "è già presente"
     assert_nothing_raised { assert_not user.save }
   end
 
-  test "email of a discarded user can be reused" do
+  test "username of a discarded user can be reused" do
     users(:staff_two).discard!
-    user = User.new(username: "nuovo", first_name: "A", last_name: "B", password: "password",
-                    email_address: "staff2@asd.it")
-    assert user.save
+    assert User.new(username: "staff2", first_name: "A", last_name: "B", password: "password").save
   end
 
   test "kiosk user cannot be archived, not even by an admin" do
@@ -66,14 +56,14 @@ class UserTest < ActiveSupport::TestCase
     assert_not @user.valid?
     assert_includes @user.errors[:role], "non può essere cambiato: l'utente kiosk è unico e fisso"
 
-    second = User.new(username: "kiosk2", first_name: "A", last_name: "B", email_address: "k2@system.local",
+    second = User.new(username: "kiosk2", first_name: "A", last_name: "B",
                       password: "password", role: :kiosk)
     assert_not second.valid?
   end
 
   test "the kiosk user can be created when missing" do
     users(:kiosk).update_column(:discarded_at, Time.current)
-    kiosk = User.new(username: "kiosk2", first_name: "Kiosk", last_name: "Accessi", email_address: "k2@system.local",
+    kiosk = User.new(username: "kiosk2", first_name: "Kiosk", last_name: "Accessi",
                      password: "password", role: :kiosk)
     assert kiosk.valid?
   end
@@ -106,7 +96,6 @@ class UserTest < ActiveSupport::TestCase
     user = User.new(
       username: "newuser",
       first_name: "A", last_name: "B",
-      email_address: "a@b.com",
       password: "sho" # 3 char
     )
     assert_not user.valid?

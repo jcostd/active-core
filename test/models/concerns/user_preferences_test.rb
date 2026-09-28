@@ -6,8 +6,7 @@ class UserPreferencesTest < ActiveSupport::TestCase
       username: "pref_tester",
       password: "password",
       first_name: "Test",
-      last_name: "User",
-      email_address: "test@example.com"
+      last_name: "User"
     )
   end
 

@@ -87,7 +87,6 @@ it:
         product: Prodotto
         start_date: Decorrenza
       user:
-        email_address: Email
         first_name: Nome
         last_name: Cognome
         password: Password

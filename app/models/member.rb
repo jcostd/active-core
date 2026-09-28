@@ -21,6 +21,7 @@ class Member < ApplicationRecord
   RENEWAL_GRACE_PERIOD = 30
 
   normalizes :fiscal_code, with: ->(c) { c.strip.upcase.presence }
+  normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   # casella del form: iscrizione senza CF, da completare in seguito
   attribute :fiscal_code_pending, :boolean, default: false
@@ -42,6 +43,7 @@ class Member < ApplicationRecord
   validate :fiscal_code_checksum, if: -> { fiscal_code.present? && (new_record? || will_save_change_to_fiscal_code?) }
 
   scope :missing_fiscal_code, -> { where(members: { fiscal_code: nil }) }
+  validates :email_address, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :phone,
             phone: { possible: true, allow_blank: true, types: [ :mobile, :fixed_line ] }
 

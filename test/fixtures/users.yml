@@ -1,7 +1,6 @@
 <% password_digest = BCrypt::Password.create("password") %>
 
 staff:
-  email_address: staff@asd.it
   password_digest: <%= password_digest %>
   username: staff
   first_name: Luigi
@@ -9,7 +8,6 @@ staff:
   role: 0 # staff
 
 admin:
-  email_address: admin@asd.it
   password_digest: <%= password_digest %>
   username: admin
   first_name: Mario
@@ -17,7 +15,6 @@ admin:
   role: 1 # admin
 
 staff_two:
-  email_address: staff2@asd.it
   password_digest: <%= password_digest %>
   username: staff2
   first_name: Giulia
@@ -25,7 +22,6 @@ staff_two:
   role: 0 # staff
 
 kiosk:
-  email_address: kiosk@system.local
   password_digest: <%= password_digest %>
   username: kiosk
   first_name: Kiosk

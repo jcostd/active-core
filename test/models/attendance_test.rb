@@ -175,7 +175,7 @@ class AttendanceTest < ActiveSupport::TestCase
   end
 
   test "a user who marked attendances is kept" do
-    user = User.create!(username: "istruttore", first_name: "Ivo", last_name: "Istruttore", email_address: "ivo@example.com", password: "segreta")
+    user = User.create!(username: "istruttore", first_name: "Ivo", last_name: "Istruttore", password: "segreta")
     mark(@alice, by: user)
 
     assert_not user.destroy

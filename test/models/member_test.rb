@@ -169,6 +169,15 @@ class MemberTest < ActiveSupport::TestCase
     assert_not_includes alice.relevant_subscriptions, old
   end
 
+  test "email is tidied and checked" do
+    member = Member.new(email_address: "  LUIGI@TEST.COM  ")
+    assert_equal "luigi@test.com", member.email_address
+
+    member.email_address = "non-una-email"
+    member.validate
+    assert_includes member.errors[:email_address], "non è valido"
+  end
+
   test "full address skips the missing parts" do
     member = Member.new(address: "via roma 1", city: "roma", zip_code: "00100")
     assert_equal "Via Roma 1, Roma (00100)", member.full_address

@@ -13,7 +13,7 @@ module User::Filterable
     include Sortable
 
     scope :search_text, ->(query) {
-      where("users.first_name LIKE :q OR users.last_name LIKE :q OR users.email_address LIKE :q OR users.username LIKE :q",
+      where("users.first_name LIKE :q OR users.last_name LIKE :q OR users.username LIKE :q",
             q: "%#{sanitize_sql_like(query)}%") if query.present?
     }
 

@@ -32,14 +32,9 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
       <div>
-        <%= f.label :email_address, "Email", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.email_field :email_address, required: true, class: "input w-full", placeholder: "mario@palestra.it" %>
-      </div>
-
-      <div>
         <%= f.label :role, "Ruolo", class: "label text-xs font-semibold uppercase opacity-70" %>
         <% if user.kiosk? %>
-          <p class="label whitespace-normal">Utente fisso dell'iPad: registra solo gli ingressi, non si archivia e non cambia ruolo.</p>
+          <p class="label whitespace-normal">Utente fisso dell'iPad: usa solo il kiosk, non si archivia e non cambia ruolo.</p>
         <% else %>
           <%= f.select :role, user_role_options, {}, class: "select w-full", disabled: !current_user.admin? %>
         <% end %>

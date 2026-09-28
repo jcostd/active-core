@@ -15,11 +15,6 @@ CREATE INDEX "index_product_disciplines_on_discipline_id" ON "product_discipline
 CREATE UNIQUE INDEX "index_product_disciplines_on_product_id_and_discipline_id" ON "product_disciplines" ("product_id", "discipline_id");
 CREATE TABLE IF NOT EXISTS "schema_migrations" ("version" varchar NOT NULL PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS "ar_internal_metadata" ("key" varchar NOT NULL PRIMARY KEY, "value" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
-CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar NOT NULL, "first_name" varchar NOT NULL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "password_digest" varchar NOT NULL, "preferences" json DEFAULT '{}', "role" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "username" varchar NOT NULL);
-CREATE INDEX "index_users_on_discarded_at" ON "users" ("discarded_at");
-CREATE UNIQUE INDEX "index_users_on_email_address" ON "users" ("email_address") WHERE discarded_at IS NULL;
-CREATE INDEX "index_users_on_role" ON "users" ("role");
-CREATE UNIQUE INDEX "index_users_on_username" ON "users" ("username") WHERE discarded_at IS NULL;
 CREATE VIRTUAL TABLE members_fts USING fts5(
         first_name,
         last_name,
@@ -91,11 +86,6 @@ FOREIGN KEY ("recorded_by_id")
 );
 CREATE INDEX "index_private_lessons_on_recorded_by_id" ON "private_lessons" ("recorded_by_id") /*application='ActiveCore'*/;
 CREATE INDEX "index_private_lessons_on_held_at" ON "private_lessons" ("held_at") /*application='ActiveCore'*/;
-CREATE TABLE IF NOT EXISTS "feedbacks" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "browser_info" varchar, "created_at" datetime(6) NOT NULL, "message" text NOT NULL, "page_url" varchar, "updated_at" datetime(6) NOT NULL, "user_id" integer NOT NULL, CONSTRAINT "fk_rails_c57bb6cf28"
-FOREIGN KEY ("user_id")
-  REFERENCES "users" ("id")
-);
-CREATE INDEX "index_feedbacks_on_user_id" ON "feedbacks" ("user_id") /*application='ActiveCore'*/;
 CREATE TABLE IF NOT EXISTS "members" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "address" varchar, "birth_date" date NOT NULL, "city" varchar, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "email_address" varchar, "first_name" varchar NOT NULL, "fiscal_code" varchar, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "medical_certificate_expiry" date, "phone" varchar, "updated_at" datetime(6) NOT NULL, "zip_code" varchar);
 CREATE INDEX "index_members_on_discarded_at" ON "members" ("discarded_at") /*application='ActiveCore'*/;
 CREATE UNIQUE INDEX "index_members_on_fiscal_code" ON "members" ("fiscal_code") WHERE discarded_at IS NULL /*application='ActiveCore'*/;
@@ -115,7 +105,18 @@ CREATE TRIGGER members_au AFTER UPDATE ON members BEGIN
   INSERT INTO members_fts(rowid, first_name, last_name, fiscal_code, email_address, phone, birth_date)
   VALUES (new.id, new.first_name, new.last_name, new.fiscal_code, new.email_address, new.phone, new.birth_date);
 END;
+CREATE TABLE IF NOT EXISTS "users" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "created_at" datetime(6) NOT NULL, "discarded_at" datetime(6), "first_name" varchar NOT NULL, "full_name" varchar GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL, "last_name" varchar NOT NULL, "password_digest" varchar NOT NULL, "preferences" json DEFAULT '{}', "role" integer DEFAULT 0 NOT NULL, "updated_at" datetime(6) NOT NULL, "username" varchar NOT NULL);
+CREATE INDEX "index_users_on_discarded_at" ON "users" ("discarded_at") /*application='ActiveCore'*/;
+CREATE INDEX "index_users_on_role" ON "users" ("role") /*application='ActiveCore'*/;
+CREATE UNIQUE INDEX "index_users_on_username" ON "users" ("username") WHERE discarded_at IS NULL /*application='ActiveCore'*/;
+CREATE TABLE IF NOT EXISTS "feedbacks" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "browser_info" varchar, "created_at" datetime(6) NOT NULL, "message" text NOT NULL, "page_url" varchar, "updated_at" datetime(6) NOT NULL, "user_id" integer, CONSTRAINT "fk_rails_c57bb6cf28"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+);
+CREATE INDEX "index_feedbacks_on_user_id" ON "feedbacks" ("user_id") /*application='ActiveCore'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20260929120000'),
+('20260929110000'),
 ('20260929100000'),
 ('20260929090000'),
 ('20260928150000'),

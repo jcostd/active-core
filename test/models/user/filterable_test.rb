@@ -7,9 +7,9 @@ class User::FilterableTest < ActiveSupport::TestCase
     assert_equal [ users(:staff), users(:staff_two) ].sort_by(&:id), User.apply_filters(role: "staff").sort_by(&:id)
   end
 
-  test "search by name, email or username" do
+  test "search by name or username" do
     assert_equal [ users(:staff_two) ], User.apply_filters(query: "Collega").to_a
-    assert_equal [ users(:admin) ], User.apply_filters(query: "admin@").to_a
+    assert_equal [ users(:staff_two) ], User.apply_filters(query: "staff2").to_a
   end
 
   test "excludes discarded users" do

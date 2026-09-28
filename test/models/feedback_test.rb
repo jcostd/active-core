@@ -5,11 +5,11 @@ class FeedbackTest < ActiveSupport::TestCase
     @user = users(:staff)
   end
 
-  test "requires message and user" do
+  test "requires a message, not a user: the system writes too" do
     feedback = Feedback.new
     assert_not feedback.valid?
-
     assert_includes feedback.errors[:message], "non può essere lasciato in bianco"
-    assert_includes feedback.errors[:user], "deve esistere"
+
+    assert Feedback.new(message: "Controllo del database fallito").valid?
   end
 end

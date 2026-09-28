@@ -13,7 +13,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
 
     assert_no_difference -> { User.count } do
-      post users_path, params: { user: { first_name: "X", last_name: "Y", username: "xy", email_address: "xy@asd.it", password: "secret" } }
+      post users_path, params: { user: { first_name: "X", last_name: "Y", username: "xy", password: "secret" } }
     end
     assert_redirected_to root_path
 
@@ -53,34 +53,24 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "admin creating a user with a taken email gets the form back" do
+  test "admin creating a user with a taken username gets the form back" do
     sign_in_as(@admin)
 
     assert_no_difference -> { User.count } do
-      post users_path, params: { user: { first_name: "Nuovo", last_name: "Utente", username: "nuovo",
-                                         email_address: "STAFF@asd.it", password: "password", password_confirmation: "password" } }
+      post users_path, params: { user: { first_name: "Nuovo", last_name: "Utente", username: "staff",
+                                         password: "password", password_confirmation: "password" } }
     end
     assert_response :unprocessable_entity
-    assert_match "Email è già presente", response.body
+    assert_match "Username è già presente", response.body
   end
 
-  test "admin creating a user without email gets the form back" do
-    sign_in_as(@admin)
-
-    assert_no_difference -> { User.count } do
-      post users_path, params: { user: { first_name: "Nuovo", last_name: "Utente", username: "nuovo",
-                                         email_address: "", password: "password", password_confirmation: "password" } }
-    end
-    assert_response :unprocessable_entity
-  end
-
-  test "staff cannot steal a colleague email" do
+  test "staff cannot take a colleague username" do
     sign_in_as(@staff)
 
-    patch user_path(@staff), params: { user: { email_address: "staff2@asd.it" } }
+    patch user_path(@staff), params: { user: { username: "staff2" } }
 
     assert_response :unprocessable_entity
-    assert_equal "staff@asd.it", @staff.reload.email_address
+    assert_equal "staff", @staff.reload.username
   end
 
   test "admin cannot archive the kiosk user" do

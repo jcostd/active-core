@@ -21,8 +21,33 @@ class DatabaseMaintenanceTest < ActiveSupport::TestCase
       Attendance.insert!({ member_id: 0, discipline_id: disciplines(:yoga).id, marked_by_id: users(:kiosk).id, month: Date.current.beginning_of_month })
     end
 
-    error = assert_raises(DatabaseMaintenance::Problem) { DatabaseMaintenance.check }
-    assert_match "1 righe di attendances puntano a record che non esistono", error.message
+    assert_difference -> { Feedback.count } do
+      error = assert_raises(DatabaseMaintenance::Problem) { DatabaseMaintenance.check }
+      assert_match "1 righe di attendances puntano a record che non esistono", error.message
+    end
+
+    feedback = Feedback.last
+    assert_nil feedback.user
+    assert_equal "DatabaseMaintenance.check", feedback.browser_info
+    assert_match "Manutenzione del database, check: primary: 1 righe di attendances", feedback.message
+  end
+
+  test "a backup that does not restore leaves a report for the developer" do
+    original = Litestream.method(:verify!)
+    Litestream.define_singleton_method(:verify!) { |*, **| raise Litestream::VerificationFailure, "Verification failed" }
+
+    assert_raises(Litestream::VerificationFailure) { DatabaseMaintenance.verify_backup }
+    assert_equal "Manutenzione del database, verify_backup: Verification failed", Feedback.last.message
+  ensure
+    Litestream.define_singleton_method(:verify!, original)
+  end
+
+  test "nothing is reported when all is well" do
+    assert_no_difference -> { Feedback.count } do
+      DatabaseMaintenance.optimize
+      DatabaseMaintenance.rebuild_search
+      DatabaseMaintenance.check
+    end
   end
 
   test "the backup is verified on the primary database" do

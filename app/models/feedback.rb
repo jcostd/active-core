@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+# segnalazioni per lo sviluppatore: dello staff (bottone "Invia Feedback") o del sistema, senza utente
 class Feedback < ApplicationRecord
-  belongs_to :user, touch: true
+  belongs_to :user, optional: true, touch: true
 
   validates :message, presence: true
 end
