@@ -9,24 +9,13 @@
       <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-md border p-4">
         <legend class="fieldset-legend">Accesso</legend>
 
-        <%= form.label :username, class: "label" %>
-        <%= form.text_field :username,
-	  required: true,
-	  autofocus: true,
-	  autocomplete: "username",
-	  placeholder: "Inserisci il tuo username", value: params[:username],
-	  class: "input w-full" %>
+        <%= form.label :username %>
+        <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", value: params[:username] %>
 
-        <%= form.label :password, class: "label" %>
-        <%= form.password_field :password,
-	 required: true,
-	 autocomplete: "current-password",
-	 placeholder: "Inserisci la tua password",
-	 maxlength: 72,
-	 class: "input w-full" %>
+        <%= form.label :password %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
 
         <%= form.submit "Entra", class: "btn btn-neutral mt-4" %>
-
       </fieldset>
     <% end %>
   </div>

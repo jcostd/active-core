@@ -1,19 +1,19 @@
 <%# locals: (private_lesson:, model:) %>
 <%# nomi liberi: chi insegna o partecipa può non essere dello staff né socio; i suggerimenti vengono dalle private già scritte %>
-<%= form_with model:, class: "space-y-6" do |f| %>
+<%= form_with model:, class: "flex flex-col gap-4" do |f| %>
   <%= render "shared/form_errors", model: private_lesson %>
 
   <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box">
     <legend class="fieldset-legend"><%= icon("clock", classes: "size-4") %> Chi e quando</legend>
 
-    <%= f.label :teacher, "Maestro", class: "label" %>
+    <%= f.label :teacher %>
     <%= f.text_field :teacher, list: "teacher_names", required: true, autocomplete: "off",
                      class: "input input-lg w-full", placeholder: "Chi tiene la lezione" %>
 
-    <%= f.label :held_at, "Inizio", class: "label mt-2" %>
+    <%= f.label :held_at %>
     <%= f.datetime_field :held_at, required: true, class: "input input-lg w-full" %>
 
-    <span class="label mt-2">Durata</span>
+    <span class="label">Durata</span>
     <div class="flex flex-wrap gap-2" role="group" aria-label="Durata">
       <% PrivateLesson::DURATIONS.each do |minutes| %>
         <%= f.radio_button :duration_minutes, minutes, class: "btn btn-lg", aria: { label: format_minutes(minutes) } %>
@@ -50,6 +50,6 @@
   </datalist>
 
   <div class="modal-action">
-    <%= f.submit "Salva", class: "btn btn-primary btn-lg px-8", data: { turbo_submits_with: "Salvataggio..." } %>
+    <%= f.submit "Salva", class: "btn btn-primary btn-lg px-8" %>
   </div>
 <% end %>

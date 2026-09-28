@@ -1,24 +1,11 @@
-<%= form_with(model: feedback) do |f| %>
+<%= form_with model: feedback do |f| %>
   <%= render "shared/form_errors", model: feedback %>
-
   <%= f.hidden_field :page_url %>
 
   <fieldset class="fieldset">
-    <%= f.label :message, "Come possiamo aiutarti?", class: "label font-medium" %>
-
-    <%= f.text_area :message,
-        rows: 4,
-        class: "textarea h-32 w-full",
-        placeholder: "Ho trovato un errore in... / Vorrei che ci fosse...",
-        required: true,
-        autofocus: true %>
+    <%= f.label :message, "Come possiamo aiutarti?" %>
+    <%= f.text_area :message, rows: 5, required: true, autofocus: true, placeholder: "Ho trovato un errore in... / Vorrei che ci fosse..." %>
   </fieldset>
 
-  <div class="modal-action">
-    <%= f.submit "Salva",
-    class: "btn btn-primary px-4",
-    data: {
-      turbo_submits_with: 'Salvataggio...'
-    } %>
-  </div>
+  <div class="modal-action"><%= f.submit "Invia" %></div>
 <% end %>

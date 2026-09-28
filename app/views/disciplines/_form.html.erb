@@ -1,56 +1,22 @@
-<%= form_with(model: discipline, class: "space-y-6") do |f| %>
+<%= form_with model: discipline, class: "flex flex-col gap-4" do |f| %>
   <%= render "shared/form_errors", model: discipline %>
 
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("fitness_center", size: 14) %> Info Disciplina
-    </legend>
-
-    <div>
-      <%= f.label :name, "Nome Disciplina", class: "label" %>
-
-      <%= f.text_field :name,
-          required: true,
-          class: "input w-full text-lg",
-          placeholder: "Es. Sala Pesi, Yoga, Pilates..." %>
-    </div>
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend"><%= icon("fitness_center", classes: "size-4") %> Disciplina</legend>
+    <%= f.label :name %>
+    <%= f.text_field :name, required: true, placeholder: "Es. Sala Pesi, Yoga, Capoeira Bambini..." %>
   </fieldset>
 
-  <fieldset class="fieldset bg-base-100 border border-base-300 p-4 rounded-box shadow-sm">
-    <legend class="fieldset-legend">
-      <%= icon("shield", size: 14) %> Regole di Accesso
-    </legend>
-
-    <div
-      class="tooltip"
-      data-tip="Se attivo, il sistema bloccherà l'ingresso
-		ai tornelli e segnalerà l'anomalia se il certificato è scaduto o
-		mancante."
-    >
-      <label class="label overflow-x-auto">
-        <%= f.check_box :requires_medical_certificate, class: "toggle toggle-error" %> Richiede Certificato Medico?
-      </label>
-    </div>
-
-    <div class="divider my-2 opacity-50"></div>
-
-    <div
-      class="tooltip"
-      data-tip="Se attivo, verificherà che l'utente abbia
-		pagato la quota associativa (tesseramento) valida per l'anno corrente."
-    >
-      <label class="label">
-        <%= f.check_box :requires_membership, class: "toggle toggle-info" %> Richiede Iscrizione Annuale?
-      </label>
-    </div>
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend"><%= icon("shield", classes: "size-4") %> Per frequentarla serve</legend>
+    <label class="label">
+      <%= f.check_box :requires_medical_certificate, class: "toggle toggle-error" %> Il certificato medico valido
+    </label>
+    <label class="label">
+      <%= f.check_box :requires_membership, class: "toggle toggle-info" %> La quota associativa dell'anno sportivo
+    </label>
+    <p class="label whitespace-normal">Il registro segna chiunque venga; la segreteria vede chi non è in regola.</p>
   </fieldset>
 
-  <div class="modal-action">
-    <%= f.submit "Salva",
-    class: "btn btn-primary px-4",
-    data: {
-      turbo_submits_with: 'Salvataggio...'
-    } %>
-  </div>
-
+  <div class="modal-action"><%= f.submit %></div>
 <% end %>

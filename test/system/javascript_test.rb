@@ -153,7 +153,7 @@ class JavascriptTest < ApplicationSystemTestCase
     click_on "Invia Feedback"
     within("dialog[open]") do
       fill_in "feedback[message]", with: "Il pulsante stampa non si vede"
-      click_on "Salva"
+      click_on "Invia"
     end
 
     assert_no_selector "dialog[open]"

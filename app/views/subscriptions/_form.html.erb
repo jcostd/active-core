@@ -1,50 +1,24 @@
-<%= form_with(model: subscription, class: "space-y-6") do |f| %>
+<%= form_with model: subscription, class: "flex flex-col gap-4" do |f| %>
   <%= render "shared/form_errors", model: subscription %>
 
-  <div class="bg-base-200/30 rounded-box border border-base-300 overflow-hidden mb-4">
-    <div class="grid grid-cols-2 divide-x divide-base-300">
-
-      <div class="flex flex-col justify-center items-center p-3 text-center min-w-0">
-        <div class="text-primary mb-1"><%= icon("badge", classes: "size-5") %></div>
-        <div class="text-[10px] uppercase font-bold text-base-content/50 leading-none mb-0.5">Socio</div>
-        <div class="text-sm font-bold w-full truncate px-1" title="<%= subscription.member.full_name %>">
-          <%= subscription.member.full_name %>
-        </div>
-      </div>
-
-      <div class="flex flex-col justify-center items-center p-3 text-center min-w-0">
-        <div class="text-secondary mb-1"><%= icon("shopping_cart", classes: "size-5") %></div>
-        <div class="text-[10px] uppercase font-bold text-base-content/50 leading-none mb-0.5">Prodotto</div>
-        <div class="text-sm font-bold w-full truncate px-1" title="<%= subscription.product.name %>">
-          <%= subscription.product.name %>
-        </div>
-      </div>
-    </div>
-  </div>
+  <%= render "shared/details", rows: { "Socio" => subscription.member.full_name, "Prodotto" => subscription.product.name } %>
 
   <fieldset class="fieldset">
-    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
-      <%= icon("calendar_today", classes: "size-4") %> Periodo di Validità
-    </legend>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+    <legend class="fieldset-legend"><%= icon("calendar_today", classes: "size-4") %> Periodo</legend>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
       <div>
-        <%= f.label :start_date, "Data Inizio*", class: "label" %>
-        <%= f.date_field :start_date, class: "input w-full", required: true %>
+        <%= f.label :start_date, "Decorrenza*" %>
+        <%= f.date_field :start_date, required: true %>
       </div>
-
       <div>
-        <%= f.label :end_date, "Data Scadenza*", class: "label" %>
-        <%= f.date_field :end_date, class: "input w-full" %>
+        <%= f.label :end_date, "Scadenza*" %>
+        <%= f.date_field :end_date %>
       </div>
     </div>
   </fieldset>
 
   <fieldset class="fieldset">
-    <legend class="fieldset-legend font-bold text-base flex items-center gap-2">
-      <%= icon("payments", classes: "size-4") %> Prezzo Concordato
-    </legend>
-
+    <legend class="fieldset-legend"><%= icon("payments", classes: "size-4") %> Prezzo concordato</legend>
     <label class="input w-full">
       <%= icon("euro_symbol", classes: "size-4 opacity-50") %>
       <%= f.text_field :agreed_price, value: number_with_precision(subscription.agreed_price, precision: 2, separator: ",", delimiter: ""),
@@ -55,9 +29,5 @@
     </p>
   </fieldset>
 
-  <div class="modal-action">
-    <%= f.submit "Salva",
-     class: "btn btn-primary px-4",
-     data: { turbo_submits_with: 'Salvataggio...' } %>
-  </div>
+  <div class="modal-action"><%= f.submit %></div>
 <% end %>

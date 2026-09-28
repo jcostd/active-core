@@ -22,6 +22,9 @@
     .panel-title { @apply flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-60; }
     .panel-body { @apply flex flex-col gap-3 p-4 text-sm; }
 
+    /* un campo in sola lettura si vede: grigio e non cliccabile */
+    .input[readonly], .input:has(> input[readonly]) { @apply bg-base-200 text-base-content/60 cursor-not-allowed; }
+
     /* scheda di un record: colonna stretta e colonna larga */
     .record-layout { @apply grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start; }
     .record-main { @apply lg:col-span-2 flex flex-col gap-6; }

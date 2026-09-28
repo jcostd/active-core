@@ -3,6 +3,8 @@ class ApplicationController < ActionController::Base
 
   include Pagy::Method
 
+  default_form_builder ApplicationFormBuilder
+
   # Solo browser moderni (webp, web push, badge, import map, CSS nesting e :has).
   allow_browser versions: :modern
 
