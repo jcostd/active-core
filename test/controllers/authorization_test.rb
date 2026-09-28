@@ -109,11 +109,22 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     get kiosk_discipline_member_searches_path(@discipline, query: "Ali")
     assert_response :success
 
-    assert_difference -> { AccessLog.count } do
-      post kiosk_discipline_access_logs_path(@discipline, member_id: @member.id)
+    assert_difference -> { Attendance.count } do
+      post kiosk_discipline_attendances_path(@discipline, member_id: @member.id)
     end
     assert_redirected_to kiosk_discipline_path(@discipline)
-    assert_equal users(:kiosk), AccessLog.last.checkin_by_user
+    assert_equal users(:kiosk), Attendance.last.marked_by
+
+    assert_difference -> { Attendance.count }, -1 do
+      delete kiosk_discipline_attendance_path(@discipline, Attendance.last)
+    end
+  end
+
+  test "staff opens the kiosk and marks in their own name" do
+    sign_in_as(@staff)
+
+    post kiosk_discipline_attendances_path(@discipline, member_id: @member.id)
+    assert_equal @staff, Attendance.last.marked_by
   end
 
   test "kiosk user can sign out" do

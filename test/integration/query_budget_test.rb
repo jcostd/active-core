@@ -30,9 +30,11 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
   test "kiosk discipline page does not grow with members" do
     sign_in_as(users(:staff))
     enroll(2)
+    Member.where(last_name: "Kiosk").first(1).each { Attendance.create!(member: it, discipline: @yoga, marked_by: users(:kiosk)) }
     few = queries_for(kiosk_discipline_path(@yoga))
 
     enroll(8)
+    Member.where(last_name: "Kiosk").where.missing(:attendances).first(4).each { Attendance.create!(member: it, discipline: @yoga, marked_by: users(:kiosk)) }
     many = queries_for(kiosk_discipline_path(@yoga))
 
     assert_equal few, many, "N+1 nel kiosk: #{few} query con 2 soci, #{many} con 10"

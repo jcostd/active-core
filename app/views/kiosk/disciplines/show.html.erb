@@ -1,19 +1,23 @@
-<%= turbo_stream_from "access_logs" %>
+<%= turbo_stream_from "attendances" %>
+<%= turbo_stream_from "members" %>
 
 <div class="flex items-center gap-4">
-  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost" do %>
+  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost", title: "Discipline" do %>
     <%= icon("arrow_left", classes: "size-6") %>
   <% end %>
-  <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
+  <div>
+    <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
+    <p class="text-sm font-bold opacity-50 uppercase tracking-wider">Registro di <%= l(@month, format: "%B %Y") %></p>
+  </div>
 </div>
 
 <div class="relative" data-controller="autocomplete" data-action="click@window->autocomplete#clickOutside">
   <label class="input input-xl w-full focus-within:outline-primary shadow-sm bg-base-100 border-base-200">
     <%= icon("search", classes: "size-6 opacity-50") %>
     <input type="text"
-	   name="members_search"
+           name="members_search"
            class="grow font-bold placeholder:font-normal placeholder:opacity-50"
-           placeholder="Cerca nome o cognome..."
+           placeholder="Cerca nome o cognome di chi non è in lista..."
            autocomplete="off"
            data-autocomplete-target="input"
            data-action="input->autocomplete#search keyup->autocomplete#clearIfEmpty"
@@ -24,37 +28,33 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
-
-  <div class="flex flex-col gap-3">
+  <section id="pending_members" class="flex flex-col gap-3">
     <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
-      Da Smarcare (<%= @pending_members.size %>)
+      Da smarcare (<%= @pending_members.size %>)
     </div>
 
     <% if @pending_members.empty? %>
-      <%= render "shared/empty_state",
-                 icon_name: "check",
-                 title: "Tutti presenti!",
-                 message: "Hai smarcato tutti i soci previsti per questo corso." %>
+      <%= render "shared/empty_state", icon_name: "check", title: "Nessuno da proporre",
+                 message: "Chi è venuto e non è in lista si trova con la ricerca." %>
     <% else %>
-      <%# collection cache: una sola lettura (read_multi) da Solid Cache per tutte le card %>
-      <%= render partial: "kiosk/members/card", collection: @pending_members, as: :member, locals: { policies: @policies },
-                 cached: ->(member) { [ member, @discipline, @policies[member].status, Date.current ] } %>
+      <%= render partial: "kiosk/members/pending", collection: @pending_members, as: :member,
+                 locals: { discipline: @discipline, standings: @standings },
+                 cached: ->(member) { [ member, @discipline, @standings[member].key, @standings[member].certificate_missing? ] } %>
     <% end %>
-  </div>
+  </section>
 
-  <div class="flex flex-col gap-3">
+  <section id="attendances" class="flex flex-col gap-3">
     <div class="divider divider-start font-bold uppercase text-xs opacity-50 tracking-wider m-0">
-      Oggi in Sala (<%= @today_accesses.size %>)
+      Nel registro (<%= @attendances.size %>)
     </div>
 
-    <% if @today_accesses.empty? %>
-      <%= render "shared/empty_state",
-      icon_name: "clock",
-      title: "Nessuno in sala.",
-      message: "In attesa dei primi check-in..." %>
+    <% if @attendances.empty? %>
+      <%= render "shared/empty_state", icon_name: "group", title: "Registro vuoto",
+                 message: "Smarca chi vedi alla prima lezione del mese." %>
     <% else %>
-      <%= render partial: "kiosk/members/checked_in_card", collection: @today_accesses, as: :log, cached: ->(log) { [ log, log.member ] } %>
+      <%= render partial: "kiosk/attendances/attendance", collection: @attendances,
+                 locals: { standings: @standings },
+                 cached: ->(attendance) { [ attendance, attendance.member, @standings[attendance.member].key, @standings[attendance.member].certificate_missing? ] } %>
     <% end %>
-  </div>
-
+  </section>
 </div>

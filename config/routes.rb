@@ -37,12 +37,12 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   root "dashboard#index"
 
-  # --- MODALITÀ KIOSK (iPad Appello) ---
+  # kiosk dell'iPad: registro presenze del mese
   namespace :kiosk do
     root to: "disciplines#index"
 
     resources :disciplines, only: [ :index, :show ] do
-      resources :access_logs, only: [ :create ]
+      resources :attendances, only: [ :create, :destroy ]
       resources :member_searches, only: [ :index ]
     end
   end

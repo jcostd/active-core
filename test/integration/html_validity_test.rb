@@ -8,6 +8,8 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     course = link!(products(:yoga_monthly), disciplines(:yoga))
     @sale = sell!(member: @member, product: course)
     AccessLog.create!(member: @member, discipline: disciplines(:yoga), checkin_by_user: users(:staff))
+    Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
+    Subscription.create!(member: members(:bob), product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
     sign_in_as(users(:admin))
   end
 
@@ -28,7 +30,9 @@ class HtmlValidityTest < ActionDispatch::IntegrationTest
     "utenti" => ->(t) { t.users_path },
     "dati ASD" => ->(t) { t.gym_profile_path },
     "modifica dati ASD" => ->(t) { t.edit_gym_profile_path },
-    "kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) },
+    "kiosk" => ->(t) { t.kiosk_root_path },
+    "registro kiosk" => ->(t) { t.kiosk_discipline_path(t.disciplines(:yoga)) },
+    "ricerca kiosk" => ->(t) { t.kiosk_discipline_member_searches_path(t.disciplines(:yoga), query: "i") },
     "accesso" => ->(t) { t.new_session_path },
     "recupero password" => ->(t) { t.new_password_path },
     "nuova password" => ->(t) { t.edit_password_path(t.users(:staff).password_reset_token) }

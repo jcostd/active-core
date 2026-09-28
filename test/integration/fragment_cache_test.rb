@@ -109,26 +109,43 @@ class FragmentCacheTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "kiosk evaluates each member policy once, cold or warm cache" do
+  test "kiosk cards follow payments and certificates, cold or warm cache" do
     course = link!(products(:yoga_monthly), disciplines(:yoga))
-    sell!(member: @member, product: course)
-    Subscription.create!(member: members(:bob), product: course, start_date: Date.current - 5, end_date: Date.current + 30)
+    grant_membership_to(@member)
+    subscription = Subscription.create!(member: @member, product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month)
+    Attendance.create!(member: @member, discipline: disciplines(:yoga), marked_by: users(:kiosk))
 
     with_fragment_caching do
-      sign_in_as(users(:staff))
-      assert_equal 2, policy_evaluations { get kiosk_discipline_path(disciplines(:yoga)) }
-      assert_equal 2, policy_evaluations { get kiosk_discipline_path(disciplines(:yoga)) }
+      sign_in_as(users(:kiosk))
+      2.times do
+        get kiosk_discipline_path(disciplines(:yoga))
+        assert_select "#attendances .card", text: /Da saldare/
+      end
+
+      Sale.create!(member: @member, product: course, user: users(:staff), subscription:, payment_method: :cash)
+      get kiosk_discipline_path(disciplines(:yoga))
+      assert_select "#attendances .card", text: /Saldato/
+
+      @member.update_column(:medical_certificate_expiry, Date.yesterday) # nessun touch: conta la chiave della posizione
+      get kiosk_discipline_path(disciplines(:yoga))
+      assert_select "#attendances .card", text: /Cert. scaduto/
     end
   end
 
-  private
-    def policy_evaluations
-      calls = 0
-      original = AccessPolicy.instance_method(:evaluate!)
-      AccessPolicy.define_method(:evaluate!) { calls += 1; original.bind_call(self) }
-      yield
-      calls
-    ensure
-      AccessPolicy.define_method(:evaluate!, original)
+  test "kiosk pending cards follow the standing, cold or warm cache" do
+    course = link!(products(:yoga_monthly), disciplines(:yoga))
+    Subscription.create!(member: @member, product: course, start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month,
+                         agreed_price_cents: 0)
+    memberships = Subscription.where(id: @member.subscriptions.memberships.select(:id))
+
+    with_fragment_caching do
+      sign_in_as(users(:kiosk))
+      get kiosk_discipline_path(disciplines(:yoga))
+      assert_select "#pending_members .card", text: /Saldato/
+
+      memberships.update_all(discarded_at: Time.current) # nessun touch del socio: conta la chiave della posizione
+      get kiosk_discipline_path(disciplines(:yoga))
+      assert_select "#pending_members .card", text: /Quota mancante/
     end
+  end
 end
