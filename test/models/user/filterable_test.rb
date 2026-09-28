@@ -19,6 +19,7 @@ class User::FilterableTest < ActiveSupport::TestCase
 
   test "sort by name, unknown keys fall back to the last updated" do
     assert_equal User.kept.sort_by { [ it.last_name, it.first_name ] }, User.apply_filters(sort: "name_asc").to_a
+    travel 1.second
     users(:staff_two).touch
     assert_equal users(:staff_two), User.apply_filters(sort: "username_asc").first
   end

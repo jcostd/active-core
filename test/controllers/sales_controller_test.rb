@@ -205,6 +205,33 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     assert_match "non ha una Quota Associativa valida", response.body
   end
 
+  test "a cleared start date does not skip the membership check" do
+    sign_in_as(@staff)
+    alice = members(:alice)
+
+    [ { start_date: "" }, nil ].each do |subscription_attributes|
+      assert_no_difference -> { Sale.count } do
+        post sales_path, params: { sale: { member_id: alice.id, product_id: @course.id, amount: "45", payment_method: "cash",
+                                           subscription_attributes: }.compact }
+      end
+      assert_response :unprocessable_entity
+    end
+  end
+
+  test "a cleared start date takes the proposed one" do
+    sign_in_as(@staff)
+    alice = members(:alice)
+    grant_membership_to(alice)
+    proposed = alice.next_period_for(@course)
+
+    post sales_path, params: { sale: { member_id: alice.id, product_id: @course.id, amount: "45", payment_method: "cash",
+                                       subscription_attributes: { start_date: "" } } }
+
+    subscription = Sale.order(:id).last.subscription
+    assert_equal [ proposed.start_date, proposed.end_date ], [ subscription.start_date, subscription.end_date ]
+    assert_equal alice, subscription.member
+  end
+
   test "successful sale redirects to the sale page" do
     sign_in_as(@staff)
     alice = members(:alice)

@@ -45,7 +45,7 @@ class SaleTest < ActiveSupport::TestCase
   test "cash payment generates receipt number and year" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.current, payment_method: :cash
+      sold_on: Date.current, payment_method: :cash, subscription_attributes: {}
     )
 
     assert sale.cash?
@@ -58,7 +58,7 @@ class SaleTest < ActiveSupport::TestCase
   test "credit card payment DOES NOT generate receipt number" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.current, payment_method: :credit_card
+      sold_on: Date.current, payment_method: :credit_card, subscription_attributes: {}
     )
 
     assert sale.credit_card?
@@ -70,21 +70,39 @@ class SaleTest < ActiveSupport::TestCase
   test "bank transfer payment DOES NOT generate receipt number" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.current, payment_method: :bank_transfer
+      sold_on: Date.current, payment_method: :bank_transfer, subscription_attributes: {}
     )
     assert_nil sale.receipt_number
+  end
+
+  test "a refused cash sale does not consume a receipt number" do
+    stranger = Member.create!(first_name: "Senza", last_name: "Quota", birth_date: 30.years.ago, fiscal_code_pending: true)
+    refused = Sale.new(member: stranger, product: @prod_inst, user: @user, payment_method: :cash, subscription_attributes: {})
+
+    assert_not refused.save
+    assert_match "Quota Associativa", refused.errors.full_messages.to_sentence
+    assert_equal 1, Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, subscription_attributes: {}).receipt_number
+  end
+
+  test "a voided receipt keeps its number and the next sale does not reuse it" do
+    voided = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, subscription_attributes: {})
+    voided.discard!
+
+    assert_equal 1, voided.reload.receipt_number
+    assert_equal 2, Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash,
+                                 subscription_attributes: { start_date: Date.current.next_month }).receipt_number
   end
 
   test "counting skips non-cash payments correctly" do
     current_year = Date.current.year
 
-    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
+    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current, subscription_attributes: {})
     assert_equal 1, s1.receipt_number
 
-    s2 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current)
+    s2 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current, subscription_attributes: {})
     assert_nil s2.receipt_number
 
-    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
+    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current, subscription_attributes: {})
     assert_equal 2, s3.receipt_number
 
     assert_equal "#{current_year}-institutional-1", s1.reload.receipt_code
@@ -95,18 +113,18 @@ class SaleTest < ActiveSupport::TestCase
   test "sequences are independent even with mixed payments" do
     initial_assoc_max = Sale.where(receipt_sequence: "associative").maximum(:receipt_number).to_i
 
-    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
+    s1 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current, subscription_attributes: {})
     assert_equal 1, s1.receipt_number
     assert_equal "institutional", s1.receipt_sequence
 
-    s2 = Sale.create!(member: @member, product: @prod_assoc, user: @user, payment_method: :cash, sold_on: Date.current)
+    s2 = Sale.create!(member: @member, product: @prod_assoc, user: @user, payment_method: :cash, sold_on: Date.current, subscription_attributes: {})
     assert_equal initial_assoc_max + 1, s2.receipt_number
     assert_equal "associative", s2.receipt_sequence
 
-    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current)
+    s3 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :credit_card, sold_on: Date.current, subscription_attributes: {})
     assert_nil s3.receipt_number
 
-    s4 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current)
+    s4 = Sale.create!(member: @member, product: @prod_inst, user: @user, payment_method: :cash, sold_on: Date.current, subscription_attributes: {})
     assert_equal 2, s4.receipt_number
   end
 
@@ -115,7 +133,7 @@ class SaleTest < ActiveSupport::TestCase
   test "snapshots product details on creation" do
     sale = Sale.create!(
       member: @member, product: @prod_inst, user: @user,
-      sold_on: Date.current, payment_method: :cash
+      sold_on: Date.current, payment_method: :cash, subscription_attributes: {}
     )
 
     assert_equal "Yoga Course", sale.product_name_snapshot
@@ -511,14 +529,10 @@ class SaleTest < ActiveSupport::TestCase
 
   def create_past_subscription(end_date:)
     start_date = end_date.beginning_of_month
+    grant_membership_to(@member, start_date:)
 
-    Subscription.create!(
-      member: @member,
-      product: @prod_inst,
-      start_date: start_date,
-      end_date: end_date,
-      sales: [ Sale.create!(member: @member, user: users(:admin), product: @prod_inst, sold_on: start_date) ]
-    )
+    Sale.create!(member: @member, user: users(:admin), product: @prod_inst, sold_on: start_date,
+                 subscription_attributes: { start_date:, end_date: }).subscription
   end
 
   def sell_course(amount:)

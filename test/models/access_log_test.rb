@@ -9,8 +9,7 @@ class AccessLogTest < ActiveSupport::TestCase
 
     grant_membership_to(@member)
 
-    @sale = Sale.create!(member: @member, product: @product, user: @staff, sold_on: Date.current)
-    @subscription = Subscription.create!(member: @member, product: @product, sales: [ @sale ])
+    @subscription = sell!(member: @member, product: @product, user: @staff).subscription
   end
 
   test "allows access with active subscription (auto-sets entered_at)" do

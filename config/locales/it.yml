@@ -63,6 +63,7 @@ it:
         payment_method: Metodo di pagamento
         product: Prodotto
         receipt_number: Numero ricevuta
+        product_name_snapshot: Prodotto venduto
         receipt_sequence: Registro ricevute
         receipt_year: Anno ricevuta
         sold_on: Data contabile

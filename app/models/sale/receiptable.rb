@@ -6,7 +6,7 @@ module Sale::Receiptable
     before_validation :snapshot_product, on: :create
     before_validation :assign_receipt_number, on: :create
 
-    validates :receipt_sequence, presence: true
+    validates :product_name_snapshot, :receipt_sequence, presence: true
   end
 
   private

@@ -42,13 +42,8 @@ class SubscriptionTest < ActiveSupport::TestCase
     sale_date = Date.new(2025, 1, 20)
     future_start = Date.new(2025, 2, 1) # Già primo del mese
 
-    sale = Sale.create!(
-      member: @member, product: @prod_inst, user: users(:admin),
-      sold_on: sale_date, payment_method: :cash
-    )
-
     sub = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: future_start
     )
 
@@ -61,23 +56,22 @@ class SubscriptionTest < ActiveSupport::TestCase
 
   test "scopes filter correctly" do
     today = Date.current
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: today)
 
     # 1. Scaduto
     expired = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today - 2.months, end_date: today - 1.month
     )
 
     # 2. Attivo
     active = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today.beginning_of_month, end_date: today.end_of_month
     )
 
     # 3. Futuro
     upcoming = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today + 1.month, end_date: today + 2.months
     )
 
@@ -94,12 +88,9 @@ class SubscriptionTest < ActiveSupport::TestCase
   test "admin override: prevents Duration calculator from modifying explicitly provided end_dates" do
     invalid_end_date = Date.current + 50.days
 
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current)
-
     subscription = Subscription.new(
       member: @member,
       product: @prod_inst,
-      sales: [ sale ],
       start_date: Date.current,
       end_date: invalid_end_date
     )

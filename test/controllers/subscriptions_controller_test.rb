@@ -22,6 +22,14 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "blank agreed price re-renders with a message" do
+    patch subscription_path(@sub), params: { subscription: { agreed_price: "" } }
+
+    assert_response :unprocessable_entity
+    assert_match "Prezzo concordato", response.body
+    assert_equal products(:yoga_monthly).price_cents, @sub.reload.agreed_price_cents
+  end
+
   test "raw cents are not accepted from the edit form" do
     patch subscription_path(@sub), params: { subscription: { agreed_price_cents: 1 } }
     assert_equal products(:yoga_monthly).price_cents, @sub.reload.agreed_price_cents

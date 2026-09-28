@@ -26,7 +26,7 @@ class Subscription < ApplicationRecord
   has_many :access_logs, dependent: :nullify
 
   validates :start_date, :end_date, presence: true
-  validates :agreed_price_cents, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :agreed_price_cents, numericality: { greater_than_or_equal_to: 0 }
   validate :end_date_after_start_date
   validate :agreed_price_covers_payments, on: :update, if: :will_save_change_to_agreed_price_cents?
 

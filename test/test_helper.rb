@@ -14,7 +14,7 @@ module ActiveSupport
 
     # TEST_NOW="2027-01-01 10:00" bin/rails test: esegue la suite in una data a scelta.
     # Si viaggia prima di super, cioè prima delle fixture: anche il loro ERB (1.year.from_now) vede TEST_NOW
-    if ENV["TEST_NOW"]
+    if ENV["TEST_NOW"].present?
       def before_setup
         travel_to Time.zone.parse(ENV["TEST_NOW"])
         super

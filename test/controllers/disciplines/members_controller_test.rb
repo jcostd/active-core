@@ -25,8 +25,10 @@ class Disciplines::MembersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows how many times each member came this month" do
+    travel_to Time.current.beginning_of_month.change(hour: 12) # due ingressi a 20 minuti, nello stesso mese
+    sign_in_as(users(:staff))
     sell!(member: @alice, product: @course)
-    AccessLog.create!(member: @alice, discipline: @yoga, checkin_by_user: users(:staff), entered_at: 20.minutes.ago) # stesso mese anche alle 00:30 del primo
+    AccessLog.create!(member: @alice, discipline: @yoga, checkin_by_user: users(:staff), entered_at: 20.minutes.ago)
     AccessLog.create!(member: @alice, discipline: @yoga, checkin_by_user: users(:staff), entered_at: Time.current)
     AccessLog.create!(member: @alice, discipline: disciplines(:sala_pesi), checkin_by_user: users(:staff), entered_at: Time.current)
 

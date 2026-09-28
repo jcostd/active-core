@@ -4,11 +4,13 @@ module Sale::Installments
 
   included do
     belongs_to :subscription, optional: true, autosave: true, touch: true
-    accepts_nested_attributes_for :subscription, reject_if: :all_blank
+    accepts_nested_attributes_for :subscription
 
     before_validation :link_new_subscription
     before_validation :default_amount, on: :create
 
+    # ogni vendita dà un diritto: un abbonamento nuovo o la rata di uno esistente
+    validates :subscription, presence: true, on: :create
     validate :subscription_matches_sale
     validate :positive_installment, on: :create
     validate :amount_within_due, on: :create

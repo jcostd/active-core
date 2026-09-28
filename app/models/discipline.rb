@@ -27,4 +27,5 @@ class Discipline < ApplicationRecord
 
   normalizes :name, with: ->(name) { ProperCase.title(name) }
   validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
+  validates :requires_membership, :requires_medical_certificate, inclusion: { in: [ true, false ] }
 end

@@ -23,13 +23,8 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     last_month_end   = Date.current.prev_month.end_of_month
 
     # Creiamo il passato (Un abbonamento istituzionale perfetto)
-    Subscription.create!(
-      member: @member,
-      product: @monthly_course,
-      sales: [ Sale.create!(member: @member, user: users(:admin), product: @monthly_course, sold_on: last_month_start) ],
-      start_date: last_month_start,
-      end_date: last_month_end
-    )
+    Sale.create!(member: @member, user: users(:admin), product: @monthly_course, sold_on: last_month_start,
+                 subscription_attributes: { start_date: last_month_start, end_date: last_month_end })
 
     # 2. AZIONE: Vendita oggi (sold_on: Today)
     # Supponiamo di essere il 10 del mese corrente.
