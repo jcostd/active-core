@@ -11,7 +11,7 @@ class SalesController < ApplicationController
     @pagy, @sales = pagy(
       Sale
         .apply_filters(filter_params)
-        .includes(:member, :user)
+        .includes(:member, :user, subscription: [ :product, :sales ])
     )
   end
 

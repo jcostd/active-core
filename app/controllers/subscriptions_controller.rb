@@ -4,17 +4,9 @@ class SubscriptionsController < ApplicationController
 
   layout "modal", only: [ :edit, :update ]
 
-
   def index
-    @subscriptions = Subscription.kept.includes(:member, :product)
-
-    if params[:filter] == "expiring"
-      @subscriptions = @subscriptions.expiring.order(:end_date)
-    else
-      @subscriptions = @subscriptions.order(created_at: :desc)
-    end
-
-    @pagy, @subscriptions = pagy(@subscriptions)
+    subscriptions = Subscription.kept.includes(:member, :product)
+    @pagy, @subscriptions = pagy(params[:filter] == "expiring" ? subscriptions.expiring.order(:end_date) : subscriptions.order(created_at: :desc))
   end
 
   def edit; end

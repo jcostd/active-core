@@ -26,6 +26,9 @@ module UiHelper
     header_button label, path, "delete", tone: "btn-ghost text-error", data: { turbo_method: :delete, turbo_confirm: confirm }
   end
 
+  # figura di una riga senza avatar
+  def row_icon(name) = tag.div(icon(name), class: "size-10 bg-base-200 rounded-box grid place-items-center text-base-content/50")
+
   def ui_row_edit_button(path, title: "Modifica")
     link_to path,
             class: "btn btn-square btn-ghost text-base-content/50 hover:text-primary",

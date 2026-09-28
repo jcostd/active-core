@@ -2,9 +2,7 @@
 <% member = attendance.member %>
 
 <li class="list-row items-center">
-  <%= link_to member, class: "block hover:opacity-80" do %>
-    <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
-  <% end %>
+  <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
 
   <div class="min-w-0">
     <%= link_to member.full_name, member, class: "font-semibold truncate hover:text-primary" %>

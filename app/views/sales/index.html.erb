@@ -15,6 +15,6 @@
 <%= render layout: "shared/list", locals: { frame: "sales_list", records: @sales, icon_name: "receipt", empty: "Nessuna vendita trovata",
                                             filter_keys: %i[sort state period payment_method accounting_category operator_id] } do %>
   <ul id="sales" class="list panel">
-    <%= render partial: "sales/row", collection: @sales, as: :sale, cached: ->(sale) { [ sale, sale.member, sale.reversible_by?(current_user) ] } %>
+    <%= render partial: "sales/row", collection: @sales, as: :sale, cached: ->(sale) { [ sale, sale.member, sale.subscription, sale.reversible_by?(current_user), Date.current ] } %>
   </ul>
 <% end %>

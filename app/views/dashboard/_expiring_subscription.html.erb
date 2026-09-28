@@ -1,16 +1,8 @@
+<%# locals: (sub:) %>
 <li class="list-row items-center">
-  <div class="grow">
-    <div class="font-semibold truncate">
-      <%= link_to sub.member.full_name, sub.member, class: "link link-hover" %>
-    </div>
-    <div class="text-xs font-mono opacity-60">
-      Scade il <%= sub.end_date.strftime("%d/%m") %>
-    </div>
+  <div class="list-col-grow min-w-0">
+    <%= link_to sub.member.full_name, sub.member, class: "font-semibold truncate link link-hover" %>
+    <div class="text-xs font-mono opacity-60"><%= sub.product.name %> · scade il <%= l(sub.end_date, format: "%d/%m") %></div>
   </div>
-
-  <%= link_to renew_sale_path(sub),
-	      data: { turbo_frame: "modal" },
-	      class: "btn btn-sm btn-outline" do %>
-    Rinnova
-  <% end %>
+  <%= link_to "Rinnova", renew_sale_path(sub), class: "btn btn-sm btn-outline", data: { turbo_frame: "modal" } %>
 </li>

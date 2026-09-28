@@ -1,37 +1,6 @@
-<li
-  id="<%= dom_id(user) %>"
-  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if user.discarded? %>">
-
-  <div class="shrink-0">
-    <%= ui_avatar(user, size: "size-10", text_size: "text-md") %>
-  </div>
-
-  <div class="grid gap-1 min-w-0 grow">
-
-    <div class="flex items-center gap-2 truncate">
-      <div class="font-bold text-base leading-none truncate">
-        <%= link_to user.full_name, user, data: { turbo_frame: "_top" }, class: "hover:underline hover:text-primary transition-colors" %>
-      </div>
-
-      <% if user.discarded? %>
-        <%= ui_badge("Archiviato") %>
-      <% else %>
-        <%= user_role_badge(user, size: "badge-xs") %>
-      <% end %>
-    </div>
-
-    <div class="text-xs font-semibold opacity-60 flex flex-wrap items-center gap-2">
-      <span class="font-mono">@<%= user.username %></span>
-    </div>
-  </div>
-
-  <% unless user.discarded? %>
-    <div class="flex items-center gap-1 shrink-0">
-      <%= ui_row_edit_button(edit_user_path(user)) %>
-
-      <% if user.archivable_by?(current_user) %>
-        <%= ui_row_delete_button(user, confirm: "Sei sicuro di voler archiviare questo utente?") %>
-      <% end %>
-    </div>
-  <% end %>
-</li>
+<%# locals: (user:) %>
+<%= render layout: "shared/row", locals: { record: user, title: user.full_name, figure: ui_avatar(user, size: "size-10", text_size: "text-md"),
+                                           aside: user_role_badge(user, size: "badge-xs"), edit_path: edit_user_path(user),
+                                           archive_confirm: ("Archiviare #{user.full_name}?" if user.archivable_by?(current_user)) } do %>
+  <span class="text-xs font-mono opacity-60">@<%= user.username %></span>
+<% end %>

@@ -5,6 +5,6 @@
 
 <%= render layout: "shared/list", locals: { frame: "products_list", records: @products, icon_name: "product", empty: "Nessun prodotto trovato" } do %>
   <ul id="products" class="list panel">
-    <%= render partial: "product_row", collection: @products, as: :product %>
+    <%= render partial: "products/row", collection: @products, as: :product %>
   </ul>
 <% end %>

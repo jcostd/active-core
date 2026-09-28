@@ -144,6 +144,28 @@ class QueryBudgetTest < ActionDispatch::IntegrationTest
     assert_equal few, many
   end
 
+  test "sales lists do not grow with sales" do
+    sign_in_as(users(:admin))
+    member = members(:alice)
+    grant_membership_to(member) # 7 quote nel suo storico, per la pagina del socio
+    sell = ->(n) do
+      n.times do |i|
+        buyer = Member.create!(first_name: "Cliente#{i}", last_name: "Nuovo#{n}", birth_date: "1990-01-01", fiscal_code_pending: true)
+        sell!(member: buyer, product: products(:annual_membership), user: users(:admin))
+      end
+    end
+
+    sell.(2)
+    few = queries_for(sales_path)
+    sell.(6)
+    assert_equal few, queries_for(sales_path)
+
+    one = members(:bob)
+    sell!(member: one, product: products(:annual_membership), user: users(:admin))
+    assert_equal [ 1, 7 ], [ one, member ].map { it.sales.count }
+    assert_equal queries_for(member_sales_path(one)), queries_for(member_sales_path(member))
+  end
+
   test "the current user is loaded together with the session" do
     sign_in_as(users(:staff))
     get root_path

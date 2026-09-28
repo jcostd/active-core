@@ -2,7 +2,7 @@ class DashboardController < ApplicationController
   def index
     @daily_cash = DailyCash.for(Date.current)
 
-    @expiring_subscriptions = Subscription.expiring.includes(:member).order(end_date: :asc).limit(5).load
+    @expiring_subscriptions = Subscription.expiring.includes(:member, :product).order(end_date: :asc).limit(5).load
     @expiring_count = Subscription.expiring.count
 
     # frequentano questo mese senza abbonamento della disciplina: da regolarizzare in segreteria

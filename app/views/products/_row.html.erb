@@ -1,0 +1,13 @@
+<%# locals: (product:) %>
+<%= render layout: "shared/row", locals: { record: product, title: product.name, figure: row_icon("product"), edit_path: edit_product_path(product),
+                                           archive_confirm: "Archiviare #{product.name}?",
+                                           aside: tag.div(safe_join([ product_category_badge(product), tag.span("#{product.duration_days} gg", class: "font-mono text-sm opacity-60"),
+                                                                      tag.span(format_money(product.price), class: "font-mono font-bold text-lg w-24 text-right") ]),
+                                                          class: "flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-6") } do %>
+  <div class="flex flex-wrap items-center gap-1">
+    <% product.disciplines.each do |discipline| %>
+      <span class="badge badge-sm badge-ghost"><%= discipline.name %></span>
+    <% end %>
+    <%= tag.span("Nessuna disciplina", class: "text-[10px] uppercase font-bold opacity-40") if product.disciplines.empty? %>
+  </div>
+<% end %>
