@@ -1,39 +1,54 @@
 <!DOCTYPE html>
 <html lang="it" data-theme="<%= current_theme %>">
-  <head>
-    <title><%= page_title %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Active Core">
-    <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
+  <%= render "layouts/head", title: page_title %>
 
-    <%= yield :head %>
+  <body class="bg-base-200 antialiased" data-controller="theme-sync idle" data-theme-sync-theme-value="<%= current_theme %>"
+        data-idle-timeout-value="<%= Session::IDLE_TIMEOUT.to_i %>" data-idle-url-value="<%= session_path(reason: "idle") %>">
+    <div class="drawer mx-auto max-w-[100rem] lg:drawer-open">
+      <input id="main-drawer" type="checkbox" class="drawer-toggle">
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+      <div class="drawer-content flex flex-col min-h-screen">
+        <nav class="navbar sticky top-0 z-30 bg-base-200 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 print:hidden">
+          <div class="flex-1">
+            <label for="main-drawer" class="btn btn-square btn-ghost lg:hidden" aria-label="Menu"><%= icon("menu") %></label>
+          </div>
 
-    <%# tag diretti: turbo_refreshes_with è un content_for :head e qui arriverebbe dopo lo yield %>
-    <%= turbo_refresh_method_tag :morph %>
-    <%= turbo_refresh_scroll_tag :preserve %>
+          <%# due tendine esclusive (stesso name); si chiudono cliccando fuori o con Esc %>
+          <details class="dropdown dropdown-end" name="navbar_menus" data-controller="dropdown"
+                   data-action="click@window->dropdown#close keyup@window->dropdown#closeOnEscape">
+            <summary class="btn btn-sm btn-ghost" title="Cambia tema" aria-label="Cambia tema"><%= icon("theme") %></summary>
+            <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg mt-4 w-52 p-2">
+              <li class="menu-title">Temi</li>
+              <% UserPreferences::THEMES.each do |theme| %>
+                <li>
+                  <%= link_to preferences_theme_path(theme:), data: { turbo_method: :patch }, class: class_names("capitalize justify-between", "menu-active": theme == current_theme) do %>
+                    <%= theme %> <%= icon("check") if theme == current_theme %>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </details>
 
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
+          <details class="dropdown dropdown-end" name="navbar_menus" data-controller="dropdown"
+                   data-action="click@window->dropdown#close keyup@window->dropdown#closeOnEscape">
+            <summary class="btn btn-sm btn-ghost gap-2" title="Menu utente" aria-label="Menu utente">
+              <%= icon("account_circle") %> <span class="hidden sm:inline"><%= current_user.username %></span>
+            </summary>
+            <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg mt-4 w-60 p-2">
+              <li class="menu-title"><%= user_role_label(current_user) %></li>
+              <li><%= link_to user_path(current_user) do %><%= icon("user") %> Il mio profilo<% end %></li>
+              <li><%= link_to session_path, class: "text-error", data: { turbo_method: :delete } do %><%= icon("logout") %> Esci<% end %></li>
+            </ul>
+          </details>
+        </nav>
 
-  <body
-    data-controller="theme-sync idle"
-    data-theme-sync-theme-value="<%= current_theme %>"
-    data-idle-timeout-value="<%= Session::IDLE_TIMEOUT.to_i %>"
-    data-idle-url-value="<%= session_path(reason: "idle") %>"
-    class="bg-base-200 antialiased text-base-content selection:bg-primary selection:text-primary-content"
-  >
+        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <%= content_for?(:page) ? yield(:page) : yield %>
+        </main>
+      </div>
 
-    <%= render layout: "shared/app_shell_layout" do %>
-      <%= content_for?(:page) ? yield(:page) : yield %>
-    <% end %>
+      <%= render "shared/sidebar" %>
+    </div>
 
     <%= render "shared/flash" %>
 

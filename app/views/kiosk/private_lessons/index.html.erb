@@ -1,15 +1,7 @@
 <%= turbo_stream_from "private_lessons" %>
 
 <div class="flex flex-wrap items-center justify-between gap-4">
-  <div class="flex items-center gap-4">
-    <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost", title: "Discipline" do %>
-      <%= icon("arrow_left", classes: "size-6") %>
-    <% end %>
-    <div>
-      <h2 class="text-3xl font-black uppercase">Lezioni private</h2>
-      <p class="text-sm font-bold opacity-50 uppercase tracking-wider">Registro di <%= l(@month, format: "%B %Y") %></p>
-    </div>
-  </div>
+  <%= render "kiosk/header", back: kiosk_root_path, back_title: "Discipline", title: "Lezioni private", subtitle: "Registro di #{l(@month, format: "%B %Y")}" %>
 
   <%= link_to new_kiosk_private_lesson_path, class: "btn btn-primary btn-lg gap-2" do %>
     <%= icon("add", classes: "size-6") %> Nuova privata

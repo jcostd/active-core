@@ -1,0 +1,10 @@
+<%# locals: (back:, title:, subtitle: nil, back_title: "Indietro") %>
+<div class="flex items-center gap-4">
+  <%= link_to icon("arrow_left", classes: "size-6"), back, class: "btn btn-circle btn-ghost", title: back_title %>
+  <div>
+    <h2 class="text-3xl font-black uppercase"><%= title %></h2>
+    <% if subtitle %>
+      <p class="text-sm font-bold opacity-50 uppercase tracking-wider"><%= subtitle %></p>
+    <% end %>
+  </div>
+</div>

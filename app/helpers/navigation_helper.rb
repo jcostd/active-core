@@ -7,6 +7,11 @@ module NavigationHelper
     block ? link_to(path, options, &block) : link_to(name, path, options)
   end
 
+  # voce della sidebar, con sotto il sottomenu della scheda aperta
+  def nav_item(label, path, icon_name, tabs = nil)
+    tag.li(active_link_to(path) { icon(icon_name, classes: "size-5 opacity-75") + " " + label } + tabs)
+  end
+
   # sottomenu di una scheda nella sidebar: [ etichetta, path, icona ], le voci nil si saltano
   def record_tabs(title, *tabs)
     tag.ul class: "menu w-full" do

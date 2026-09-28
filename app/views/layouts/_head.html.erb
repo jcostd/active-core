@@ -1,0 +1,21 @@
+<%# locals: (title:, viewport: "width=device-width,initial-scale=1") %>
+<head>
+  <title><%= title %></title>
+  <meta name="viewport" content="<%= viewport %>">
+  <meta name="application-name" content="Active Core">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= content_for(:head) %>
+
+  <link rel="icon" href="/icon.png" type="image/png">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.png">
+
+  <%# tag diretti: turbo_refreshes_with è un content_for :head, che qui arriverebbe tardi %>
+  <%= turbo_refresh_method_tag :morph %>
+  <%= turbo_refresh_scroll_tag :preserve %>
+  <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+</head>

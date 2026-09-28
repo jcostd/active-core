@@ -1,15 +1,7 @@
 <%= turbo_stream_from @discipline, :attendances %>
 <%= turbo_stream_from "members" %>
 
-<div class="flex items-center gap-4">
-  <%= link_to kiosk_root_path, class: "btn btn-circle btn-ghost", title: "Discipline" do %>
-    <%= icon("arrow_left", classes: "size-6") %>
-  <% end %>
-  <div>
-    <h2 class="text-3xl font-black uppercase"><%= @discipline.name %></h2>
-    <p class="text-sm font-bold opacity-50 uppercase tracking-wider">Registro di <%= l(@month, format: "%B %Y") %></p>
-  </div>
-</div>
+<%= render "kiosk/header", back: kiosk_root_path, back_title: "Discipline", title: @discipline.name, subtitle: "Registro di #{l(@month, format: "%B %Y")}" %>
 
 <%# permanente: un aggiornamento in arrivo non cancella quello che l'istruttore sta cercando %>
 <div id="kiosk_search" class="relative" data-turbo-permanent data-controller="autocomplete"
