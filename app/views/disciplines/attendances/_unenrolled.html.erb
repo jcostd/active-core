@@ -1,0 +1,22 @@
+<%# locals: (attendance:, editable:, products_to_sell:) %>
+<% member = attendance.member %>
+
+<li id="<%= dom_id(attendance, :unenrolled) %>" class="list-row items-center px-0">
+  <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+
+  <div class="min-w-0">
+    <%= link_to member.full_name, member, data: { turbo_frame: "_top" }, class: "font-bold truncate hover:text-primary" %>
+    <div class="text-xs opacity-60">Segnato da <%= attendance.marked_by.full_name %> il <%= l(attendance.created_at.to_date, format: :short) %></div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= sell_to_walk_in_link(member, products_to_sell.fetch(attendance)) %>
+    <% if editable %>
+      <%= button_to discipline_attendance_path(attendance.discipline_id, attendance), method: :delete,
+                    class: "btn btn-square btn-ghost btn-sm text-base-content/50 hover:text-error", title: "Togli dal registro",
+                    form: { data: { turbo_confirm: "Togliere #{member.full_name} dal registro di #{l(attendance.month, format: "%B %Y")}?", turbo_frame: "_top" } } do %>
+        <%= icon("close", classes: "size-4") %>
+      <% end %>
+    <% end %>
+  </div>
+</li>

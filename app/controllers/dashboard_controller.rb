@@ -1,24 +1,21 @@
 class DashboardController < ApplicationController
   def index
-    @daily_cash = DailyCash.current
+    @daily_cash = DailyCash.for(Date.current)
 
-    @today_accesses_count = AccessLog.where(entered_at: Time.current.beginning_of_day..Time.current.end_of_day).count
+    @expiring_subscriptions = Subscription.expiring.includes(:member, :product).order(end_date: :asc).limit(5).load
+    @expiring_count = Subscription.expiring.count
 
-    @expiring_subscriptions = Subscription.kept
-                                .includes(:member)
-                                .where(end_date: Date.current..7.days.from_now)
-                                .order(end_date: :asc)
-                                .limit(5)
-
-    @expiring_count = Subscription.kept.where(end_date: Date.current..7.days.from_now).count
-
-    @recent_accesses = AccessLog.includes(:member, :discipline)
-                         .order(entered_at: :desc)
-                         .limit(5)
+    # frequentano questo mese senza abbonamento della disciplina: da regolarizzare in segreteria
+    @unenrolled = Attendance.in_month(Date.current).unenrolled
+                            .joins(:member).merge(Member.kept)
+                            .order(members: { last_name: :asc, first_name: :asc })
+                            .preload(:discipline, member: Standing::PRELOAD).to_a
+    @products_to_sell = Attendance.products_to_sell(@unenrolled)
 
     @recent_sales = Sale.kept
                       .includes(:member, subscription: :product)
                       .order(created_at: :desc)
                       .limit(5)
+                      .load
   end
 end

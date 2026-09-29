@@ -1,0 +1,14 @@
+<%# locals: (attendance:, products_to_sell:) %>
+<% member = attendance.member %>
+
+<li class="list-row items-center">
+  <%= ui_avatar(member, size: "size-10", text_size: "text-md") %>
+
+  <div class="min-w-0">
+    <%= link_to member.full_name, member, class: "font-semibold truncate hover:text-primary" %>
+    <%= link_to attendance.discipline.name, discipline_members_path(attendance.discipline),
+                class: "block text-xs text-base-content/60 uppercase tracking-wide hover:text-primary" %>
+  </div>
+
+  <%= sell_to_walk_in_link(member, products_to_sell.fetch(attendance)) %>
+</li>

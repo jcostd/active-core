@@ -1,56 +1,47 @@
-<div class="fieldset">
-  <div class="text-lg font-bold text-base-content mb-3 flex items-center gap-2">
-    <%= icon("calendar_today", classes: "size-6 opacity-40") %> Validità Iscrizione
-  </div>
+<fieldset class="fieldset">
+  <legend class="fieldset-legend"><%= icon("calendar_today", classes: "size-4") %> Validità</legend>
 
   <% if is_installment %>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <fieldset class="fieldset">
-        <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza</label>
-        <%= date_field_tag nil, sale.subscription.start_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
-      </fieldset>
-
-      <fieldset class="fieldset">
-        <label class="label text-xs font-semibold uppercase opacity-70">Scadenza
-        </label>
-        <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full bg-base-200 text-base-content/70 cursor-not-allowed focus:outline-none", readonly: true %>
-      </fieldset>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+      <div>
+        <%= label_tag nil, "Decorrenza", class: "label" %>
+        <%= date_field_tag nil, sale.subscription.start_date, class: "input w-full", readonly: true, aria: { label: "Decorrenza" } %>
+      </div>
+      <div>
+        <%= label_tag nil, "Scadenza", class: "label" %>
+        <%= date_field_tag nil, sale.subscription.end_date, class: "input w-full", readonly: true, aria: { label: "Scadenza" } %>
+      </div>
     </div>
-    <div class="text-xs text-info font-medium">Le date non sono modificabili durante il saldo di una rata.</div>
+    <p class="label text-info">Le date non cambiano durante il saldo di una rata.</p>
   <% else %>
     <%= f.fields_for :subscription do |sub_f| %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-        <%# COLONNA SINISTRA %>
-        <fieldset class="fieldset">
-          <label class="label text-xs font-semibold uppercase opacity-70">Decorrenza (Modificabile)
-          </label>
-          <%= sub_f.date_field :start_date, class: "input w-full", data: { action: "change->autosubmit#submit" } %>
-        </fieldset>
-
-        <%# COLONNA DESTRA %>
-        <fieldset class="fieldset">
-          <% if current_user.try(:admin?) %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+        <div>
+          <%= sub_f.label :start_date, "Decorrenza (modificabile)" %>
+          <% range = sale.staff_start_range unless current_user.admin? %>
+          <%= sub_f.date_field :start_date, data: { action: "change->autosubmit#submit" }, min: range&.begin, max: range&.end %>
+        </div>
+        <div>
+          <% if current_user.admin? %>
             <% override_active = params[:override_end_date] == "1" %>
-
-            <label class="label text-xs font-semibold uppercase opacity-70 cursor-pointer transition-colors <%= 'text-warning' if override_active %>" for="override_end_date">
-              <%= check_box_tag :override_end_date, "1", override_active, id: "override_end_date", class: "checkbox checkbox-xs checkbox-warning", data: { action: "change->autosubmit#submit" } %>
-                Forza Scadenza (Admin)
+            <label class="<%= class_names("label", "text-warning": override_active) %>" for="override_end_date">
+              <%= check_box_tag :override_end_date, "1", override_active, class: "checkbox checkbox-xs checkbox-warning", data: { action: "change->autosubmit#submit" } %>
+              Forza scadenza (admin)
             </label>
-
-            <% if override_active %>
-              <%= sub_f.date_field :end_date, class: "input w-full border-warning text-warning focus:ring-warning", data: { action: "change->autosubmit#submit" } %>
-            <% else %>
-              <%= sub_f.date_field :end_date, class: "input w-full bg-base-200 text-base-content/50 cursor-not-allowed focus:outline-none", readonly: true %>
-            <% end %>
-
+            <%= sub_f.date_field :end_date, readonly: !override_active, class: class_names("input w-full", "input-warning": override_active),
+                                 data: { action: "change->autosubmit#submit" } %>
           <% else %>
-            <label class="label text-xs font-semibold uppercase opacity-70">Scadenza (Calcolata)</label>
-            <%= sub_f.date_field :end_date, class: "input w-full bg-transparent border-dashed text-base-content/50 focus:outline-none", readonly: true %>
+            <%= sub_f.label :end_date, "Scadenza (calcolata)" %>
+            <%= sub_f.date_field :end_date, readonly: true %>
           <% end %>
-        </fieldset>
+        </div>
+      </div>
+    <% end %>
 
+    <% if (warning = sale.membership_warning) %>
+      <div role="alert" class="alert alert-warning alert-soft text-sm mt-3">
+        <%= icon("warning", classes: "size-5") %> <span><%= warning %></span>
       </div>
     <% end %>
   <% end %>
-</div>
+</fieldset>

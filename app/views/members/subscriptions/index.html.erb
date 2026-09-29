@@ -1,14 +1,8 @@
 <%= turbo_stream_from @member %>
 <%= render "members/context", member: @member %>
 
-<%# --- HEADER SEZIONE --- %>
-<div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 mt-6">
-  <h2 class="text-xl font-bold flex items-center gap-2">
-    <%= icon("card_membership", classes: "size-6 opacity-50") %> Storico Abbonamenti
-  </h2>
-</div>
+<%= render "shared/section_header", title: "Storico abbonamenti", icon_name: "card_membership" %>
 
-<%# --- LISTA ABBONAMENTI --- %>
 <div id="member_subscriptions_list">
   <% if @subscriptions.empty? %>
     <%= render "shared/empty_state",
@@ -16,8 +10,9 @@
                title: "Nessun abbonamento",
                message: "Questo utente non ha ancora abbonamenti attivi o passati." %>
   <% else %>
-    <ul class="list bg-base-100 shadow-sm border border-base-200 rounded-box w-full">
-      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription, cached: true %>
+    <ul class="list panel">
+      <%= render partial: "members/subscriptions/row", collection: @subscriptions, as: :subscription,
+                 cached: ->(subscription) { [ subscription, subscription.product, current_user.admin?, Date.current, subscription.discardable_by?(current_user) ] } %>
     </ul>
 
     <%= render "shared/pagination" %>

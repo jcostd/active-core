@@ -16,15 +16,16 @@ module SoftDeletable
     !discarded?
   end
 
+  # atomico: se un callback abortisce, solleva e annulla l'intera cascata
   def discard!
-    run_callbacks(:discard) do
-      touch(:discarded_at)
+    transaction do
+      run_callbacks(:discard) { touch(:discarded_at) } || raise(ActiveRecord::RecordNotSaved.new("archiviazione annullata", self))
     end
   end
 
   def undiscard!
-    run_callbacks(:undiscard) do
-      update!(discarded_at: nil)
+    transaction do
+      run_callbacks(:undiscard) { update!(discarded_at: nil) } || raise(ActiveRecord::RecordNotSaved.new("ripristino annullato", self))
     end
   end
 end

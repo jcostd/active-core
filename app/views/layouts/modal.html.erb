@@ -1,35 +1,33 @@
-<%= turbo_frame_tag (turbo_frame_request_id || "modal") do %>
+<%# form in modale se aperto da un link del frame "modal", pagina normale se aperto dal suo URL %>
+<% if turbo_frame_request? %>
+  <%= turbo_frame_tag "modal" do %>
+    <dialog class="modal modal-bottom sm:modal-middle" data-controller="dialog" data-turbo-cache="false"
+            data-action="close->dialog#clear turbo:submit-end->dialog#closeAfterSave turbo:before-cache@document->dialog#close">
+      <div class="modal-box <%= yield :modal_class %>">
+        <form method="dialog">
+          <button class="btn btn-sm btn-square btn-ghost absolute right-2 top-2" aria-label="Chiudi"><%= icon("close", classes: "size-4") %></button>
+        </form>
 
-  <dialog
-    class="modal modal-bottom sm:modal-middle"
-    data-controller="dialog"
-    data-action="close->dialog#cleanUp"
-    data-turbo-cache="false"
-  >
+        <% if content_for?(:title) %>
+          <h3 class="font-bold text-xl mb-4"><%= yield :title %></h3>
+        <% end %>
 
-    <% box_classes = content_for?(:modal_class) ? yield(:modal_class) : "" %>
-    <div class="modal-box <%= box_classes %>">
-
-      <button
-        type="button"
-        class="btn btn-sm btn-square btn-ghost absolute right-2 top-2"
-        data-action="click->dialog#close"
-      >
-        <%= icon("close", classes: "size-4") %>
-      </button>
-
-      <% if content_for?(:title) %>
-        <h3 class="font-bold text-xl mb-4">
-          <%= yield :title %>
-        </h3>
-      <% end %>
-
-      <div class="mt-4">
-        <%= yield %>
+        <div class="mt-4"><%= yield %></div>
       </div>
 
+      <form method="dialog" class="modal-backdrop"><button>Chiudi</button></form>
+    </dialog>
+  <% end %>
+<% else %>
+  <% content_for :page do %>
+    <div class="card bg-base-100 border border-base-200 shadow-sm max-w-3xl mx-auto">
+      <div class="card-body">
+        <% if content_for?(:title) %>
+          <h1 class="card-title text-2xl mb-2"><%= yield :title %></h1>
+        <% end %>
+        <%= yield %>
+      </div>
     </div>
-
-  </dialog>
-
+  <% end %>
+  <%= render template: "layouts/application" %>
 <% end %>

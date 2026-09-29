@@ -1,0 +1,19 @@
+<%# locals: (record:, title:, figure:, path: record, aside: nil, edit_path: nil, archive_confirm: nil, archive_title: "Archivia", archived_label: "Archiviato") %>
+<%# riga di un elenco: figura, titolo verso la scheda, il blocco sotto il titolo, azioni (archivia se c'è archive_confirm) %>
+<li id="<%= dom_id(record) %>" class="<%= class_names("list-row items-center", "opacity-60 grayscale": record.discarded?) %>">
+  <%= figure %>
+  <div class="list-col-grow flex flex-col gap-1 min-w-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <%= link_to title, path, class: "font-bold truncate hover:text-primary", data: { turbo_frame: "_top" } %>
+      <%= ui_badge(archived_label) if record.discarded? %>
+    </div>
+    <%= yield %>
+  </div>
+  <%= aside %>
+  <% if record.kept? && (edit_path || archive_confirm) %>
+    <div class="flex items-center">
+      <%= ui_row_edit_button(edit_path) if edit_path %>
+      <%= ui_row_delete_button(record, confirm: archive_confirm, title: archive_title) if archive_confirm %>
+    </div>
+  <% end %>
+</li>

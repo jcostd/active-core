@@ -2,13 +2,10 @@ class Kiosk::MemberSearchesController < Kiosk::BaseController
   layout false
 
   def index
-    @discipline = Discipline.find(params[:discipline_id])
+    @discipline = Discipline.kept.find(params[:discipline_id])
+    @members = params[:query].present? ? Member.kept.search_text(params[:query], columns: %i[first_name last_name]).limit(10).preload(Standing::PRELOAD).to_a : []
 
-    if params[:query].present?
-      @members = Member.search_text(params[:query]).limit(10)
-      @checked_in_ids = @discipline.access_logs.recent_for_kiosk.pluck(:member_id)
-    else
-      @members = Member.none
-    end
+    @marked_ids = @discipline.attendances.in_month(Attendance.current_month).where(member_id: @members.map(&:id)).pluck(:member_id).to_set
+    @standings = @members.index_with { Standing.new(member: it, discipline: @discipline) }
   end
 end

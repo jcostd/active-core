@@ -1,19 +1,13 @@
-<div class="flex flex-col items-center justify-center py-24 px-4 text-center bg-base-100/70 rounded-box border-2 border-dashed border-base-300/70">
-
-  <%= icon(icon_name, classes: "size-16 text-base-content/20 mb-6") %>
-
-  <h3 class="text-xl font-bold text-base-content tracking-tight">
-    <%= title %>
-  </h3>
-
-  <p class="mt-2 text-sm text-base-content/50 max-w-sm leading-relaxed">
-    <%= message %>
-  </p>
-
-  <% if block_given? %>
-    <div class="mt-8 flex items-center justify-center gap-3">
-      <%= yield %>
-    </div>
+<%# locals: (icon_name:, title:, message: nil, action: nil, compact: false) %>
+<%# compact per l'interno di un riquadro %>
+<div class="<%= class_names("flex flex-col items-center text-center px-4",
+                            compact ? "py-8" : "py-24 bg-base-100/70 rounded-box border-2 border-dashed border-base-300/70") %>">
+  <%= icon(icon_name, classes: class_names("text-base-content/20", compact ? "size-10 mb-3" : "size-16 mb-6")) %>
+  <h3 class="<%= compact ? "font-bold opacity-70" : "text-xl font-bold tracking-tight" %>"><%= title %></h3>
+  <% if message %>
+    <p class="mt-2 text-sm text-base-content/50 max-w-sm"><%= message %></p>
   <% end %>
-
+  <% if action %>
+    <div class="<%= compact ? "mt-4" : "mt-8" %>"><%= action %></div>
+  <% end %>
 </div>

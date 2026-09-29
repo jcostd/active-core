@@ -1,56 +1,26 @@
-<li
-  id="<%= dom_id(sale) %>"
-  class="list-row hover:bg-base-200/50 transition-colors <%= 'opacity-60 grayscale' if sale.discarded? %>">
-
-  <div class="shrink-0">
-    <div class="size-10 bg-base-200/50 rounded-box flex items-center justify-center text-base-content/40">
-      <%= icon("receipt") %>
-    </div>
-  </div>
-
-  <div class="grid gap-1 min-w-0 grow">
-
-    <%# Riga A: Prodotto e Socio %>
-    <div class="font-bold text-base leading-none truncate flex items-center gap-2">
-      <%= link_to sale.product_name_snapshot, sale_path(sale),
-		  data: { turbo_frame: "_top" },
-		  class: "hover:underline hover:text-primary transition-colors" %>
-      <%= ui_badge("Archiviato") if sale.discarded? %>
-    </div>
-
-    <div class="text-sm truncate">
-      <span class="opacity-50 text-xs mr-1">Socio:</span>
-      <%= link_to sale.member.full_name, member_path(sale.member),
-		  data: { turbo_frame: "_top" },
-		  class: "hover:underline hover:text-primary transition-colors font-medium text-base-content/80" %>
-    </div>
-
-    <%# Riga C: Metadati (Data, Ricevuta, Operatore) %>
-    <div class="text-xs font-mono opacity-60 flex flex-wrap items-center gap-2 mt-1">
-      <span class="font-bold text-base-content"><%= format_date(sale.sold_on) %></span>
-      <span class="opacity-40">•</span>
-      <span title="Codice Ricevuta">#<%= display_value(sale.receipt_code) %></span>
-      <span class="opacity-40">•</span>
-      <span class="flex items-center gap-1">
-        <%= icon("badge", size: 12) %> <%= sale.user.username %>
-      </span>
-    </div>
-  </div>
-
-  <%# -- Colonna 3: Importo e Pagamento -- %>
-  <div class="flex flex-col items-end justify-center gap-1.5 shrink-0 px-2 mr-2 pr-4">
-    <div class="font-mono font-black text-lg text-primary leading-none">
-      <%= format_money(sale.amount) %>
-    </div>
-
-    <%= payment_method_badge(sale.payment_method) %>
-  </div>
-
-  <% unless sale.discarded? %>
-    <% if current_user.admin? && sale.created_at > 24.hours.ago %>
-      <div class="flex items-center gap-1 shrink-0">
-	<%= ui_row_delete_button(sale, confirm: "Sei sicuro di voler archiviare questa vendita?") %>
-      </div>
+<%# locals: (sale:, with_member: true) %>
+<%= render layout: "shared/row", locals: {
+      record: sale, title: sale.product_name_snapshot, figure: row_icon("receipt"), archived_label: "Annullata", archive_title: "Annulla pagamento",
+      archive_confirm: ("Annullare questo pagamento? Se è l'unico dell'abbonamento, verrà annullato anche l'abbonamento." if sale.reversible_by?(current_user)),
+      aside: tag.div(safe_join([ tag.span(format_money(sale.amount), class: "font-mono font-bold text-lg text-primary"), payment_method_badge(sale.payment_method) ]),
+                     class: "flex flex-col items-end gap-1") } do %>
+  <div class="text-xs opacity-70 flex flex-wrap items-center gap-x-2">
+    <span class="font-bold"><%= format_date(sale.sold_on) %></span>
+    <% if sale.receipt_code %>
+      <span class="font-mono" title="Ricevuta">#<%= sale.receipt_code %></span>
     <% end %>
+    <% if with_member %>
+      <%= link_to sale.member.full_name, sale.member, class: "link link-hover font-medium", data: { turbo_frame: "_top" } %>
+    <% end %>
+    <span>op. <%= sale.user.username %></span>
+  </div>
+  <% if sale.subscription %>
+    <div class="text-xs flex flex-wrap items-center gap-1">
+      <%= icon("calendar_today", classes: "size-3 opacity-60") %> <%= format_date(sale.subscription.start_date) %> → <%= format_date(sale.subscription.end_date) %>
+      <%= render "subscriptions/badge", subscription: sale.subscription %>
+    </div>
   <% end %>
-</li>
+  <% if sale.notes.present? %>
+    <div class="text-xs italic opacity-50 truncate"><%= sale.notes %></div>
+  <% end %>
+<% end %>

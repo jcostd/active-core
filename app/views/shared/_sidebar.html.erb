@@ -1,32 +1,35 @@
 <div class="drawer-side z-50">
-  <label for="main-drawer" aria-label="Close menu" class="drawer-overlay"></label>
+  <label for="main-drawer" aria-label="Chiudi il menu" class="drawer-overlay"></label>
 
-  <%# Sidebar integrata: bg-base-200 (o trasparente per fondersi col body) senza bordi laterali %>
-  <aside class="bg-base-200 text-base-content flex flex-col min-h-screen w-72">
-
-    <div class="flex h-16 shrink-0 items-center gap-3 px-6">
-      <div class="text-primary"><%= icon("active_core", classes: "size-6") %></div>
+  <aside class="bg-base-200 flex flex-col min-h-screen w-72">
+    <div class="flex h-16 items-center gap-3 px-6">
+      <%= icon("active_core", classes: "size-6 text-primary") %>
       <span class="text-xl font-bold tracking-tight">ActiveCore</span>
     </div>
 
-    <%# CORPO CENTRALE %>
-    <nav class="flex-1 overflow-y-auto w-full px-2 py-4">
-      <% if current_user.admin? %>
-        <%= render "shared/sidebar/admin" %>
-      <% else %>
-        <%= render "shared/sidebar/staff" %>
-      <% end %>
+    <nav class="flex-1 overflow-y-auto px-2 py-4">
+      <ul class="menu w-full text-base">
+        <%= nav_item "Dashboard", root_path, "dashboard" %>
+        <%= nav_item "Soci", members_path, "member", content_for(:member_tabs) %>
+        <%= nav_item "Discipline", disciplines_path, "spa", content_for(:discipline_tabs) %>
+        <%= nav_item "Lezioni private", private_lessons_path, "event" %>
+
+        <% if current_user.admin? %>
+          <li class="menu-title mt-4">Amministrazione</li>
+          <%= nav_item "Vendite", sales_path, "sale" %>
+          <%= nav_item "Report incassi", reports_path, "monitoring" %>
+          <%= nav_item "Prodotti", products_path, "product" %>
+          <%= nav_item "Utenti", users_path, "user" %>
+          <%= nav_item "Dati dell'ASD", gym_profile_path, "settings" %>
+        <% end %>
+      </ul>
     </nav>
 
-    <%# FOOTER: Fuso dolcemente, senza bordi netti %>
-    <div class="shrink-0 p-4 mb-2">
-      <%= link_to new_feedback_path(current_page: request.original_url),
-            class: "btn btn-ghost btn-sm w-full justify-start gap-3 text-base-content/70",
-            data: { turbo_frame: "feedback_modal" } do %>
-        <%= icon("chat_bubble") %>
-        <span class="font-normal">Invia Feedback</span>
+    <div class="p-4 mb-2">
+      <%= link_to new_feedback_path(current_page: request.original_url), class: "btn btn-ghost btn-sm w-full justify-start gap-3 font-normal text-base-content/70",
+                                                                          data: { turbo_frame: "modal" } do %>
+        <%= icon("chat_bubble") %> Invia Feedback
       <% end %>
     </div>
-
   </aside>
 </div>

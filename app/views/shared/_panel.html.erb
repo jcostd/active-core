@@ -1,0 +1,8 @@
+<%# locals: (title:, icon_name:, aside: nil, id: nil) %>
+<section <%= tag.attributes(id:, class: "panel") %>>
+  <header class="panel-header">
+    <h3 class="panel-title"><%= icon(icon_name, classes: "size-4") %> <%= title %></h3>
+    <%= aside %>
+  </header>
+  <%= yield %>
+</section>

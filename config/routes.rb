@@ -1,6 +1,5 @@
 Rails.application.routes.draw do
-  resource :session
-  resources :passwords, param: :token
+  resource :session, only: %i[ new create destroy ]
 
   concern :searchable do
     resources :searches, only: [ :index ]
@@ -12,38 +11,41 @@ Rails.application.routes.draw do
 
   resources :members do
     resources :subscriptions, only: [ :index ], module: :members
-    resources :access_logs,   only: [ :index ], module: :members
+    resources :attendances,   only: [ :index ], module: :members
     resources :sales,         only: [ :index ], module: :members
   end
 
   resources :users
   namespace :preferences do
-    resource :theme, only: [ :show, :update ]
-    resource :language, only: [ :update ]
+    resource :theme, only: [ :update ]
   end
 
   resources :disciplines do
-    resources :members, only: [ :index ], module: :disciplines
+    resources :members,     only: [ :index ], module: :disciplines
+    resources :attendances, only: [ :create, :destroy ], module: :disciplines
   end
   resources :products
 
+  resources :private_lessons, except: [ :show ]
+
   resources :sales, only: [ :index, :new, :create, :show, :destroy ]
   resources :subscriptions, only: [ :index, :edit, :update, :destroy ]
-  resources :access_logs, only: [ :index, :destroy ]
 
   resources :reports, only: [ :index, :show ], param: :report_type
+  resource :gym_profile, only: [ :show, :edit, :update ]
   resources :feedbacks, only: [ :new, :create ]
 
   get "up" => "rails/health#show", as: :rails_health_check
   root "dashboard#index"
 
-  # --- KIOSK MODE (iPad Appello) ---
+  # kiosk dell'iPad: registro presenze del mese e lezioni private
   namespace :kiosk do
     root to: "disciplines#index"
 
     resources :disciplines, only: [ :index, :show ] do
-      resources :access_logs, only: [ :create, :destroy ]
+      resources :attendances, only: [ :create, :destroy ]
       resources :member_searches, only: [ :index ]
     end
+    resources :private_lessons, except: [ :show ]
   end
 end

@@ -1,132 +1,20 @@
 <%= turbo_stream_from "sales" %>
+<%= render "shared/page_header", title: "Vendite", counter: "#{Sale.kept.count} totali", new_path: new_sale_path, new_label: "Nuova" %>
 
-<% content_for :page_title, "Vendite" %>
-
-<% content_for :page_counter, "#{@total_active_sales} totali" %>
-
-<% content_for :page_actions do %>
-  <%= link_to [:new, :sale],
-          class: "btn btn-primary gap-2",
-          data: { turbo_frame: "modal" } do %>
-    <%= icon("add") %>
-    <span class="hidden sm:inline">Nuova</span>
-  <% end %>
+<%= render layout: "shared/filter/form",
+           locals: { url: sales_path, frame: "sales_list", placeholder: "Cerca n. ricevuta o socio...", drawer_title: "Filtri Vendite" } do %>
+  <%= filter_select :state, [ [ "Valide", "active" ], [ "Annullate", "discarded" ] ], label: "Stato Ricevuta", blank: "Tutte" %>
+  <%= filter_select :period, [ [ "Oggi", "today" ], [ "Questo Mese", "this_month" ], [ "Mese Scorso", "last_month" ], [ "Quest'Anno", "this_year" ] ],
+                    label: "Periodo", blank: "Sempre" %>
+  <%= filter_select :payment_method, payment_method_options, label: "Metodo di Pagamento", blank: "Qualsiasi" %>
+  <%= filter_select :accounting_category, [ [ "Istituzionale", "institutional" ], [ "Associativo", "associative" ] ],
+                    label: "Categoria Contabile", blank: "Qualsiasi" %>
+  <%= filter_select :operator_id, User.kept.operators.order(:username).pluck(:username, :id), label: "Operatore", blank: "Tutti gli operatori" %>
 <% end %>
 
-<% content_for :page_search_and_filters do %>
-  <%= form_with url: sales_path,
-        method: :get,
-        html: {
-          autocomplete: "off",
-          id: "filter-form",
-          data: {
-            controller: "autosubmit drawer",
-            turbo_frame: "sales_list",
-            turbo_action: "advance"
-          }
-        } do |form| %>
-
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mb-2">
-
-      <div class="flex items-center gap-2 w-full md:w-1/2">
-        <label class="input w-full">
-          <%= icon("search", classes: "size-5 opacity-50") %>
-          <%= form.search_field :query,
-           value: params[:query],
-           placeholder: "Cerca n. ricevuta o socio...",
-           class: "grow",
-           data: { action: "input->autosubmit#submit" } %>
-        </label>
-
-        <button type="button" data-action="drawer#open" class="btn bg-base-100 gap-2 shrink-0">
-          <%= icon("filter") %>
-          <span class="hidden sm:inline">Filtri</span>
-        </button>
-      </div>
-
-      <%# DESTRA: Ordinamento %>
-      <div class="w-full md:w-auto shrink-0">
-        <%= render "shared/filter/sort", form: form %>
-      </div>
-
-    </div>
-
-    <%# IL CASSETTO DEI FILTRI %>
-    <%= render "shared/filter/drawer", title: "Filtri Vendite" do %>
-      <div class="space-y-4">
-
-        <fieldset>
-          <label class="label font-bold text-sm">Stato Ricevuta</label>
-          <%= form.select :state,
-            options_for_select([["Valide", "active"], ["Annullate", "discarded"]], params[:state]),
-            { include_blank: "Tutte" },
-            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-        <fieldset>
-          <label class="label font-bold text-sm">Periodo</label>
-          <%= form.select :period,
-            options_for_select([
-              ["Oggi", "today"],
-              ["Questo Mese", "this_month"],
-              ["Mese Scorso", "last_month"],
-              ["Quest'Anno", "this_year"]
-            ], params[:period]),
-            { include_blank: "Sempre" },
-            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-        <fieldset>
-          <label class="label font-bold text-sm">Metodo di Pagamento</label>
-          <%= form.select :payment_method,
-            Sale.payment_methods.keys.map { |pm| [pm.humanize, pm] },
-            { selected: params[:payment_method], include_blank: "Qualsiasi" },
-            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-        <fieldset>
-          <label class="label font-bold text-sm">Categoria Contabile</label>
-          <%= form.select :accounting_category,
-            options_for_select([
-              ["Istituzionale", "institutional"],
-              ["Associativo", "associative"]
-            ], params[:accounting_category]),
-            { include_blank: "Qualsiasi" },
-            { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-        <fieldset>
-          <label class="label font-bold text-sm">Operatore (Desk)</label>
-          <%= form.select :operator_id,
-           options_from_collection_for_select(User.where(discarded_at: nil), :id, :username, params[:operator_id]),
-           { include_blank: "Tutti gli operatori" },
-           { class: "select w-full", data: { action: "change->autosubmit#submit" } } %>
-        </fieldset>
-
-      </div>
-    <% end %>
-  <% end %>
-<% end %>
-
-<%= render "shared/header/page" %>
-
-<%= turbo_frame_tag "sales_list" do %>
-  <%= render "shared/filter/active", filter_keys: [:sort, :state, :period, :payment_method, :accounting_category, :operator_id] %>
-
-  <div class="mt-6">
-    <% if @pagy.count == 0 %>
-      <%= render "shared/empty_state",
-         icon_name: "receipt",
-         title: "Nessuna vendita trovata",
-         message: "Non ci sono movimenti registrati con questi criteri." %>
-    <% else %>
-      <%= filtered_results_counter(@pagy) %>
-
-      <ul id="sales" class="list bg-base-100 rounded-box shadow-sm">
-        <%= render partial: "sales/row", collection: @sales, as: :sale, cached: true %>
-      </ul>
-
-      <%= render "shared/pagination" %>
-    <% end %>
-  </div>
+<%= render layout: "shared/list", locals: { frame: "sales_list", records: @sales, icon_name: "receipt", empty: "Nessuna vendita trovata",
+                                            filter_keys: %i[sort state period payment_method accounting_category operator_id] } do %>
+  <ul id="sales" class="list panel">
+    <%= render partial: "sales/row", collection: @sales, as: :sale, cached: ->(sale) { [ sale, sale.member, sale.subscription, sale.reversible_by?(current_user), Date.current ] } %>
+  </ul>
 <% end %>

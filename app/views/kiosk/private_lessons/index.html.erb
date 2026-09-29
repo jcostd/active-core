@@ -1,0 +1,20 @@
+<%= turbo_stream_from "private_lessons" %>
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <%= render "kiosk/header", back: kiosk_root_path, back_title: "Discipline", title: "Lezioni private", subtitle: "Registro di #{l(@month, format: "%B %Y")}" %>
+
+  <%= link_to new_kiosk_private_lesson_path, class: "btn btn-primary btn-lg gap-2" do %>
+    <%= icon("add", classes: "size-6") %> Nuova privata
+  <% end %>
+</div>
+
+<section id="private_lessons" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+  <% if @private_lessons.empty? %>
+    <div class="md:col-span-2">
+      <%= render "shared/empty_state", icon_name: "event", title: "Nessuna privata questo mese",
+                 message: "Dopo la lezione tocca \"Nuova privata\" e scrivi chi l'ha tenuta e per chi." %>
+    </div>
+  <% else %>
+    <%= render partial: "kiosk/private_lessons/private_lesson", collection: @private_lessons, cached: true %>
+  <% end %>
+</section>

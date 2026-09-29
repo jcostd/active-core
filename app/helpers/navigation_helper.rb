@@ -1,25 +1,28 @@
 module NavigationHelper
-  def active_link_to(text = nil, path = nil, **options, &block)
-    # 1. Normalizziamo gli argomenti (gestione blocco vs standard)
-    link_path = block_given? ? text : path
+  # link dei menu, evidenziato (menu-active) sulla pagina corrente
+  def active_link_to(name = nil, path = nil, **options, &block)
+    path = name if block
+    options[:class] = class_names(options[:class], "menu-active": current_page?(path))
 
-    # 2. Logica "Smart" per l'attivazione
-    # - Se passi active: true/false -> vince lui
-    # - Se passi active: /regex/ -> usa match sul path
-    # - Altrimenti -> usa current_page? (standard rails)
-    custom_active = options.delete(:active)
-
-    is_active =
-      case custom_active
-      when true, false then custom_active
-      when Regexp then request.path.match?(custom_active)
-      else current_page?(link_path)
-      end
-
-    # 3. Uniamo le classi (DaisyUI 'menu-active')
-    options[:class] = class_names(options[:class], "menu-active" => is_active)
-
-    # 4. Render
-    block_given? ? link_to(text, options, &block) : link_to(text, path, options)
+    block ? link_to(path, options, &block) : link_to(name, path, options)
   end
+
+  # voce della sidebar, con sotto il sottomenu della scheda aperta
+  def nav_item(label, path, icon_name, tabs = nil)
+    tag.li(active_link_to(path) { icon(icon_name, classes: "size-5 opacity-75") + " " + label } + tabs)
+  end
+
+  # sottomenu di una scheda nella sidebar: [ etichetta, path, icona ], le voci nil si saltano
+  def record_tabs(title, *tabs)
+    tag.ul class: "menu w-full" do
+      tag.li(title, class: "menu-title") +
+        safe_join(tabs.compact.map { |label, path, icon_name| tag.li(active_link_to(path) { icon(icon_name) + " " + label }) })
+    end
+  end
+
+  # la pagina corrente con altri parametri
+  def current_path_with(query) = [ request.path, query.compact.to_query.presence ].compact.join("?")
+
+  # la pagina corrente in un altro mese (nil: quello in corso), con gli stessi filtri e dalla prima pagina
+  def month_path(month) = current_path_with(request.query_parameters.except("page", "month").merge(month: month&.strftime("%Y-%m")))
 end

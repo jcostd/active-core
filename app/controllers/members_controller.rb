@@ -1,26 +1,26 @@
 class MembersController < ApplicationController
   include Filterable
 
-  before_action :set_member, only: [ :show, :edit, :update, :destroy ]
+  before_action :require_admin, only: :destroy
+  before_action :set_member, only: %i[ show edit update destroy ]
 
   layout "modal", only: [ :new, :edit ]
 
   def index
-    @total_active_members = Member.kept.count
     @pagy, @members = pagy(
       Member
         .apply_filters(filter_params)
         .includes(subscriptions: [ :product, :sales ])
     )
+    Subscription.preload_renewed(@members.flat_map(&:subscriptions))
   end
 
   def show
-    @member = Member.find(params[:id])
     @active_subscriptions = @member.subscriptions.kept
-                              .includes(:product, :access_logs)
-                              .select { |s| (s.end_date.nil? || s.end_date >= Date.current) && !s.out_of_entries? }
+                              .includes(:product, :sales)
+                              .select { |s| s.end_date >= Date.current }
                               .sort_by { |s| s.start_date || Date.current }
-    @recent_sales = @member.recent_sales
+    Subscription.preload_renewed(@active_subscriptions)
   end
 
   def new
@@ -31,7 +31,7 @@ class MembersController < ApplicationController
     @member = Member.new(member_params)
 
     if @member.save
-      turbo_refresh_or_redirect_to @member, notice: t(".created", default: "Socio creato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: "Socio creato con successo."
     else
       render :new, layout: "modal", status: :unprocessable_entity
     end
@@ -41,18 +41,15 @@ class MembersController < ApplicationController
 
   def update
     if @member.update(member_params)
-      turbo_refresh_or_redirect_to @member, notice: t(".updated", default: "Socio aggiornato con successo.")
+      turbo_refresh_or_redirect_to @member, notice: "Socio aggiornato con successo."
     else
       render :edit, layout: "modal", status: :unprocessable_entity
     end
   end
 
   def destroy
-    if @member.discard!
-      turbo_refresh_or_redirect_to members_path, status: :see_other, notice: t(".discarded", default: "Socio archiviato correttamente.")
-    else
-      redirect_to members_path, status: :see_other, alert: t(".discard_error", default: "Impossibile archiviare il socio.")
-    end
+    @member.discard!
+    turbo_refresh_or_redirect_to members_path, status: :see_other, notice: "Socio archiviato correttamente."
   end
 
   private
@@ -61,11 +58,11 @@ class MembersController < ApplicationController
     end
 
     def member_params
-      params.require(:member).permit(
-        :first_name, :last_name, :fiscal_code, :birth_date,
-        :email_address, :phone, :address, :city, :zip_code,
-        :medical_certificate_expiry
-      )
+      params.expect(member: %i[
+        first_name last_name fiscal_code fiscal_code_pending birth_date
+        email_address phone address city zip_code
+        medical_certificate_expiry
+      ])
     end
 
     def filter_params

@@ -2,7 +2,7 @@
 require "rubygems"
 require "bundler/setup"
 
-# Explicit RuboCop config increases performance slightly while avoiding config confusion.
+# Configurazione RuboCop esplicita: un po' più veloce ed evita ambiguità.
 ARGV.unshift("--config", File.expand_path("../.rubocop.yml", __dir__))
 
 load Gem.bin_path("rubocop", "rubocop")

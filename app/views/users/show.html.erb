@@ -1,79 +1,16 @@
 <%= turbo_stream_from @user %>
 
-<%= render "users/context", user: @user %>
+<%= render layout: "shared/record_header", locals: {
+      title: @user.full_name, avatar: ui_avatar(@user),
+      badges: safe_join([ tag.span("@#{@user.username}", class: "badge badge-ghost badge-sm font-mono"), user_role_badge(@user),
+                          (ui_badge("Archiviato", tone: :error) if @user.discarded?) ].compact, " ") } do %>
+  <%= header_button "Modifica", edit_user_path(@user), "edit", data: { turbo_frame: "modal" } %>
+  <%= header_archive_button "Archivia", user_path(@user), confirm: "Archiviare #{@user.full_name}?" if @user.archivable_by?(current_user) %>
+<% end %>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-
-  <%# --- COLONNA SINISTRA: CREDENZIALI --- %>
-  <div class="lg:col-span-1">
-    <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
-      <%= icon("badge", classes: "size-4") %> Credenziali
-    </h3>
-
-    <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">Ruolo</div>
-        <div class="list-col-grow text-right">
-          <span class="badge <%= @user.admin? ? 'badge-primary' : 'badge-ghost' %> badge-sm">
-            <%= display_value(@user.role.humanize) %>
-          </span>
-        </div>
-      </li>
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">Username</div>
-        <div class="list-col-grow text-right font-mono font-bold">
-          @<%= display_value(@user.username) %>
-        </div>
-      </li>
-      <li class="list-row items-center">
-        <div class="opacity-60 font-medium">Email</div>
-        <div class="list-col-grow text-right truncate">
-          <%= format_email(@user.email_address) %>
-        </div>
-      </li>
-    </ul>
-  </div>
-
-  <%# --- COLONNA DESTRA: OPERATIVITÀ --- %>
-  <div class="lg:col-span-2 flex flex-col gap-8">
-
-    <%# STATISTICHE %>
-    <div>
-      <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
-        <%= icon("monitoring", classes: "size-4") %> Performance
-      </h3>
-      <div class="stats shadow-sm bg-base-100 w-full">
-        <div class="stat">
-          <div class="stat-figure text-primary/30"><%= icon("sale", classes: "size-8") %></div>
-          <div class="stat-title opacity-60">Vendite Registrate</div>
-          <div class="stat-value text-primary"><%= @sales_count %></div>
-        </div>
-      </div>
-    </div>
-
-    <%# AUDIT LOG %>
-    <div>
-      <h3 class="font-bold text-xs uppercase opacity-50 tracking-widest mb-3 flex items-center gap-2">
-        <%= icon("fingerprint", classes: "size-4") %> Audit Log
-      </h3>
-
-      <ul class="list bg-base-100 rounded-box shadow-sm text-sm">
-        <li class="list-row items-center">
-          <div class="opacity-50"><%= icon("event", classes: "size-5") %></div>
-          <div class="opacity-60 font-medium">Creazione Profilo</div>
-          <div class="list-col-grow text-right font-mono text-xs">
-            <%= format_datetime(@user.created_at, format: :long) %>
-          </div>
-        </li>
-        <li class="list-row items-center">
-          <div class="opacity-50"><%= icon("update", classes: "size-5") %></div>
-          <div class="opacity-60 font-medium">Ultima Modifica</div>
-          <div class="list-col-grow text-right font-mono text-xs">
-            <%= format_datetime(@user.updated_at, format: :long) %>
-          </div>
-        </li>
-      </ul>
-    </div>
-
-  </div>
+<div class="record-layout">
+  <%= render layout: "shared/panel", locals: { title: "Attività", icon_name: "monitoring" } do %>
+    <%= render "shared/details", rows: { "Vendite registrate" => @sales_count, "Creato il" => format_datetime(@user.created_at, format: :long),
+                                          "Ultima modifica" => format_datetime(@user.updated_at, format: :long) } %>
+  <% end %>
 </div>

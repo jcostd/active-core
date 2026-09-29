@@ -1,9 +1,9 @@
-# This migration comes from active_storage (originally 20191206030411)
+# Migrazione di active_storage (originale 20191206030411)
 class CreateActiveStorageVariantRecords < ActiveRecord::Migration[6.0]
   def change
     return unless table_exists?(:active_storage_blobs)
 
-    # Use Active Record's configured type for primary key
+    # Tipo di chiave primaria configurato in Active Record
     create_table :active_storage_variant_records, id: primary_key_type, if_not_exists: true do |t|
       t.belongs_to :blob, null: false, index: false, type: blobs_primary_key_type
       t.string :variation_digest, null: false

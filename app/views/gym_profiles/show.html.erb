@@ -1,0 +1,19 @@
+<%= render layout: "shared/record_header", locals: {
+      title: @gym_profile.name, avatar: icon("fitness_center", classes: "size-14 opacity-50"),
+      badges: tag.span("C.F./P.IVA #{@gym_profile.vat_number || "da completare"}", class: "badge badge-ghost badge-sm font-mono") } do %>
+  <%= header_button "Modifica", edit_gym_profile_path, "edit", data: { turbo_frame: "modal" } %>
+<% end %>
+
+<p class="text-sm opacity-60 mt-6">Questi dati compaiono sulle ricevute e sui riepiloghi di pagamento.</p>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 items-start">
+  <%= render layout: "shared/panel", locals: { title: "Sede", icon_name: "home" } do %>
+    <%= render "shared/details", rows: { "Indirizzo" => @gym_profile.address_line_1, "Località" => @gym_profile.address_line_2,
+                                          "CAP" => @gym_profile.zip_code, "Città" => @gym_profile.city } %>
+  <% end %>
+
+  <%= render layout: "shared/panel", locals: { title: "Contatti e pagamenti", icon_name: "payments" } do %>
+    <%= render "shared/details", rows: { "Telefono" => @gym_profile.phone, "Email" => (format_email(@gym_profile.email) if @gym_profile.email.present?),
+                                          "IBAN" => (tag.span(@gym_profile.bank_iban, class: "font-mono") if @gym_profile.bank_iban.present?) } %>
+  <% end %>
+</div>

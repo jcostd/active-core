@@ -1,15 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="theme-sync"
+// Turbo non aggiorna gli attributi di <html>: dopo un cambio tema ci pensa il body
 export default class extends Controller {
-    static values = { theme: String }
+  static values = { theme: String }
 
-    themeValueChanged() {
-	if (this.themeValue) {
-	    const htmlTag = document.documentElement;
-
-	    htmlTag.setAttribute("data-theme", this.themeValue);
-	    htmlTag.style.backgroundColor = "var(--fallback-b2,oklch(var(--b2)))";
-	}
-    }
+  themeValueChanged() {
+    if (this.themeValue) document.documentElement.setAttribute("data-theme", this.themeValue)
+  }
 }

@@ -1,52 +1,53 @@
+# Importi in centesimi con accessori in euro: `monetize :price` su `price_cents`.
 module Monetizable
   extend ActiveSupport::Concern
 
-  class_methods do
-    def monetize(attribute_name)
-      cents_column = "#{attribute_name}_cents"
+  # 1.200,50  1,200.50  12,5  12.50  € 45  (migliaia solo a gruppi di tre cifre)
+  AMOUNT = /\A(?<sign>-)?(?<units>\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,](?<decimals>\d{1,2}))?\z/
 
-      define_method(attribute_name) do
-        cents = send(cents_column)
-        return nil unless cents
-        (cents / 100.0).round(2)
+  # oltre i dieci milioni di euro è un errore di battitura (e non entrerebbe nella colonna)
+  MAX_CENTS = 999_999_999
+
+  # centesimi, oppure nil se il testo non è un importo
+  def self.cents(value)
+    cents = parse(value)
+    cents if cents && cents.abs <= MAX_CENTS
+  end
+
+  def self.parse(value)
+    return (BigDecimal(value.to_s) * 100).round.to_i if value.is_a?(Numeric)
+
+    match = AMOUNT.match(value.to_s.delete(" €"))
+    return unless match
+
+    (BigDecimal("#{match[:sign]}#{match[:units].delete(".,")}.#{match[:decimals] || 0}") * 100).round.to_i
+  end
+  private_class_method :parse
+
+  included do
+    validate :monetized_values_parse
+  end
+
+  class_methods do
+    def monetize(attribute)
+      define_method(attribute) do
+        public_send("#{attribute}_cents")&.fdiv(100)
       end
 
-      define_method("#{attribute_name}=") do |value|
-        return send("#{cents_column}=", nil) if value.blank?
-
-        # A. Se è già un numero (es: 10.50 o 100)
-        if value.is_a?(Numeric)
-          # .round(2) evita problemi di virgola mobile (es. 10.5500000001)
-          self.send("#{cents_column}=", (value.to_f.round(2) * 100).to_i)
-
-        # B. Se è una stringa (Parsing avanzato)
-        else
-          # Rimuoviamo spazi e simbolo valuta
-          clean = value.to_s.gsub(/[^\d.,-]/, "").strip
-
-          # Caso critico: "1.200" (senza virgola). In Italia è 1200, in USA è 1.2
-          # SOLUZIONE: Se c'è solo il punto, contiamo i decimali.
-          # Se sono 3 (es: 1.000), assumiamo siano migliaia.
-
-          if clean.include?(".") && !clean.include?(",")
-            parts = clean.split(".")
-            if parts.last.length == 3
-              # È probabile che sia un separatore migliaia (1.000) -> togliamo il punto
-              clean = clean.gsub(".", "")
-            end
-          end
-
-          # Se ci sono sia punti che virgole (1.200,50), togliamo i punti (migliaia)
-          if clean.include?(".") && clean.include?(",")
-            clean = clean.gsub(".", "")
-          end
-
-          # Sostituiamo la virgola con punto per renderlo comprensibile a Ruby
-          standardized = clean.gsub(",", ".")
-
-          self.send("#{cents_column}=", (BigDecimal(standardized) * 100).to_i)
-        end
+      define_method("#{attribute}=") do |value|
+        cents = Monetizable.cents(value) unless value.blank?
+        value.present? && cents.nil? ? unparsable_money << attribute : unparsable_money.delete(attribute)
+        public_send("#{attribute}_cents=", cents)
       end
     end
   end
+
+  private
+    def unparsable_money
+      @unparsable_money ||= Set.new
+    end
+
+    def monetized_values_parse
+      unparsable_money.each { errors.add(it, "non è un importo valido") }
+    end
 end

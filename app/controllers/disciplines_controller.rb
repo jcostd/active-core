@@ -1,12 +1,12 @@
 class DisciplinesController < ApplicationController
   include Filterable
 
-  before_action :set_discipline, only: [ :show, :edit, :update, :destroy ]
+  before_action :require_admin, except: %i[ index show ]
+  before_action :set_discipline, only: %i[ show edit update destroy ]
 
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    @total_active_disciplines = Discipline.kept.count
     @pagy, @disciplines = pagy(
       Discipline
         .apply_filters(filter_params)
@@ -14,9 +14,7 @@ class DisciplinesController < ApplicationController
     )
   end
 
-  def show
-    @related_products = @discipline.products.kept
-  end
+  def show; end
 
   def new
     @discipline = Discipline.new(
@@ -46,11 +44,8 @@ class DisciplinesController < ApplicationController
   end
 
   def destroy
-    if @discipline.discard!
-      turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina archiviata."
-    else
-      turbo_refresh_or_redirect_to disciplines_path, alert: "Impossibile archiviare."
-    end
+    @discipline.discard!
+    turbo_refresh_or_redirect_to disciplines_path, notice: "Disciplina archiviata."
   end
 
   private
@@ -59,7 +54,7 @@ class DisciplinesController < ApplicationController
     end
 
     def discipline_params
-      params.require(:discipline).permit(:name, :requires_medical_certificate, :requires_membership)
+      params.expect(discipline: %i[ name requires_medical_certificate requires_membership ])
     end
 
     def filter_params

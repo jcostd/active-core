@@ -3,6 +3,7 @@ module Authentication
 
   included do
     before_action :require_authentication
+    before_action :confine_kiosk_user
     helper_method :authenticated?
     helper_method :current_user
   end
@@ -33,20 +34,39 @@ module Authentication
     end
 
     def find_session_by_cookie
-      Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      return unless id = cookies.signed[:session_id]
+      return unless session = Session.find_resumable(id)
+
+      if session.expired?
+        session.destroy
+        cookies.delete(:session_id)
+        @session_expired = true
+        return
+      end
+
+      session.tap(&:record_activity!)
     end
+
+    # l'utente kiosk vede solo il kiosk
+    def confine_kiosk_user
+      redirect_to kiosk_root_path if current_user&.kiosk? && !kiosk_request?
+    end
+
+    # sovrascritto dai controller del kiosk
+    def kiosk_request? = false
 
     def current_user
       Current.session&.user
     end
 
     def request_authentication
-      session[:return_to_after_authenticating] = request.url
-      redirect_to new_session_path
+      session[:return_to_after_authenticating] = request.url if request.get? || request.head?
+      redirect_to new_session_path, alert: ("Sessione scaduta per inattività." if @session_expired)
     end
 
     def after_authentication_url
-      session.delete(:return_to_after_authenticating) || root_url
+      return_to = session.delete(:return_to_after_authenticating)
+      current_user.kiosk? ? kiosk_root_url : return_to || root_url
     end
 
     def start_new_session_for(user)

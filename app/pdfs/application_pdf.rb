@@ -2,7 +2,6 @@ class ApplicationPdf < Prawn::Document
   include ActionView::Helpers::NumberHelper
   include ActionView::Helpers::TranslationHelper
 
-  # --- PALETTE COLORI & COSTANTI (Invariate) ---
   COLOR_PRIMARY       = "333333"
   COLOR_SECONDARY     = "777777"
   COLOR_ACCENT        = "000000"
@@ -27,18 +26,25 @@ class ApplicationPdf < Prawn::Document
       info: { Creator: "ActiveCore", Producer: "Prawn" }
     }
     super(default_options.merge(options))
-    @view = ActionController::Base.new.view_context
     setup_fonts
   end
 
+  FONTS_DIR = Rails.root.join("vendor/fonts")
+
+  # ttf al posto dei font integrati: questi coprono solo Windows-1252 (niente Ș, Ł, ...)
   def setup_fonts
-    font "Helvetica"
+    font_families.update("LiberationSans" => {
+      normal:      FONTS_DIR.join("LiberationSans-Regular.ttf").to_s,
+      bold:        FONTS_DIR.join("LiberationSans-Bold.ttf").to_s,
+      italic:      FONTS_DIR.join("LiberationSans-Italic.ttf").to_s,
+      bold_italic: FONTS_DIR.join("LiberationSans-BoldItalic.ttf").to_s
+    })
+    font "LiberationSans"
     default_leading 3
   end
 
-  def format_currency(amount)
-    val = amount.is_a?(Integer) ? amount / 100.0 : amount
-    @view.number_to_currency(val, locale: :it)
+  def format_cents(cents)
+    number_to_currency(cents / 100.0, locale: :it)
   end
 
   def draw_divider

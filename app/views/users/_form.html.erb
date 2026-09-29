@@ -1,73 +1,49 @@
-<%= form_with(model: user, class: "flex flex-col gap-8 py-2") do |f| %>
+<%= form_with model: user, class: "flex flex-col gap-4" do |f| %>
   <%= render "shared/form_errors", model: user %>
 
-  <%# --- SEZIONE 1: IDENTITÀ --- %>
   <fieldset class="fieldset">
-    <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
-      <%= icon("badge", classes: "size-6 opacity-40") %> Identità
-    </legend>
+    <legend class="fieldset-legend"><%= icon("badge", classes: "size-4") %> Identità</legend>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
       <div>
-        <%= f.label :first_name, "Nome", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.text_field :first_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Mario" %>
+        <%= f.label :first_name %>
+        <%= f.text_field :first_name, required: true, placeholder: "Mario" %>
       </div>
-
       <div>
-        <%= f.label :last_name, "Cognome", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.text_field :last_name, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "Rossi" %>
+        <%= f.label :last_name %>
+        <%= f.text_field :last_name, required: true, placeholder: "Rossi" %>
       </div>
     </div>
 
-    <div class="mt-2">
-      <%= f.label :username, "Username", class: "label text-xs font-semibold uppercase opacity-70" %>
-      <%= f.text_field :username, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario.rossi" %>
-      <div class="fieldset-label text-base-content/50 mt-1">Usato per il login. Solo lettere minuscole e numeri.</div>
-    </div>
+    <%= f.label :username %>
+    <%= f.text_field :username, required: true, placeholder: "mario_rossi" %>
+    <p class="label">Serve per entrare. Solo lettere minuscole, numeri e underscore.</p>
   </fieldset>
 
-  <%# --- SEZIONE 2: ACCESSO & SICUREZZA --- %>
   <fieldset class="fieldset">
-    <legend class="fieldset-legend text-lg font-bold text-base-content mb-3 flex items-center gap-2">
-      <%= icon("fingerprint", classes: "size-6 opacity-40") %> Accesso & Sicurezza
-    </legend>
+    <legend class="fieldset-legend"><%= icon("fingerprint", classes: "size-4") %> Accesso</legend>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+    <%= f.label :role %>
+    <% if user.kiosk? %>
+      <p class="label whitespace-normal">Utente fisso dell'iPad: usa solo il kiosk, non si archivia e non cambia ruolo.</p>
+    <% else %>
+      <%= f.select :role, user_role_options, {}, disabled: !current_user.admin? %>
+    <% end %>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
       <div>
-        <%= f.label :email_address, "Email", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.email_field :email_address, required: true, class: "input input-bordered bg-base-100 w-full", placeholder: "mario@palestra.it" %>
+        <%= f.label :password, "Nuova password" %>
+        <%= f.password_field :password, autocomplete: "new-password" %>
       </div>
-
       <div>
-        <%= f.label :role, "Ruolo", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.select :role,
-            User.roles.keys.map { |r| [r.humanize, r] },
-            {},
-            class: "select select-bordered bg-base-100 w-full",
-            disabled: !current_user.admin? %>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4">
-      <div>
-        <%= f.label :password, "Nuova Password", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.password_field :password, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
-      </div>
-
-      <div>
-        <%= f.label :password_confirmation, "Conferma Password", class: "label text-xs font-semibold uppercase opacity-70" %>
-        <%= f.password_field :password_confirmation, class: "input input-bordered bg-base-100 w-full", autocomplete: "new-password" %>
+        <%= f.label :password_confirmation %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
       </div>
     </div>
-
     <% if user.persisted? %>
-      <div class="fieldset-label text-base-content/50 mt-2 flex items-center gap-1">
-        <%= icon("info", classes: "size-4") %> Lascia vuoto per mantenere la password attuale.
-      </div>
+      <p class="label">Vuota per tenere quella attuale.</p>
     <% end %>
   </fieldset>
 
-  <div class="modal-action mt-6">
-    <%= f.submit "Salva Utente", class: "btn btn-primary px-8", data: { turbo_submits_with: 'Salvataggio...' } %>
-  </div>
+  <div class="modal-action"><%= f.submit %></div>
 <% end %>

@@ -1,18 +1,18 @@
 class PaymentReceiptPdf < ApplicationPdf
-  # --- LAYOUT CONSTANTS ---
-  # MODIFICA SPAZI: Allargo la destra, stringo la sinistra per non sovrapporre
-  HEADER_RIGHT_WIDTH   = 240  # Era 180 (Più spazio per il numero lungo)
-  HEADER_RIGHT_X       = 300  # Era 350 (Spostato a sx per farci stare i 240pt)
-  HEADER_LEFT_WIDTH    = 290  # Era 360 (Ridotto per non toccare la destra)
+  # a destra c'è posto per un numero di ricevuta lungo, senza toccare l'intestazione a sinistra
+  HEADER_RIGHT_WIDTH   = 240
+  HEADER_RIGHT_X       = 300
+  HEADER_LEFT_WIDTH    = 290
 
   RECIPIENT_BOX_WIDTH  = 400
   TABLE_DESC_COL_WIDTH = 380
+
+  SEQUENCES = { "associative" => "Quota Associativa", "institutional" => "Quota Istituzionale" }.freeze
 
   def initialize(sale)
     super()
     @sale = sale
     @member = sale.member
-    @product_name = @sale.product&.name || "Servizio Palestra"
     @gym_profile = GymProfile.current
 
     header_section
@@ -22,26 +22,21 @@ class PaymentReceiptPdf < ApplicationPdf
   end
 
   def header_section
-    # --- DESTRA (Dati Ricevuta) ---
     float do
       bounding_box([ HEADER_RIGHT_X, cursor ], width: HEADER_RIGHT_WIDTH) do
-        # MODIFICA LOGICA:
-        # Se c'è il codice ricevuta -> "RICEVUTA N. 123/2025"
-        # Se NON c'è -> Scriviamo "RIEPILOGO" (o nulla) ma NON "Ricevuta N."
-        if @sale.respond_to?(:receipt_code) && @sale.receipt_code.present?
+        # solo i contanti hanno un numero di ricevuta; gli altri pagamenti un riepilogo
+        if @sale.receipt_code
           text "RICEVUTA N. #{@sale.receipt_code}", size: FONT_SIZE_L, style: :bold, align: :right, color: COLOR_ACCENT
         else
-          # Titolo alternativo per quando non è fiscale
           text "RIEPILOGO", size: FONT_SIZE_L, style: :bold, align: :right, color: COLOR_SECONDARY
         end
 
         text "Data: #{I18n.l(@sale.sold_on)}", size: FONT_SIZE_M, align: :right
         move_down GAP_XS
-        text "Pagamento: #{@sale.payment_method.humanize}", size: FONT_SIZE_S, align: :right
+        text "Pagamento: #{SalesHelper::PAYMENT_METHODS.dig(@sale.payment_method, :label)}", size: FONT_SIZE_S, align: :right
       end
     end
 
-    # --- SINISTRA (Dati Palestra) ---
     span(HEADER_LEFT_WIDTH, position: :left) do
       text @gym_profile.name, size: FONT_SIZE_XL, style: :bold, color: COLOR_PRIMARY
       text "Associazione Sportiva Dilettantistica", size: FONT_SIZE_S, color: COLOR_SECONDARY
@@ -53,10 +48,7 @@ class PaymentReceiptPdf < ApplicationPdf
         move_down 2
       end
 
-      contacts = []
-      contacts << "Tel: #{@gym_profile.phone}" if @gym_profile.phone.present?
-      contacts << "Email: #{@gym_profile.email}" if @gym_profile.email.present?
-
+      contacts = [ ("Tel: #{@gym_profile.phone}" if @gym_profile.phone.present?), ("Email: #{@gym_profile.email}" if @gym_profile.email.present?) ].compact
       if contacts.any?
         text contacts.join("  |  "), size: FONT_SIZE_S, color: COLOR_PRIMARY
         move_down 2
@@ -93,31 +85,17 @@ class PaymentReceiptPdf < ApplicationPdf
     text "CAUSALE VERSAMENTO", size: FONT_SIZE_XS, style: :bold, color: COLOR_SECONDARY
     move_down GAP_XS
 
-    prefix =
-      case @sale.receipt_sequence
-      when "associative"
-        "Quota Associativa"
-      when "institutional"
-        "Quota Istituzionale"
-      else
-        "Contributo"
-      end
-
-    description = "#{prefix}: #{@product_name}"
-
-    # Se è un abbonamento, mostriamo le date
-    if @sale.subscription
-       description += "\nValidità: #{I18n.l(@sale.subscription.start_date)} - #{I18n.l(@sale.subscription.end_date)}"
-    end
+    # nome congelato alla vendita: la ricevuta non cambia se il prodotto viene rinominato
+    description = "#{SEQUENCES.fetch(@sale.receipt_sequence, "Contributo")}: #{@sale.product_name_snapshot}"
+    description += "\nValidità: #{I18n.l(@sale.subscription.start_date)} - #{I18n.l(@sale.subscription.end_date)}" if @sale.subscription
 
     data = [
       [ "DESCRIZIONE", "IMPORTO" ],
-      [ description, format_currency(@sale.amount) ],
-      [ "TOTALE", format_currency(@sale.amount) ]
+      [ description, format_cents(@sale.amount_cents) ],
+      [ "TOTALE", format_cents(@sale.amount_cents) ]
     ]
 
     table(data, width: bounds.width) do
-      # Header
       row(0).font_style = :bold
       row(0).size = FONT_SIZE_XS
       row(0).text_color = COLOR_SECONDARY
@@ -125,13 +103,11 @@ class PaymentReceiptPdf < ApplicationPdf
       row(0).borders = [ :bottom ]
       row(0).border_color = COLOR_LINE
 
-      # Body
       cells.padding = [ GAP_S, GAP_XS ]
       cells.borders = [ :bottom ]
       cells.border_width = 0.5
       cells.border_color = COLOR_LINE
 
-      # Footer (Totale)
       row(-1).font_style = :bold
       row(-1).size = FONT_SIZE_L
       row(-1).background_color = "FFFFFF"

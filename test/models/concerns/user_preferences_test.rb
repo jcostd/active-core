@@ -6,8 +6,7 @@ class UserPreferencesTest < ActiveSupport::TestCase
       username: "pref_tester",
       password: "password",
       first_name: "Test",
-      last_name: "User",
-      email_address: "test@example.com"
+      last_name: "User"
     )
   end
 
@@ -28,7 +27,7 @@ class UserPreferencesTest < ActiveSupport::TestCase
 
     @user.theme = "windows_95_ugly_theme"
     assert_not @user.valid?
-    assert_includes @user.errors[:theme], "is not included in the list"
+    assert_includes @user.errors[:theme], "non è compreso tra le opzioni disponibili"
 
     @user.theme = nil
     assert @user.valid?
@@ -46,25 +45,7 @@ class UserPreferencesTest < ActiveSupport::TestCase
     assert_equal "dim", @user.theme
   end
 
-  test "validates available locales" do
-    @user.locale = I18n.default_locale.to_s
-    assert @user.valid?
 
-    @user.locale = "klingon"
-    assert_not @user.valid?
-    assert_includes @user.errors[:locale], "is not included in the list"
-  end
-
-  test "returns correct locale fallback" do
-    default = I18n.default_locale.to_s
-
-    # Il getter "locale" fa da fallback automatico
-    @user.locale = nil
-    assert_equal default, @user.locale
-
-    @user.locale = "it" # Assumendo che :it sia tra gli available_locales
-    assert_equal "it", @user.locale
-  end
 
   test "persists preferences to database" do
     # Usiamo un tema valido

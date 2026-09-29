@@ -22,6 +22,23 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_nil cookies[:session_id]
   end
 
+  test "create rejects a discarded user" do
+    @user.discard!
+
+    post session_path, params: { username: @user.username, password: "password" }
+
+    assert_redirected_to new_session_path
+    assert_nil cookies[:session_id]
+  end
+
+  test "session cookie of a discarded user is not resumed" do
+    sign_in_as(@user)
+    @user.update_column(:discarded_at, Time.current)
+
+    get root_path
+    assert_redirected_to new_session_path
+  end
+
   test "destroy" do
     sign_in_as(User.take)
 

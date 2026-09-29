@@ -1,0 +1,14 @@
+<%# locals: (title:, avatar:, badges: nil) %>
+<%# intestazione della scheda di un record; il blocco sono le azioni %>
+<header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-base-200">
+  <div class="flex items-center gap-4 min-w-0">
+    <%= link_to icon("arrow_left"), :back, class: "btn btn-square btn-ghost btn-sm shrink-0", title: "Indietro" %>
+    <%= avatar %>
+    <div class="min-w-0">
+      <h1 class="text-2xl sm:text-3xl font-bold leading-none mb-1.5 truncate"><%= title %></h1>
+      <div class="flex flex-wrap items-center gap-2"><%= badges %></div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 self-end sm:self-auto shrink-0"><%= yield %></div>
+</header>

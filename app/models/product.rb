@@ -1,18 +1,3 @@
-# Copyright (C) 2026 Jacopo Costantini <jacopocostantini32@gmail.com>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 class Product < ApplicationRecord
   include SoftDeletable, Monetizable, Refreshable
   include Product::Filterable
@@ -29,22 +14,33 @@ class Product < ApplicationRecord
           associative:   "associative"
         }, default: :institutional, validate: true
 
-  normalizes :name, with: ->(n) { n.squish.titleize }
+  normalizes :name, with: ->(name) { ProperCase.title(name) }
 
-  validates :name, presence: true, uniqueness: { conditions: -> { kept } }
+  validates :name, presence: true, uniqueness: { conditions: -> { kept }, case_sensitive: false }
   validates :duration_days, numericality: { greater_than: 0, only_integer: true }
   validates :price_cents, numericality: { greater_than_or_equal_to: 0, only_integer: true }
-  validates :entry_limit, numericality: { greater_than: 0, only_integer: true, allow_nil: true }
+  validate :terms_fixed_once_sold, on: :update
 
-  def membership?
-    associative?
+  # i più venduti prima: la proposta di default alla cassa
+  scope :popular, -> { left_joins(:subscriptions).group(:id).order(Arel.sql("COUNT(subscriptions.id) DESC"), :name) }
+
+  # prodotti che si rinnovano a vicenda: sé stesso, quelli con una disciplina in comune e, per una quota, tutte le quote
+  def same_line
+    line = Product.where(id:).or(Product.where(id: ProductDiscipline.where(discipline_id: product_disciplines.select(:discipline_id)).select(:product_id)))
+    associative? ? line.or(Product.associative) : line
   end
 
-  def course?
-    institutional?
+  # categoria e durata decidono date e validità degli abbonamenti già venduti: dopo la prima vendita non cambiano
+  def terms_locked?
+    persisted? && subscriptions.exists?
   end
 
-  def carnet_or_pt?
-    entry_limit.present?
-  end
+  private
+    def terms_fixed_once_sold
+      return unless terms_locked?
+
+      %i[accounting_category duration_days].select { will_save_change_to_attribute?(it) }.each do |attribute|
+        errors.add(attribute, "non può essere cambiata: il prodotto ha già abbonamenti venduti")
+      end
+    end
 end

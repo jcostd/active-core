@@ -2,11 +2,7 @@ module Avatarable
   extend ActiveSupport::Concern
 
   def initials
-    return "NA" unless respond_to?(:first_name) && respond_to?(:last_name)
-
-    f = first_name.to_s.strip.first
-    l = last_name.to_s.strip.first
-    "#{f}#{l}".upcase
+    "#{first_name.to_s.first}#{last_name.to_s.first}".upcase
   end
 
   def avatar_color_style

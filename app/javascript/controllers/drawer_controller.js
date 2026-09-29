@@ -1,35 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="drawer"
+// cassetto dei filtri: finché è aperto è permanente, così un aggiornamento in tempo reale non lo chiude
 export default class extends Controller {
-    static targets = ["dialog"]
+  static targets = ["dialog"]
 
-    connect() {
-	if (this.dialogTarget.hasAttribute("open")) {
-	    this.dialogTarget.removeAttribute("open")
-	    this.dialogTarget.showModal()
-	}
-    }
+  open(event) {
+    event?.preventDefault()
+    this.dialogTarget.setAttribute("data-turbo-permanent", "")
+    this.dialogTarget.showModal()
+  }
 
-    disconnect() {
-	if (this.dialogTarget.hasAttribute("open")) {
-	    this.dialogTarget.close()
-	}
-    }
+  close(event) {
+    event?.preventDefault()
+    this.dialogTarget.close()
+  }
 
-    open(event) {
-	if (event) event.preventDefault()
-	this.dialogTarget.showModal()
-    }
-
-    close(event) {
-	if (event) event.preventDefault()
-	this.dialogTarget.close()
-    }
-
-    clickOutside(event) {
-	if (event.target === this.dialogTarget) {
-	    this.close()
-	}
-    }
+  closed() {
+    this.dialogTarget.removeAttribute("data-turbo-permanent")
+  }
 }

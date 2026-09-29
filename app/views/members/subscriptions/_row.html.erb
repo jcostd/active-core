@@ -1,65 +1,52 @@
-<%
-status = subscription.status
-active_sales = subscription.sales.reject(&:discarded?).sort_by(&:sold_on)
-amount_due = subscription.agreed_price_cents - subscription.amount_paid
-%>
+<%# locals: (subscription:) %>
+<% status, style = subscription.status, subscription_status_style(subscription) %>
+<% sales = subscription.sales.reject(&:discarded?).sort_by(&:sold_on) %>
+<% due = subscription.amount_due %>
+<li id="<%= dom_id(subscription) %>" class="<%= class_names("list-row", "opacity-60 grayscale": status == :expired) %>">
+  <div class="<%= class_names("p-2 rounded-box self-start", style[:tint]) %>"><%= icon(style[:icon]) %></div>
 
-<%= subscription_row_wrapper(subscription, status) do %>
-
-  <%# -- Colonna 1: Icona -- %>
-  <div class="text-<%= status.color %> bg-<%= status.color %>/10 p-2 rounded-box mt-1 sm:mt-0 self-start sm:self-center">
-    <%= icon(subscription_status_icon(status.key), classes: "size-5") %>
-  </div>
-
-  <%# -- Colonna 2: Contenuto -- %>
-  <div class="list-col-grow gap-1">
-
-    <%# Titolo e Badges %>
+  <div class="list-col-grow flex flex-col gap-1">
     <div class="flex flex-wrap items-center gap-2">
-      <span class="font-bold text-base"><%= subscription.product.name %></span>
-
-      <span class="badge badge-sm badge-soft badge-<%= status.color %>">
-        <%= subscription_status_label(status.key) %>
-      </span>
-
-      <%= subscription_payment_badge(subscription, amount_due) %>
+      <span class="font-bold"><%= subscription.product.name %></span>
+      <%= subscription_status_badge(subscription) %>
+      <%= subscription_payment_badge(subscription) %>
+    </div>
+    <div class="text-xs opacity-70 flex items-center gap-1">
+      <%= icon("calendar_today", classes: "size-3") %> <%= format_date(subscription.start_date) %> → <%= format_date(subscription.end_date) %>
+      <%= tag.span("· #{subscription.days_left} gg rimasti", class: "font-mono") unless status == :expired %>
     </div>
 
-    <%# Date e Info %>
-    <div class="text-xs opacity-70 flex items-center gap-1 font-medium">
-      <%= icon("calendar_today", classes: "size-3") %>
-      <%= format_date(subscription.start_date) %> &rarr; <%= format_date(subscription.end_date) %>
-      <%= subscription_days_left_indicator(subscription, status) %>
-    </div>
-
-    <%# Storico Rate & Azione Pagamento %>
-    <% if active_sales.any? || amount_due > 0 %>
-      <div class="mt-1.5 flex flex-col gap-1 border-l-2 border-base-300 pl-3">
-
-        <% active_sales.each do |sale| %>
-          <div class="flex items-center justify-between text-xs opacity-80 hover:opacity-100 w-full max-w-sm">
-            <div class="flex items-center gap-1.5">
-              <%= payment_method_icon(sale.payment_method, classes: "size-3") %>
-              <span><%= format_date(sale.sold_on) %></span>
-              <%= subscription_sale_receipt_link(sale) %>
-            </div>
-            <div class="font-mono font-medium"><%= format_money(sale.amount) %></div>
+    <% if sales.any? || due > 0 %>
+      <div class="flex flex-col gap-1 border-l-2 border-base-300 pl-3 max-w-sm">
+        <% sales.each do |sale| %>
+          <div class="flex items-center justify-between text-xs">
+            <span class="flex items-center gap-1.5">
+              <%= payment_method_icon(sale.payment_method, classes: "size-3") %> <%= format_date(sale.sold_on) %>
+              <%= link_to sale.receipt_code, sale, class: "link link-hover text-primary", data: { turbo_frame: "_top" } if sale.receipt_code %>
+            </span>
+            <span class="font-mono"><%= format_money(sale.amount) %></span>
           </div>
         <% end %>
-
-        <%= subscription_installment_action(subscription, amount_due) %>
-
+        <% if due > 0 %>
+          <div class="flex items-center justify-between bg-warning/10 text-warning px-2 py-1.5 rounded-box">
+            <span class="text-xs font-bold">Resta: <%= format_cents(due) %></span>
+            <%= link_to new_sale_path(member_id: subscription.member_id, installment_for_subscription_id: subscription.id),
+                        class: "btn btn-xs btn-warning btn-soft", title: "Incassa rata", data: { turbo_frame: "modal" } do %>
+              <%= icon("payments", classes: "size-3") %> Incassa
+            <% end %>
+          </div>
+        <% end %>
       </div>
     <% end %>
   </div>
 
-  <%# -- Colonna 3: Azioni -- %>
-  <div class="flex items-center gap-1 self-start sm:self-center">
-    <%= subscription_renew_action(subscription, status) %>
-    <% if current_user.admin? %>
-      <%= ui_row_edit_button([:edit, subscription]) %>
+  <div class="flex items-center self-start">
+    <% if status.in?(%i[expired expiring_soon]) && !subscription.renewed? %>
+      <%= link_to icon("reset"), renew_sale_path(subscription), class: "btn btn-square btn-sm btn-ghost text-info", title: "Rinnova", data: { turbo_frame: "modal" } %>
     <% end %>
-    <%= subscription_archive_action(subscription) %>
+    <%= ui_row_edit_button(edit_subscription_path(subscription)) if current_user.admin? %>
+    <% if subscription.discardable_by?(current_user) %>
+      <%= ui_row_delete_button(subscription, title: "Annulla", confirm: "Annullando l'abbonamento annullerai anche i pagamenti collegati. Continuare?") %>
+    <% end %>
   </div>
-
-<% end %>
+</li>

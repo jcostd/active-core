@@ -1,31 +1,32 @@
 module IconsHelper
-  def icon(name, classes: "size-5", **options)
-    filename = Rails.root.join("app/assets/images/icons/#{name}.svg")
+  ICONS_DIR = Rails.root.join("app/assets/images/icons")
+  # cache nel processo: file piccoli e letti su ogni pagina, Solid Cache (database) costerebbe di più
+  SVG_CACHE = Concurrent::Map.new
 
-    unless File.exist?(filename)
+  def icon(name, classes: "size-5", **options)
+    svg = icon_svg(name.to_s)
+    classes = [ classes, options.delete(:class) ].compact_blank.join(" ")
+
+    unless svg
       return content_tag(:span, name.to_s.first.upcase,
                          class: "inline-flex items-center justify-center bg-base-300 rounded text-[10px] font-bold select-none #{classes}")
     end
 
-    svg_content = Rails.cache.fetch([ "icon_svg_fast", name, File.mtime(filename) ]) do
-      File.read(filename)
-    end
+    attributes = options.merge(class: classes.presence).compact
+                        .map { |key, value| %( #{key.to_s.dasherize}="#{ERB::Util.html_escape(value)}") }.join
 
-    doc = svg_content.dup
-
-    if classes.present?
-      if doc.include?('class="')
-        doc.sub!('class="', "class=\"#{classes} ")
-      else
-        doc.sub!("<svg", "<svg class=\"#{classes}\"")
-      end
-    end
-
-    if options.any?
-      attrs = options.map { |k, v| "#{k.to_s.dasherize}=\"#{v}\"" }.join(" ")
-      doc.sub!("<svg", "<svg #{attrs}")
-    end
-
-    doc.html_safe
+    svg.sub("<svg", "<svg#{attributes}").html_safe
   end
+
+  private
+    def icon_svg(name)
+      return read_icon(name) if Rails.env.development? # modifiche visibili senza riavvio
+
+      SVG_CACHE.fetch_or_store(name) { read_icon(name) || false } || nil
+    end
+
+    def read_icon(name)
+      path = ICONS_DIR.join("#{File.basename(name)}.svg")
+      File.read(path).strip if File.file?(path)
+    end
 end

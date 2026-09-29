@@ -1,0 +1,58 @@
+<% content_for :title, "Modifica dati dell'ASD" %>
+
+<%= form_with model: @gym_profile, url: gym_profile_path, class: "flex flex-col gap-4" do |f| %>
+  <%= render "shared/form_errors", model: @gym_profile %>
+
+  <p class="text-sm text-base-content/70">Compaiono sulle ricevute e sui riepiloghi di pagamento.</p>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Associazione</legend>
+
+    <%= f.label :name, "Denominazione" %>
+    <%= f.text_field :name, required: true, placeholder: "A.S.D. Nome Associazione" %>
+
+    <%= f.label :vat_number, "Codice fiscale / P.IVA" %>
+    <%= f.text_field :vat_number, class: "input w-full font-mono", autocomplete: "off" %>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Sede</legend>
+
+    <%= f.label :address_line_1, "Indirizzo" %>
+    <%= f.text_field :address_line_1, placeholder: "Via Roma 1" %>
+
+    <%= f.label :address_line_2, "Località" %>
+    <%= f.text_field :address_line_2 %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
+      <div>
+        <%= f.label :zip_code, "CAP" %>
+        <%= f.text_field :zip_code, inputmode: "numeric" %>
+      </div>
+      <div class="sm:col-span-2">
+        <%= f.label :city, "Città" %>
+        <%= f.text_field :city %>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend class="fieldset-legend">Contatti e pagamenti</legend>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+      <div>
+        <%= f.label :phone, "Telefono" %>
+        <%= f.telephone_field :phone %>
+      </div>
+      <div>
+        <%= f.label :email, "Email" %>
+        <%= f.email_field :email %>
+      </div>
+    </div>
+
+    <%= f.label :bank_iban, "IBAN" %>
+    <%= f.text_field :bank_iban, class: "input w-full font-mono", autocomplete: "off" %>
+  </fieldset>
+
+  <div class="modal-action"><%= f.submit %></div>
+<% end %>

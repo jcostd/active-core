@@ -7,11 +7,9 @@
 
     <% is_installment = sale.subscription&.persisted? %>
 
-    <%# === VARIABILI DI STATO DEL FORM === %>
     <%= f.hidden_field :subscription_id %>
     <%= hidden_field_tag :previous_member_id, sale.member_id %>
     <%= hidden_field_tag :previous_product_id, sale.product_id %>
-    <%= hidden_field_tag :renew_subscription_id, params[:renew_subscription_id] %>
 
     <% if is_installment %>
       <%= hidden_field_tag :installment_for_subscription_id, params[:installment_for_subscription_id] %>

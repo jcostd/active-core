@@ -1,0 +1,39 @@
+<%= turbo_stream_from "private_lessons" %>
+<%= render "shared/page_header", title: "Lezioni private", counter: pluralize(@private_lessons.size, "privata", plural: "private"),
+                                 new_path: new_private_lesson_path, new_label: "Nuova" %>
+
+<%= render layout: "shared/filter/form",
+           locals: { url: private_lessons_path, frame: "private_lessons_list", placeholder: "Cerca maestro, atleta o nota...",
+                     drawer_title: "Filtri Private", default_sort: "held_desc", sort_options: [ [ "Più recenti", "held_desc" ], [ "Meno recenti", "held_asc" ] ] } do %>
+  <%= hidden_field_tag :month, params[:month] %>
+  <%= filter_select :teacher, @teachers.map { [ it, it ] }, label: "Maestro", blank: "Tutti i maestri" %>
+<% end %>
+
+<%= render "shared/section_header", title: l(@month, format: "%B %Y").capitalize, icon_name: "event", aside: render("shared/month_nav", month: @month) %>
+
+<%= render layout: "shared/list", locals: { frame: "private_lessons_list", records: @private_lessons, filter_keys: %i[teacher], icon_name: "event",
+                                            empty: "Nessuna privata", message: "Nessuna lezione privata scritta a #{l(@month, format: "%B %Y")} con questi filtri." } do %>
+  <div class="flex flex-col gap-6">
+    <%= render layout: "shared/panel", locals: { title: "Riepilogo per maestro", icon_name: "group", id: "private_lessons_summary" } do %>
+      <table class="table table-sm">
+        <thead>
+          <tr><th>Maestro</th><th class="text-right">Private</th><th class="text-right">Tempo</th><th class="text-right">Atleti</th></tr>
+        </thead>
+        <tbody>
+          <% @private_lessons.group_by(&:teacher).sort.each do |teacher, lessons| %>
+            <tr>
+              <td class="font-medium"><%= teacher %></td>
+              <td class="text-right tabular-nums"><%= lessons.size %></td>
+              <td class="text-right tabular-nums"><%= format_minutes(lessons.sum(&:duration_minutes)) %></td>
+              <td class="text-right tabular-nums"><%= lessons.flat_map(&:athletes).uniq.size %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <ul id="private_lessons" class="list panel">
+      <%= render partial: "private_lessons/private_lesson", collection: @private_lessons, locals: { editable: @editable } %>
+    </ul>
+  </div>
+<% end %>

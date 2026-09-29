@@ -1,0 +1,31 @@
+<%# locals: (title:, hours:, icon_name:, icon_class:, sales:, cents:) %>
+<div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+  <div class="bg-base-200/30 px-5 py-4 border-b border-base-200 flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center gap-2">
+      <%= icon(icon_name, classes: "size-12 #{icon_class}") %>
+      <div>
+        <h2 class="font-bold text-lg leading-none"><%= title %></h2>
+        <div class="text-xs opacity-50 mt-1"><%= hours %></div>
+      </div>
+    </div>
+    <div class="font-mono font-bold text-xl"><%= format_cents(cents) %></div>
+  </div>
+
+  <ul class="list list-flush w-full text-sm">
+    <% sales.each do |sale| %>
+      <li class="list-row items-center p-4 border-b border-base-100">
+        <div class="font-mono text-xs opacity-50 w-20 shrink-0" title="Registrata il <%= l(sale.created_at, format: :short) %>">
+          <%= l(sale.created_at, format: sale.created_at.to_date == sale.sold_on ? "%H:%M" : "%d/%m %H:%M") %>
+        </div>
+        <div class="grow min-w-0">
+          <div class="font-semibold text-base truncate"><%= sale.member.full_name %></div>
+          <div class="text-xs opacity-60 truncate mt-0.5"><%= sale.product_name_snapshot %></div>
+        </div>
+        <div class="font-mono font-bold text-base shrink-0 pl-3"><%= format_cents(sale.amount_cents) %></div>
+      </li>
+    <% end %>
+    <% if sales.empty? %>
+      <li class="p-8 text-center opacity-40 italic">Nessun movimento registrato.</li>
+    <% end %>
+  </ul>
+</div>

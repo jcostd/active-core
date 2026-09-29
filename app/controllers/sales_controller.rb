@@ -1,17 +1,17 @@
 class SalesController < ApplicationController
   include Filterable
 
-  before_action :require_admin, only: [ :index ]
+  before_action :require_admin, only: :index
   before_action :set_sale, only: [ :show, :destroy ]
+  before_action :refuse_voided_receipt, only: :show, if: -> { request.format.pdf? }
 
   layout -> { turbo_frame_request_id == "pos_form_frame" ? false : "modal" }, only: [ :new, :create ]
 
   def index
-    @total_active_sales = Sale.kept.count
     @pagy, @sales = pagy(
       Sale
         .apply_filters(filter_params)
-        .includes(:member, :user)
+        .includes(:member, :user, subscription: [ :product, :sales ])
     )
   end
 
@@ -29,7 +29,7 @@ class SalesController < ApplicationController
   end
 
   def new
-    @sale = build_draft(sale_params_for_build)
+    @sale = draft(Sale.new(params.key?(:sale) ? sale_params : {}))
   end
 
   def create
@@ -37,9 +37,9 @@ class SalesController < ApplicationController
     @sale.user = current_user
 
     if @sale.save
-      redirect_to sale_path(@sale), notice: t(".created", default: "Vendita registrata con successo.")
+      redirect_to sale_path(@sale), notice: "Vendita registrata con successo."
     else
-      @sale = build_draft(sale_params, existing_sale: @sale)
+      @sale = draft(@sale)
 
       respond_to do |format|
         format.turbo_stream do
@@ -55,11 +55,12 @@ class SalesController < ApplicationController
   end
 
   def destroy
-    if @sale.discard!
-      redirect_back(fallback_location: sales_path, status: :see_other, notice: "Vendita annullata/stornata.")
-    else
-      redirect_back(fallback_location: sales_path, status: :see_other, alert: "Impossibile annullare la vendita.")
+    unless @sale.reversible_by?(current_user)
+      return redirect_back(fallback_location: @sale.member, status: :see_other, alert: "Questo pagamento non è più annullabile.")
     end
+
+    @sale.discard!
+    redirect_back(fallback_location: @sale.member, status: :see_other, notice: "Pagamento annullato.")
   end
 
   private
@@ -67,24 +68,16 @@ class SalesController < ApplicationController
       @sale = Sale.find(params[:id])
     end
 
-  def build_draft(sale_params, existing_sale: nil)
-    context = params.to_unsafe_h.deep_symbolize_keys
-
-    if context[:manual_start_date].present?
-      context[:sale] ||= {}
-      context[:sale][:subscription_attributes] ||= {}
-      context[:sale][:subscription_attributes][:start_date] = context[:manual_start_date]
+    # una ricevuta annullata non deve poter circolare come valida
+    def refuse_voided_receipt
+      redirect_to sale_path(@sale), alert: "Pagamento annullato: la ricevuta non è più stampabile." if @sale.discarded?
     end
 
-    PosDraftBuilder.new(
-      sale_params:    sale_params,
-      context_params: context,
-      existing_sale:  existing_sale
-    ).build
-  end
+    def draft(sale)
+      context = params.permit(:member_id, :installment_for_subscription_id,
+                              :previous_member_id, :previous_product_id).to_h.symbolize_keys
 
-    def sale_params_for_build
-      params.has_key?(:sale) ? sale_params : {}
+      Sale::Draft.new(sale, **context, override_end_date: current_user.admin? && params[:override_end_date] == "1").sale
     end
 
     def sale_params
@@ -95,11 +88,10 @@ class SalesController < ApplicationController
         permitted_sub_attrs << :agreed_price
       end
 
-      params.require(:sale).permit(
-        :member_id, :product_id, :amount, :payment_method,
-        :sold_on, :notes, :subscription_id,
-        subscription_attributes: permitted_sub_attrs
-      )
+      permitted = [ :member_id, :product_id, :amount, :payment_method, :notes, :subscription_id ]
+      permitted << :sold_on if current_user.admin?
+
+      params.expect(sale: [ *permitted, subscription_attributes: permitted_sub_attrs ])
     end
 
     def filter_params

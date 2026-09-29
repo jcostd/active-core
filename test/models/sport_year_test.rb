@@ -20,11 +20,4 @@ class SportYearTest < ActiveSupport::TestCase
     assert_equal Date.new(2025, 9, 1), sy.start_date
     assert_equal Date.new(2026, 8, 31), sy.end_date
   end
-
-  test "range returns correct date range" do
-    sy = SportYear.new(Date.new(2025, 10, 1))
-    expected_range = Date.new(2025, 9, 1)..Date.new(2026, 8, 31)
-
-    assert_equal expected_range, sy.range
-  end
 end

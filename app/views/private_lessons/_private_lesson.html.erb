@@ -1,0 +1,32 @@
+<%# locals: (private_lesson:, editable:) %>
+<li id="<%= dom_id(private_lesson) %>" class="list-row items-center">
+  <div class="w-12 text-center leading-none">
+    <div class="text-2xl font-black tabular-nums"><%= private_lesson.held_at.day %></div>
+    <div class="text-[11px] uppercase font-semibold opacity-60"><%= l(private_lesson.held_at, format: "%a") %></div>
+  </div>
+
+  <div class="list-col-grow flex flex-col gap-1 min-w-0">
+    <div class="font-bold"><%= private_lesson.teacher %></div>
+    <div class="text-[11px] uppercase font-semibold opacity-70">
+      <%= l(private_lesson.held_at, format: "%H:%M") %>–<%= l(private_lesson.ends_at, format: "%H:%M") %>
+      · <%= format_minutes(private_lesson.duration_minutes) %>
+      · <%= pluralize(private_lesson.athletes.size, "atleta", plural: "atleti") %>
+    </div>
+    <div class="flex flex-wrap gap-1">
+      <% private_lesson.athletes.each do |name| %>
+        <span class="badge badge-sm badge-soft"><%= name %></span>
+      <% end %>
+    </div>
+    <% if private_lesson.note %>
+      <p class="text-sm italic opacity-70"><%= private_lesson.note %></p>
+    <% end %>
+  </div>
+
+  <% if editable %>
+    <div class="flex items-center">
+      <%= ui_row_edit_button edit_private_lesson_path(private_lesson), title: "Correggi" %>
+      <%= ui_row_delete_button private_lesson_path(private_lesson), title: "Cancella",
+                               confirm: "Cancellare la privata di #{private_lesson.teacher}?" %>
+    </div>
+  <% end %>
+</li>

@@ -7,7 +7,6 @@ class ProductsController < ApplicationController
   layout "modal", only: [ :new, :create, :edit, :update ]
 
   def index
-    @total_active_products = Product.kept.count
     @pagy, @products = pagy(
       Product
         .apply_filters(filter_params)
@@ -31,7 +30,7 @@ class ProductsController < ApplicationController
     @product = Product.new(product_params)
 
     if @product.save
-      turbo_refresh_or_redirect_to products_path, notice: t(".created", default: "Prodotto creato correttamente.")
+      turbo_refresh_or_redirect_to products_path, notice: "Prodotto creato correttamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -41,18 +40,15 @@ class ProductsController < ApplicationController
 
   def update
     if @product.update(product_params)
-      turbo_refresh_or_redirect_to products_path, notice: t(".updated", default: "Prodotto aggiornato.")
+      turbo_refresh_or_redirect_to products_path, notice: "Prodotto aggiornato."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    if @product.discard!
-      turbo_refresh_or_redirect_to products_path, notice: t(".discarded", default: "Prodotto archiviato.")
-    else
-      redirect_to products_path, alert: t(".error", default: "Impossibile archiviare.")
-    end
+    @product.discard!
+    turbo_refresh_or_redirect_to products_path, notice: "Prodotto archiviato."
   end
 
   private
@@ -61,14 +57,7 @@ class ProductsController < ApplicationController
     end
 
     def product_params
-      params.require(:product).permit(
-        :name,
-        :price,
-        :duration_days,
-        :accounting_category,
-        :entry_limit,
-        discipline_ids: []
-      )
+      params.expect(product: [ :name, :price, :duration_days, :accounting_category, discipline_ids: [] ])
     end
 
     def filter_params

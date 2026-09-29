@@ -18,10 +18,11 @@ class SubscriptionTest < ActiveSupport::TestCase
   test "automatically calculates dates based on sale date (Institutional Snap)" do
     # Scenario: Vendita fatta il 20 Gennaio
     sale_date = Date.new(2025, 1, 20)
+    grant_membership_to(@member, start_date: sale_date)
 
     sale = Sale.create!(
       member: @member,
-      user: users(:staff),
+      user: users(:admin),
       product: @prod_inst,
       sold_on: sale_date,
       subscription_attributes: { member: @member, product: @prod_inst }
@@ -41,62 +42,55 @@ class SubscriptionTest < ActiveSupport::TestCase
     sale_date = Date.new(2025, 1, 20)
     future_start = Date.new(2025, 2, 1) # Già primo del mese
 
-    sale = Sale.create!(
-      member: @member, product: @prod_inst, user: @staff,
-      sold_on: sale_date, payment_method: :cash
-    )
-
     sub = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: future_start
     )
 
     assert_equal Date.new(2025, 2, 1), sub.start_date
     assert_equal Date.new(2025, 2, 28), sub.end_date
 
-    assert_not sub.active?(sale_date)
-    assert sub.active?(future_start)
+    assert_not Subscription.active_at(sale_date).exists?(sub.id)
+    assert Subscription.active_at(future_start).exists?(sub.id)
   end
 
   test "scopes filter correctly" do
     today = Date.current
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: today)
 
     # 1. Scaduto
     expired = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today - 2.months, end_date: today - 1.month
     )
 
     # 2. Attivo
     active = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today.beginning_of_month, end_date: today.end_of_month
     )
 
     # 3. Futuro
     upcoming = Subscription.create!(
-      member: @member, product: @prod_inst, sales: [ sale ],
+      member: @member, product: @prod_inst,
       start_date: today + 1.month, end_date: today + 2.months
     )
 
-    assert_includes Subscription.active, active
-    assert_not_includes Subscription.active, expired
-    assert_not_includes Subscription.active, upcoming
+    assert_equal [ active ], Subscription.active_at(today).where(id: [ active, expired, upcoming ]).to_a
 
-    assert_includes Subscription.expired, expired
-    assert_includes Subscription.upcoming, upcoming
+    this_month = today.all_month
+    assert_includes Subscription.overlapping(this_month), active
+    assert_not_includes Subscription.overlapping(today..today), upcoming
+    assert_includes Subscription.overlapping(today..(today + 2.months)), upcoming
+    assert_includes Subscription.overlapping((expired.end_date)..today), expired, "i bordi contano"
+    assert_not_includes Subscription.overlapping((expired.end_date + 1)..today), expired
   end
 
   test "admin override: prevents Duration calculator from modifying explicitly provided end_dates" do
     invalid_end_date = Date.current + 50.days
 
-    sale = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current)
-
     subscription = Subscription.new(
       member: @member,
       product: @prod_inst,
-      sales: [ sale ],
       start_date: Date.current,
       end_date: invalid_end_date
     )
@@ -104,5 +98,58 @@ class SubscriptionTest < ActiveSupport::TestCase
     subscription.valid?
 
     assert_equal invalid_end_date, subscription.end_date
+  end
+
+  # --- REGOLE DI BASE ---
+
+  test "end date cannot precede start date" do
+    sub = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current - 1)
+    assert_not sub.valid?
+    assert sub.errors[:end_date].any?
+  end
+
+  test "overlapping subscriptions for the same product are rejected" do
+    Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10)
+    dup = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current + 5, end_date: Date.current + 20)
+
+    assert_not dup.valid?
+    assert_match "Già un abbonamento", dup.errors.full_messages.to_sentence
+  end
+
+  test "overlap ignores discarded subscriptions" do
+    Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10).discard!
+    assert Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10).valid?
+  end
+
+  test "negative agreed price is rejected" do
+    sub = Subscription.new(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 1, agreed_price_cents: -1)
+    assert_not sub.valid?
+  end
+
+
+  test "expiring_soon excludes future subscriptions" do
+    assert Subscription.new(start_date: Date.current - 10, end_date: Date.current + 3).expiring_soon?
+    assert_not Subscription.new(start_date: Date.current + 1, end_date: Date.current + 3).expiring_soon?
+    assert_not Subscription.new(start_date: Date.current - 10, end_date: Date.current + 30).expiring_soon?
+  end
+
+  test "amount paid ignores discarded payments whether loaded or not" do
+    sub = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10, agreed_price_cents: 5000)
+    keep = Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current, amount_cents: 1000, subscription: sub)
+    Sale.create!(member: @member, product: @prod_inst, user: @staff, sold_on: Date.current, amount_cents: 2000, subscription: sub).discard!
+
+    assert_equal 1000, sub.reload.amount_paid
+    assert_equal 1000, Subscription.includes(:sales).find(sub.id).amount_paid
+    assert_equal 4000, sub.amount_due
+    assert keep.kept?
+  end
+
+  test "editing dates cannot create an overlap" do
+    first  = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: Date.current + 10)
+    second = Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current + 11, end_date: Date.current + 20)
+
+    assert_not second.update(start_date: Date.current + 5)
+    assert_match "Già un abbonamento", second.errors.full_messages.to_sentence
+    assert first.update(end_date: Date.current + 10), "salvare senza cambiare periodo resta possibile"
   end
 end

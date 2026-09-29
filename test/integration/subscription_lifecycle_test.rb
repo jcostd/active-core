@@ -23,13 +23,8 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     last_month_end   = Date.current.prev_month.end_of_month
 
     # Creiamo il passato (Un abbonamento istituzionale perfetto)
-    Subscription.create!(
-      member: @member,
-      product: @monthly_course,
-      sales: [ Sale.create!(member: @member, user: @user, product: @monthly_course, sold_on: last_month_start) ],
-      start_date: last_month_start,
-      end_date: last_month_end
-    )
+    Sale.create!(member: @member, user: users(:admin), product: @monthly_course, sold_on: last_month_start,
+                 subscription_attributes: { start_date: last_month_start, end_date: last_month_end })
 
     # 2. AZIONE: Vendita oggi (sold_on: Today)
     # Supponiamo di essere il 10 del mese corrente.
@@ -62,6 +57,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
 
   test "The August 31st Wall (Institutional Snap)" do
     travel_to Date.new(2025, 8, 15) do
+      grant_membership_to(@member)
       sale = Sale.create!(
         member: @member, user: @user, product: @monthly_course,
         sold_on: Date.current,
@@ -76,7 +72,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
     # 1. Creiamo un utente nuovo "pulito" (senza abbonamenti)
     new_guy = Member.create!(
       first_name: "New", last_name: "Guy",
-      fiscal_code: "NWGGUY90A01H501X", birth_date: "1990-01-01"
+      fiscal_code: "NWGGUY90A01H501P", birth_date: "1990-01-01"
     )
 
     # 2. Proviamo a vendergli YOGA (Corso Istituzionale)
@@ -85,7 +81,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @monthly_course, # Yoga
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @monthly_course }
     )
 
@@ -98,7 +94,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @membership_annual, # Quota 2025
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @membership_annual }
     )
     assert membership_sale.persisted?
@@ -109,7 +105,7 @@ class SubscriptionLifecycleTest < ActiveSupport::TestCase
       member: new_guy,
       user: @user,
       product: @monthly_course,
-      sold_on: Date.today,
+      sold_on: Date.current,
       subscription_attributes: { member: new_guy, product: @monthly_course }
     )
 

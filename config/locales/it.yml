@@ -1,0 +1,96 @@
+# nomi di modelli e campi usati nei messaggi di errore
+it:
+  activerecord:
+    models:
+      attendance: Presenza
+      discipline: Disciplina
+      feedback: Segnalazione
+      gym_profile: Profilo palestra
+      member: Socio
+      private_lesson: Lezione privata
+      product: Prodotto
+      sale: Pagamento
+      subscription: Abbonamento
+      user: Utente
+    attributes:
+      attendance:
+        discipline: Disciplina
+        marked_by: Segnata da
+        member: Socio
+        month: Mese
+      discipline:
+        name: Nome
+        requires_medical_certificate: Richiede certificato medico
+        requires_membership: Richiede quota associativa
+      feedback:
+        message: Messaggio
+        page_url: Pagina
+        user: Utente
+      gym_profile:
+        address_line_1: Indirizzo
+        address_line_2: Località
+        bank_iban: IBAN
+        city: Città
+        email: Email
+        name: Denominazione
+        phone: Telefono
+        vat_number: Codice fiscale / P.IVA
+        zip_code: CAP
+      member:
+        address: Indirizzo
+        birth_date: Data di nascita
+        city: Città
+        email_address: Email
+        first_name: Nome
+        fiscal_code: Codice fiscale
+        last_name: Cognome
+        medical_certificate_expiry: Scadenza certificato medico
+        phone: Telefono
+        zip_code: CAP
+      private_lesson:
+        athletes: Atleti
+        duration_minutes: Durata
+        held_at: Inizio
+        note: Nota
+        recorded_by: Scritta da
+        teacher: Maestro
+      product:
+        accounting_category: Categoria contabile
+        disciplines: Discipline
+        duration_days: Durata (giorni)
+        name: Nome
+        price: Prezzo
+        price_cents: Prezzo
+      sale:
+        amount: Importo
+        amount_cents: Importo
+        member: Socio
+        notes: Note
+        payment_method: Metodo di pagamento
+        product: Prodotto
+        receipt_number: Numero ricevuta
+        product_name_snapshot: Prodotto venduto
+        receipt_sequence: Registro ricevute
+        receipt_year: Anno ricevuta
+        sold_on: Data contabile
+        subscription: Abbonamento
+        user: Operatore
+      sale/subscription:
+        base: Abbonamento
+        end_date: Scadenza abbonamento
+        start_date: Decorrenza abbonamento
+      subscription:
+        agreed_price: Prezzo concordato
+        agreed_price_cents: Prezzo concordato
+        end_date: Scadenza
+        member: Socio
+        product: Prodotto
+        start_date: Decorrenza
+      user:
+        first_name: Nome
+        last_name: Cognome
+        password: Password
+        password_confirmation: Conferma password
+        role: Ruolo
+        theme: Tema
+        username: Username

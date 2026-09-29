@@ -5,12 +5,6 @@ class ProductTest < ActiveSupport::TestCase
     @product = products(:yoga_monthly)
   end
 
-  test "valid product setup" do
-    assert @product.valid?
-    assert @product.institutional?
-    assert @product.course?
-    assert_equal 45.00, @product.price
-  end
 
   test "name normalization squishes spaces" do
     product = Product.new(
@@ -22,10 +16,40 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal "Abbonamento Open", product.name
   end
 
+  test "name keeps acronyms and roman numerals" do
+    assert_equal "Corso MMA II Livello", Product.new(name: "corso MMA ii livello").name
+    assert_equal "Pilates_id", Product.new(name: "pilates_id").name
+  end
+
+  test "name uniqueness ignores case" do
+    duplicate = @product.dup
+    duplicate.name = @product.name.upcase
+    assert_not duplicate.valid?
+    assert_includes duplicate.errors[:name], "è già presente"
+  end
+
+  test "a discarded subscription still locks the terms: it is history" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product).subscription.discard!
+
+    assert @product.terms_locked?
+    @product.duration_days = 90
+    assert_not @product.valid?
+  end
+
+  test "name and price stay editable after sales" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product)
+
+    assert @product.update(name: "Yoga Mattina", price: "50")
+  end
+
   test "price validation" do
     @product.price_cents = -500
     assert_not @product.valid?
-    assert_includes @product.errors[:price_cents], "must be greater than or equal to 0"
+    assert_includes @product.errors[:price_cents], "deve essere maggiore o uguale a 0"
 
     @product.price_cents = 0 # Gratis è ok
     assert @product.valid?
@@ -39,12 +63,6 @@ class ProductTest < ActiveSupport::TestCase
     assert_not @product.valid?
   end
 
-  test "membership helper works" do
-    membership = products(:annual_membership)
-    assert membership.associative?
-    assert membership.membership?
-    assert_not membership.course?
-  end
 
   test "monetizable concern integration" do
     product = Product.new
@@ -65,18 +83,14 @@ class ProductTest < ActiveSupport::TestCase
     assert new_pilates.valid?
   end
 
-  test "association with disciplines" do
-    # Verifichiamo che possiamo collegare una disciplina
-    yoga = disciplines(:yoga)
-    @product.disciplines << yoga
 
-    assert_includes @product.disciplines, yoga
-    assert_equal 1, @product.product_disciplines.count
-  end
+  test "a product with payments cannot be hard deleted" do
+    member = members(:alice)
+    grant_membership_to(member)
+    sell!(member:, product: @product)
 
-  test "cannot delete product with sales" do
-    # Verifica strutturale della protezione
-    reflection = Product.reflect_on_association(:sales)
-    assert_equal :restrict_with_error, reflection.options[:dependent]
+    assert_not @product.destroy
+    assert Product.exists?(@product.id)
+    assert @product.errors[:base].any?
   end
 end

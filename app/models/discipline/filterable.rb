@@ -1,32 +1,22 @@
 module Discipline::Filterable
   extend ActiveSupport::Concern
 
+  SORTS = {
+    "name_asc"     => { name: :asc },
+    "name_desc"    => { name: :desc },
+    "created_desc" => { created_at: :desc },
+    "created_asc"  => { created_at: :asc }
+  }.freeze
+
   included do
-    scope :search_text, ->(query) {
-      return all if query.blank?
+    include Sortable
 
-      where("disciplines.name LIKE :q", q: "%#{query}%")
-    }
-
-    scope :sorted_by, ->(param, has_query = false) {
-      case param
-      when "name_asc"     then order(disciplines: { name: :asc })
-      when "name_desc"    then order(disciplines: { name: :desc })
-      when "created_asc"  then order(disciplines: { created_at: :asc })
-      when "created_desc" then order(disciplines: { created_at: :desc })
-      else
-        has_query ? all : order(disciplines: { name: :asc })
-      end
-    }
+    scope :search_text, ->(query) { where("disciplines.name LIKE ?", "%#{sanitize_sql_like(query)}%") if query.present? }
   end
 
   class_methods do
     def apply_filters(params = {})
-      scope = kept
-
-      scope = scope.search_text(params[:query]) if params[:query].present?
-
-      scope.sorted_by(params[:sort], params[:query].present?)
+      kept.search_text(params[:query]).sorted_by(params[:sort])
     end
   end
 end

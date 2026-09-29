@@ -11,12 +11,13 @@ class FiscalLockableTest < ActiveSupport::TestCase
       member: @member,
       user: @user,
       product: @product,
-      sold_on: Date.today,
+      sold_on: Date.current,
       payment_method: :cash,
       amount_cents: 1000,
       receipt_number: 100,
       receipt_year: 2024,
-      receipt_sequence: "A"
+      receipt_sequence: "A",
+      subscription_attributes: {}
     )
   end
 
@@ -54,8 +55,9 @@ class FiscalLockableTest < ActiveSupport::TestCase
       member: @member,
       user: @user,
       product: @product,
-      sold_on: Date.today,
-      payment_method: :credit_card # Assumiamo che CC non generi subito numero o sia nil
+      sold_on: Date.current,
+      payment_method: :credit_card, # Assumiamo che CC non generi subito numero o sia nil
+      subscription_attributes: {}
     )
 
     # Simuliamo che diventi contanti o assegnazione manuale

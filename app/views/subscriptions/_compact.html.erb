@@ -1,31 +1,32 @@
 <%# locals: (subscription:) %>
-<% status = subscription.status %>
+<% due = !subscription.fully_paid? %>
 
-<div class="badge border-none badge-soft gap-1.5 font-semibold text-xs tracking-wide <%= subscription_badge_color(status.key) %>">
+<div class="badge badge-soft gap-1.5 font-semibold <%= due ? SubscriptionsHelper::SUBSCRIPTION_PAYMENT_STYLES.fetch(subscription.payment_status) : subscription_status_style(subscription)[:badge] %>"
+     title="<%= [ subscription.status_label, (subscription.payment_status_label if due) ].compact.join(" · ") %>">
 
   <span class="truncate max-w-[120px]" title="<%= subscription.product.name %>">
     <%= subscription.product.name %>
   </span>
 
   <span class="flex items-center gap-1 opacity-90">
-    <% if status.key == :pending_payment %>
-      -<%= format_cents(subscription.agreed_price_cents - subscription.amount_paid) %>
-    <% elsif subscription.respond_to?(:days_left) && subscription.days_left.present? %>
+    <% if due %>
+      -<%= format_cents(subscription.amount_due) %>
+    <% elsif subscription.days_left %>
       <%= subscription.days_left %>gg
     <% else %>
       <%= format_date(subscription.end_date, format: :short) %>
     <% end %>
   </span>
 
-  <% if status.key == :pending_payment %>
+  <% if due %>
     <%= link_to new_sale_path(member_id: subscription.member_id, installment_for_subscription_id: subscription.id),
                 class: "ml-0.5 p-0.5 -mr-1.5 rounded-full hover:bg-current/20 text-current transition-colors focus:outline-none focus:ring-1 focus:ring-current",
                 data: { turbo_frame: "modal" }, title: "Incassa Rata" do %>
       <%= icon("payments", classes: "size-4") %>
     <% end %>
 
-  <% elsif [:expired, :expiring_soon].include?(status.key) %>
-    <%= link_to new_sale_path(member_id: subscription.member_id, renew_subscription_id: subscription.id),
+  <% elsif subscription.status.in?(%i[expired expiring_soon]) %>
+    <%= link_to renew_sale_path(subscription),
                 class: "ml-0.5 p-0.5 -mr-1.5 rounded-full hover:bg-current/20 text-current transition-colors focus:outline-none focus:ring-1 focus:ring-current",
                 data: { turbo_frame: "modal" }, title: "Rinnova al volo" do %>
       <%= icon("reset", classes: "size-4") %>

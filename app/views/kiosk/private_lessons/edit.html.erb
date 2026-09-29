@@ -1,0 +1,5 @@
+<%= render "kiosk/header", back: kiosk_private_lessons_path, back_title: "Lezioni private", title: "Correggi privata" %>
+
+<div class="w-full max-w-2xl mx-auto">
+  <%= render "private_lessons/form", private_lesson: @private_lesson, model: [ :kiosk, @private_lesson ] %>
+</div>

@@ -1,76 +1,76 @@
 module Member::Filterable
   extend ActiveSupport::Concern
 
+  SORTS = {
+    "updated_desc" => { updated_at: :desc },
+    "name_asc"     => { last_name: :asc, first_name: :asc },
+    "name_desc"    => { last_name: :desc, first_name: :desc },
+    "created_desc" => { created_at: :desc },
+    "created_asc"  => { created_at: :asc }
+  }.freeze
+
   included do
+    include Sortable
+
+    # contano solo le quote associative non annullate: i corsi non tesserano
     scope :with_active_membership, -> {
-      joins(:subscriptions)
-        .merge(Subscription.truly_active.joins(:product).merge(Product.associative))
-        .distinct
+      where(id: Subscription.memberships.active_at(Date.current).select(:member_id))
     }
 
-    scope :without_active_membership, -> {
-      where.not(id: with_active_membership.select("members.id"))
-    }
-
-    scope :with_active_subscription_for, ->(discipline) {
-      joins(subscriptions: { product: :disciplines })
-        .where(disciplines: { id: discipline.id })
-        .where("subscriptions.start_date <= :today AND subscriptions.end_date >= :today", today: Date.current)
-        .where(subscriptions: { discarded_at: nil })
-        .distinct
-    }
-
-    scope :without_recent_checkin_for, ->(discipline) {
-      where.not(id: AccessLog.where(discipline: discipline).recent_for_kiosk.select(:member_id))
+    scope :with_expired_membership, -> {
+      where(id: Subscription.memberships.kept.select(:member_id)).where.not(id: with_active_membership.select(:id))
     }
 
     scope :without_any_membership, -> {
-      where.missing(:subscriptions)
+      where.not(id: Subscription.memberships.kept.select(:member_id))
     }
 
-    scope :with_valid_med_cert, -> {
-      where(members: { medical_certificate_expiry: Date.current.. })
+    scope :by_membership, ->(status) {
+      case status
+      when "active"  then with_active_membership
+      when "expired" then with_expired_membership
+      when "missing" then without_any_membership
+      end
     }
 
-    scope :with_expired_med_cert, -> {
-      where(members: { medical_certificate_expiry: ...Date.current })
+    scope :with_valid_med_cert,   -> { where(members: { medical_certificate_expiry: Date.current.. }) }
+    scope :with_expired_med_cert, -> { where(members: { medical_certificate_expiry: ...Date.current }) }
+    scope :without_med_cert,      -> { where(members: { medical_certificate_expiry: nil }) }
+
+    scope :by_med_cert, ->(status) {
+      case status
+      when "valid"   then with_valid_med_cert
+      when "expired" then with_expired_med_cert
+      when "missing" then without_med_cert
+      end
     }
 
-    scope :without_med_cert, -> {
-      where(members: { medical_certificate_expiry: nil })
+    # iscritti a una disciplina in un periodo: un abbonamento non annullato che lo tocca (pagina Iscritti e kiosk)
+    scope :enrolled_in, ->(discipline, during:, product_id: nil) {
+      enrollments = Subscription.kept.for_discipline(discipline).overlapping(during)
+      enrollments = enrollments.where(product_id:) if product_id.present?
+      where(id: enrollments.select(:member_id))
     }
 
-    scope :sorted_by, ->(param) {
-      case param
-      when "name_asc"     then order(members: { last_name: :asc, first_name: :asc })
-      when "name_desc"    then order(members: { last_name: :desc, first_name: :desc })
-      when "created_asc"  then order(members: { created_at: :asc })
-      when "created_desc" then order(members: { created_at: :desc })
-      else                     order(members: { updated_at: :desc })
+    # nel registro della disciplina in quel mese
+    scope :attended, ->(discipline, month) {
+      where(id: Attendance.where(discipline:).in_month(month).select(:member_id))
+    }
+
+    scope :by_attendance, ->(discipline, month, seen) {
+      case seen
+      when "yes" then attended(discipline, month)
+      when "no"  then where.not(id: attended(discipline, month).select(:id))
       end
     }
   end
 
   class_methods do
     def apply_filters(params = {})
-      scope = kept
-      scope = scope.search_text(params[:query]) if params[:query].present?
-
-      scope = case params[:membership_status]
-      when "active"  then scope.with_active_membership
-      when "expired" then scope.without_active_membership
-      when "missing" then scope.without_any_membership
-      else scope
-      end
-
-      scope = case params[:med_cert]
-      when "valid"   then scope.with_valid_med_cert
-      when "expired" then scope.with_expired_med_cert
-      when "missing" then scope.without_med_cert
-      else scope
-      end
-
-      scope.sorted_by(params[:sort])
+      kept.search_text(params[:query])
+          .by_membership(params[:membership_status])
+          .by_med_cert(params[:med_cert])
+          .sorted_by(params[:sort])
     end
   end
 end
