@@ -1,12 +1,8 @@
 source "https://rubygems.org"
 
 # Per Rails edge: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.4" # dalla 8.1.4 compatibile con json 3
 gem "rails-i18n", "~> 8.1"
-
-# Bloccata sotto la 3.0: json 3.x accetta solo argomenti keyword in JSON.parse
-# e rompe ActiveSupport::JSON.decode di activesupport 8.1.3.1.
-gem "json", "< 3"
 
 # Asset pipeline di Rails [https://github.com/rails/propshaft]
 gem "propshaft"
@@ -50,7 +46,6 @@ gem "kamal", require: false
 
 # Cache/compressione HTTP degli asset e X-Sendfile per Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
-
 
 group :development, :test do
   # Vedi https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
