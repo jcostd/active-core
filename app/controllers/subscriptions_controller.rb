@@ -13,7 +13,7 @@ class SubscriptionsController < ApplicationController
 
   def update
     if @subscription.update(subscription_params)
-      redirect_to [ @subscription.member, :subscriptions ], notice: "Abbonamento aggiornato con successo."
+      turbo_refresh_or_redirect_to [ @subscription.member, :subscriptions ], notice: "Abbonamento aggiornato con successo."
     else
       render :edit, status: :unprocessable_entity
     end

@@ -616,6 +616,32 @@ class SaleTest < ActiveSupport::TestCase
     assert later.valid?, later.errors.full_messages.to_sentence
   end
 
+  test "staff cannot start past the next sport year" do
+    latest = SportYear.current.next.end_date
+
+    last_day = Sale.new(default_sale_params.deep_merge(subscription_attributes: { start_date: latest }))
+    assert last_day.valid?, last_day.errors.full_messages.to_sentence
+
+    typo = Sale.new(default_sale_params.deep_merge(subscription_attributes: { start_date: latest + 1 }))
+    assert_not typo.valid?
+    assert_includes typo.errors.full_messages, "Abbonamento può iniziare al più tardi il #{I18n.l(latest)}"
+  end
+
+  test "the POS proposal is always allowed to staff, even past the next sport year" do
+    beyond = SportYear.current.next.end_date + 1
+    Subscription.create!(member: @member, product: @prod_inst, start_date: Date.current, end_date: beyond - 1)
+
+    sale = Sale.new(default_sale_params)
+    assert sale.valid?, sale.errors.full_messages.to_sentence
+    assert_operator sale.subscription.start_date, :>=, beyond
+  end
+
+  test "admin can start past the next sport year" do
+    start = SportYear.current.next.end_date + 1
+    sale = Sale.new(default_sale_params.merge(user: users(:admin)).deep_merge(subscription_attributes: { start_date: start }))
+    assert_not_includes sale.tap(&:valid?).errors.full_messages.join, "al più tardi"
+  end
+
   test "admin can start earlier than proposed" do
     proposed = @member.next_period_for(@prod_inst).start_date
     sale = Sale.new(default_sale_params.merge(user: users(:admin)).deep_merge(subscription_attributes: { start_date: proposed - 40 }))

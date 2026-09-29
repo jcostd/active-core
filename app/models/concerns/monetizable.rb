@@ -5,8 +5,16 @@ module Monetizable
   # 1.200,50  1,200.50  12,5  12.50  € 45  (migliaia solo a gruppi di tre cifre)
   AMOUNT = /\A(?<sign>-)?(?<units>\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,](?<decimals>\d{1,2}))?\z/
 
+  # oltre i dieci milioni di euro è un errore di battitura (e non entrerebbe nella colonna)
+  MAX_CENTS = 999_999_999
+
   # centesimi, oppure nil se il testo non è un importo
   def self.cents(value)
+    cents = parse(value)
+    cents if cents && cents.abs <= MAX_CENTS
+  end
+
+  def self.parse(value)
     return (BigDecimal(value.to_s) * 100).round.to_i if value.is_a?(Numeric)
 
     match = AMOUNT.match(value.to_s.delete(" €"))
@@ -14,6 +22,7 @@ module Monetizable
 
     (BigDecimal("#{match[:sign]}#{match[:units].delete(".,")}.#{match[:decimals] || 0}") * 100).round.to_i
   end
+  private_class_method :parse
 
   included do
     validate :monetized_values_parse

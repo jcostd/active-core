@@ -30,6 +30,20 @@ class SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal products(:yoga_monthly).price_cents, @sub.reload.agreed_price_cents
   end
 
+  test "an absurd agreed price re-renders instead of crashing" do
+    patch subscription_path(@sub), params: { subscription: { agreed_price: "99999999999999999999" } }
+
+    assert_response :unprocessable_entity
+    assert_equal products(:yoga_monthly).price_cents, @sub.reload.agreed_price_cents
+  end
+
+  test "saving from the modal refreshes the page under it" do
+    patch subscription_path(@sub), params: { subscription: { end_date: (@sub.end_date + 5).iso8601 } }, as: :turbo_stream
+
+    assert_turbo_stream action: :refresh
+    assert_equal "Abbonamento aggiornato con successo.", flash[:notice]
+  end
+
   test "raw cents are not accepted from the edit form" do
     patch subscription_path(@sub), params: { subscription: { agreed_price_cents: 1 } }
     assert_equal products(:yoga_monthly).price_cents, @sub.reload.agreed_price_cents

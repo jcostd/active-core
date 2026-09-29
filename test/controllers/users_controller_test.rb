@@ -141,6 +141,38 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert users(:kiosk).reload.authenticate("ipadsala")
   end
 
+  test "a new kiosk password logs out whoever entered with the old one" do
+    ipad = users(:kiosk).sessions.create!
+    sign_in_as(@admin)
+
+    patch user_path(users(:kiosk)), params: { user: { password: "ipadsala", password_confirmation: "ipadsala" } }
+
+    assert_not Session.exists?(ipad.id)
+    assert Session.exists?(Current.session.id)
+  end
+
+  test "changing one's own password keeps this session and closes the others" do
+    elsewhere = @staff.sessions.create!
+    sign_in_as(@staff)
+    here = Current.session
+
+    patch user_path(@staff), params: { user: { password: "nuovapass", password_confirmation: "nuovapass" } }
+
+    assert_not Session.exists?(elsewhere.id)
+    assert Session.exists?(here.id)
+    get user_path(@staff)
+    assert_response :success
+  end
+
+  test "editing without a new password keeps every session" do
+    elsewhere = @staff.sessions.create!
+    sign_in_as(@staff)
+
+    patch user_path(@staff), params: { user: { first_name: "Gino", password: "", password_confirmation: "" } }
+
+    assert Session.exists?(elsewhere.id)
+  end
+
   test "admin can edit another user role" do
     sign_in_as(@admin)
 

@@ -7,7 +7,7 @@ class Sale::FilterableTest < ActiveSupport::TestCase
     grant_membership_to(@alice)
     Sale.delete_all
 
-    @cash  = sell!(member: @alice, product: products(:annual_membership), start_date: 10.years.from_now.to_date)
+    @cash  = sell!(member: @alice, product: products(:annual_membership))
     @card  = sell!(member: @alice, product: products(:yoga_monthly), payment_method: :credit_card, user: users(:staff_two))
     @old   = sell!(member: @alice, product: products(:yoga_monthly), user: users(:admin), sold_on: 2.months.ago.to_date, start_date: 2.months.ago.to_date)
   end

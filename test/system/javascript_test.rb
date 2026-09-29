@@ -172,6 +172,28 @@ class JavascriptTest < ApplicationSystemTestCase
     assert_current_path members_path
   end
 
+  test "saving a subscription from the modal closes it and says so" do
+    subscription = sell!(member: members(:alice), product: products(:annual_membership)).subscription
+    visit member_subscriptions_path(members(:alice))
+    find("a[href='#{edit_subscription_path(subscription)}']").click
+    assert_selector "dialog[open]"
+
+    within("dialog[open]") do
+      fill_in "subscription[end_date]", with: (subscription.end_date - 1).iso8601
+      click_on "Salva"
+    end
+
+    assert_no_selector "dialog[open]"
+    assert_text "Abbonamento aggiornato con successo."
+    assert_equal subscription.end_date - 1, subscription.reload.end_date
+  end
+
+  # la CSP deve lasciar passare il websocket di Action Cable, o gli aggiornamenti live si fermano in silenzio
+  test "live updates connect to the server" do
+    visit products_path
+    assert_selector "turbo-cable-stream-source[connected]", visible: :all
+  end
+
   private
     # come un broadcast_refresh ricevuto da Solid Cable
     def refresh_from_server

@@ -7,6 +7,7 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   before_discard :keep_kiosk
   after_discard :terminate_all_sessions
+  after_update :terminate_other_sessions, if: :saved_change_to_password_digest?
 
   has_many :sales, dependent: :restrict_with_error
   has_many :feedbacks, dependent: :restrict_with_error
@@ -54,5 +55,10 @@ class User < ApplicationRecord
 
     def terminate_all_sessions
       sessions.delete_all
+    end
+
+    # password nuova: fuori chi entrava con la vecchia (anche l'iPad), resta solo chi l'ha cambiata
+    def terminate_other_sessions
+      sessions.where.not(id: Current.session).delete_all
     end
 end

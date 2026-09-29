@@ -12,7 +12,7 @@ Rails.application.configure do
     policy.img_src         :self, :data
     policy.script_src      :self
     policy.style_src       :self, :unsafe_inline # colori degli avatar inline
-    policy.connect_src     :self, :ws, :wss      # action cable
+    policy.connect_src     :self                 # vale anche per il websocket di action cable sullo stesso host
   end
 
   # per richiesta: prima del login l'id di sessione è vuoto; Turbo ignora il nonce nel confronto degli asset

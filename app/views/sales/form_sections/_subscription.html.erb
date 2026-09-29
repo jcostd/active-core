@@ -18,8 +18,8 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
         <div>
           <%= sub_f.label :start_date, "Decorrenza (modificabile)" %>
-          <%= sub_f.date_field :start_date, data: { action: "change->autosubmit#submit" },
-                min: (sale.member.next_period_for(sale.product).start_date unless current_user.admin? || sale.member.nil? || sale.product.nil?) %>
+          <% range = sale.staff_start_range unless current_user.admin? %>
+          <%= sub_f.date_field :start_date, data: { action: "change->autosubmit#submit" }, min: range&.begin, max: range&.end %>
         </div>
         <div>
           <% if current_user.admin? %>

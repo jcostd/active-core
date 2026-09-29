@@ -15,10 +15,6 @@ class Member < ApplicationRecord
   has_many :attendances,   dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 
-  has_many :recent_sales,
-           -> { order(sales: { created_at: :desc }).limit(5) },
-           class_name: "Sale"
-
   validates :birth_date, presence: true
   validates :fiscal_code,
             presence: { message: "non può essere lasciato in bianco: inseriscilo o spunta \"CF da completare\"" },

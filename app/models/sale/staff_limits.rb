@@ -6,6 +6,15 @@ module Sale::StaffLimits
     validate :staff_accounting_date, :staff_start_date, :staff_free_sale, on: :create, if: :staff_sale?
   end
 
+  # inizio solo in avanti rispetto alla proposta del POS, e non oltre l'anno sportivo successivo
+  # (la proposta vale sempre, anche se il socio ha già pagato più avanti)
+  def staff_start_range
+    return unless member && product
+
+    earliest = member.next_period_for(product).start_date
+    earliest..[ SportYear.current.next.end_date, earliest ].max
+  end
+
   private
     def staff_sale?
       user && !user.admin?
@@ -15,12 +24,14 @@ module Sale::StaffLimits
       errors.add(:sold_on, "può essere modificata solo da un amministratore") if sold_on != Date.current
     end
 
-    # inizio solo in avanti rispetto alla proposta del POS
     def staff_start_date
-      return unless subscription&.new_record? && subscription.start_date && member && product
+      return unless subscription&.new_record? && subscription.start_date && (range = staff_start_range)
 
-      earliest = member.next_period_for(product).start_date
-      errors.add(:subscription, "può iniziare al più presto il #{I18n.l(earliest)}") if subscription.start_date < earliest
+      if subscription.start_date < range.begin
+        errors.add(:subscription, "può iniziare al più presto il #{I18n.l(range.begin)}")
+      elsif subscription.start_date > range.end
+        errors.add(:subscription, "può iniziare al più tardi il #{I18n.l(range.end)}")
+      end
     end
 
     # i prodotti gratuiti sì, quelli a pagamento no

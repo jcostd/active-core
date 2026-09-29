@@ -313,7 +313,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
 
   # --- DATE PER LO STAFF ---
 
-  test "staff form has a locked accounting date and a minimum start" do
+  test "staff form has a locked accounting date and a start range" do
     sign_in_as(@staff)
     alice = members(:alice)
     grant_membership_to(alice)
@@ -321,6 +321,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     get new_sale_path(sale: { member_id: alice.id, product_id: @course.id })
     assert_select "input[name='sale[sold_on]'][readonly]"
     assert_select "input[name='sale[subscription_attributes][start_date]'][min='#{alice.next_period_for(@course).start_date.iso8601}']"
+    assert_select "input[name='sale[subscription_attributes][start_date]'][max='#{SportYear.current.next.end_date.iso8601}']"
   end
 
   test "admin form keeps dates editable" do
@@ -328,6 +329,7 @@ class SalesControllerTest < ActionDispatch::IntegrationTest
     get new_sale_path(sale: { member_id: @member.id, product_id: @course.id })
     assert_select "input[name='sale[sold_on]'][readonly]", count: 0
     assert_select "input[name='sale[subscription_attributes][start_date]'][min]", count: 0
+    assert_select "input[name='sale[subscription_attributes][start_date]'][max]", count: 0
   end
 
   test "staff posted accounting date is ignored" do

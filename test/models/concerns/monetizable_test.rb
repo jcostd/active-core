@@ -94,6 +94,21 @@ class MonetizableTest < ActiveSupport::TestCase
     end
   end
 
+  test "absurd amounts are not amounts" do
+    assert_equal 999_999_999, Monetizable.cents("9.999.999,99")
+    [ "10.000.000", "99999999999999999999", 1e20, "-99999999999" ].each do |input|
+      assert_nil Monetizable.cents(input), input
+    end
+  end
+
+  test "an absurd price is a validation error, not a crash" do
+    product = products(:yoga_monthly)
+    product.price = "99999999999999999999"
+
+    assert_not product.save
+    assert_includes product.errors.full_messages, "Prezzo non è un importo valido"
+  end
+
   test "two decimals after a single separator are always cents" do
     assert_equal 120, Monetizable.cents("1.20")
     assert_equal 120, Monetizable.cents("1,20")

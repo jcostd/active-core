@@ -1,5 +1,4 @@
 # bin/bundler-audit controlla le gem del Gemfile per vulnerabilità note.
 # Le CVE non pertinenti vanno nella lista ignore qui sotto.
 
-ignore:
-  - CVE-THAT-DOES-NOT-APPLY
+ignore: []
