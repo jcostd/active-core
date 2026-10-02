@@ -22,7 +22,7 @@
           <div class="flex items-center justify-between text-xs">
             <span class="flex items-center gap-1.5">
               <%= payment_method_icon(sale.payment_method, classes: "size-3") %> <%= format_date(sale.sold_on) %>
-              <%= link_to sale.receipt_code, sale, class: "link link-hover text-primary", data: { turbo_frame: "_top" } if sale.receipt_code %>
+              <%= link_to sale.receipt_code || "Riepilogo", sale, class: "link link-hover text-primary", data: { turbo_frame: "_top" } %>
             </span>
             <span class="font-mono"><%= format_money(sale.amount) %></span>
           </div>

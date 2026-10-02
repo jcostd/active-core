@@ -21,6 +21,20 @@ class Members::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#{row}.grayscale", count: 0
   end
 
+  test "staff reach the printable summary of a payment without a receipt number" do
+    sale = sell!(member: @member, product: products(:yoga_monthly), amount: 10, payment_method: "credit_card")
+    assert_nil sale.receipt_code
+
+    get member_subscriptions_path(@member)
+    assert_select "##{ActionView::RecordIdentifier.dom_id(sale.subscription)} a[href='#{sale_path(sale)}']", text: "Riepilogo"
+
+    get sale_path(sale)
+    assert_select "a[href='#{sale_path(sale, format: :pdf)}']"
+
+    get sale_path(sale, format: :pdf)
+    assert_equal "application/pdf", response.media_type
+  end
+
   test "an expired subscription is greyed out and offers the renewal until renewed" do
     @sub.update_columns(start_date: Date.current - 60, end_date: Date.current - 30)
     renew = "#{row} a[href='#{renew_sale_path(@sub)}']"
